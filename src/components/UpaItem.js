@@ -11,14 +11,11 @@ function UpaItem({ upa, onSelectUpa }) {
       <p><strong>Médica(o):</strong> {doctorOnDuty}</p>
       <p><strong>Tempo médio:</strong> {averageWaitTime}</p>
       
-      <div className="faixas-section">
-        <strong>Faixas:</strong>
-        <div className="faixas-grid">
-          <span className="badge blue">{queueDetail.blue}</span>
-          <span className="badge green">{queueDetail.green}</span>
-          <span className="badge yellow">{queueDetail.yellow}</span>
-          <span className="badge red">{queueDetail.red}</span>
-        </div>
+      <div className="faixas-grid">
+        <span className="badge blue" title="Azul">{queueDetail.blue}</span>
+        <span className="badge green" title="Verde">{queueDetail.green}</span>
+        <span className="badge yellow" title="Amarela">{queueDetail.yellow}</span>
+        <span className="badge red" title="Vermelha">{queueDetail.red}</span>
       </div>
       
       <p style={{ marginTop: '8px' }}>

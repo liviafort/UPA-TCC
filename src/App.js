@@ -9,14 +9,9 @@ const MOCK_UPAS = [
     id: 1,
     name: 'UPA Dinamérica',
     address: 'Rua Exemplo, 123 - Dinamérica, Campina Grande - PB',
-    queueDetail: {
-      blue: 2,
-      green: 5,
-      yellow: 10,
-      red: 3,
-    },
-    lat: -7.2424,
-    lng: -35.9035,
+    queueDetail: { blue: 2, green: 5, yellow: 10, red: 3 },
+    lat: -7.245232,
+    lng: -35.9114377,
     doctorOnDuty: 'Dra. Maria Souza',
     averageWaitTime: '35 min',
   },
@@ -24,32 +19,12 @@ const MOCK_UPAS = [
     id: 2,
     name: 'UPA Alto Branco',
     address: 'Avenida Principal, 999 - Alto Branco, Campina Grande - PB',
-    queueDetail: {
-      blue: 0,
-      green: 3,
-      yellow: 2,
-      red: 0,
-    },
-    lat: -7.2191,
-    lng: -35.8818,
+    queueDetail: { blue: 0, green: 3, yellow: 2, red: 0 },
+    lat: -7.1998982,
+    lng: -35.8773173,
     doctorOnDuty: 'Dr. João Silva',
     averageWaitTime: '20 min',
-  },
-  {
-    id: 3,
-    name: 'UPA Bodocongó',
-    address: 'Travessa da Saúde, 45 - Bodocongó, Campina Grande - PB',
-    queueDetail: {
-      blue: 1,
-      green: 2,
-      yellow: 6,
-      red: 11,
-    },
-    lat: -7.2178,
-    lng: -35.9299,
-    doctorOnDuty: 'Dra. Aline Vieira',
-    averageWaitTime: '40 min',
-  },
+  }
 ];
 
 function App() {
@@ -62,12 +37,15 @@ function App() {
   };
 
   const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
+    setSidebarOpen(prev => !prev);
   };
 
   return (
     <div className="app-wrapper">
       <Header onToggleSidebar={toggleSidebar} />
+      <div className="notification-banner">
+        Se você estiver em situação de emergência, procure a agência mais próxima. Você é prioridade!
+      </div>
       <div className="main-content">
         <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
           <SidePanel upas={upas} onSelectUpa={handleSelectUpa} />

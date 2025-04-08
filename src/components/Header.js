@@ -10,11 +10,6 @@ function Header({ onToggleSidebar }) {
         </button>
         <h1 className="header-title">Veja + Saúde</h1>
       </div>
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Buscar unidade..."
-      />
     </header>
   );
 }

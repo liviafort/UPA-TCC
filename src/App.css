@@ -12,7 +12,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
   width: 100%;
-  z-index: 100;
+  z-index: 200;
   top: 0;
   left: 0;
   display: flex;
@@ -50,11 +50,24 @@
   border-color: #007bff;
 }
 
+/* ===== BANNER DE AVISO ===== */
+.notification-banner {
+  background-color: #ff6061;
+  color: #333;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: bold;
+  margin-top: 60px; /* logo abaixo do header */
+}
+
 /* ===== MAIN CONTENT ===== */
 .main-content {
   display: flex;
-  height: calc(100vh - 60px); /* Considera a altura do header */
-  margin-top: 60px;
+  flex: 1;
+  width: 100%;
+  background: #fff;
+  /* A altura é controlada pelo flex, ocupando o espaço restante */
 }
 
 /* ===== SIDEBAR ===== */
@@ -64,17 +77,16 @@
   padding: 20px;
   overflow-y: auto;
   border-right: 1px solid #ddd;
-  transition: transform 0.3s ease;
 }
+
+.sidebar.sidebar-closed {
+  display: none; /* Removemos completamente o espaço ocupado */
+}
+
 .sidebar h2 {
   margin-top: 0;
   margin-bottom: 20px;
   color: #007bff;
-}
-
-/* Controla a sidebar para mobile */
-.sidebar-closed {
-  transform: translateX(-340px); /* Esconde a sidebar */
 }
 
 /* ===== ITENS DA UPA (CARDS) ===== */
@@ -85,51 +97,50 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
 .upa-item:hover {
   background: #f1f3f4;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .upa-item h3 {
   margin: 0 0 5px;
   font-size: 1.1em;
   color: #333;
 }
+
 .upa-item p {
   margin: 4px 0;
   color: #555;
   line-height: 1.4;
 }
 
-/* ===== BADGES ===== */
+/* ===== BADGES (FAIXAS) ===== */
 .badge {
-  padding: 3px 6px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
   color: #fff;
-  margin-left: 5px;
-  font-weight: 500;
+  margin-right: 8px;
 }
+
 .badge.blue { background: #007bff; }
 .badge.green { background: #28a745; }
 .badge.yellow { background: #ffc107; color: #333; }
 .badge.red { background: #dc3545; }
 
-/* ===== FAIXAS (GRADE) ===== */
-.faixas-section {
-  margin-top: 8px;
-}
+/* ===== GRID DAS FAIXAS ===== */
 .faixas-grid {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 4px 12px; 
-  /* 4px nas linhas, 12px nas colunas */
-  align-items: center;
-  margin-top: 6px;
-}
-.faixa-label {
-  font-weight: 500;
-  color: #555;
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 /* ===== ÁREA DO MAPA ===== */
@@ -137,7 +148,10 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  background: #fff;
 }
+
 .leaflet-container {
   width: 100%;
   height: 100%;
@@ -148,21 +162,24 @@
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
+
 .leaflet-popup-content {
   margin: 0;
   font-size: 0.9em;
+  line-height: 1.4;
 }
 
-/* Popup Título */
 .popup-title {
   margin-top: 0;
   font-size: 1rem;
   color: #333;
   margin-bottom: 6px;
 }
+
 .popup-row {
   margin: 4px 0;
 }
+
 .popup-row strong {
   color: #333;
 }
@@ -178,18 +195,7 @@
   margin-top: 8px;
   transition: 0.2s ease;
 }
+
 .route-button:hover {
   background: #0056b3;
-}
-
-/* ===== RESPONSIVIDADE ===== */
-@media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    top: 60px; 
-    left: 0;
-    bottom: 0;
-    z-index: 1000;
-    width: 320px;
-  }
 }
