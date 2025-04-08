@@ -1,38 +1,195 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* ===== LAYOUT GLOBAL ===== */
+.app-wrapper {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  background: #fff;
+  padding: 10px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  width: 100%;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-between;
 }
 
-.App-link {
-  color: #61dafb;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+.menu-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.header-title {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+}
+
+.search-input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.search-input:focus {
+  border-color: #007bff;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  display: flex;
+  height: calc(100vh - 60px); /* Considera a altura do header */
+  margin-top: 60px;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 320px;
+  background: #fff;
+  padding: 20px;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+  transition: transform 0.3s ease;
+}
+.sidebar h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #007bff;
+}
+
+/* Controla a sidebar para mobile */
+.sidebar-closed {
+  transform: translateX(-340px); /* Esconde a sidebar */
+}
+
+/* ===== ITENS DA UPA (CARDS) ===== */
+.upa-item {
+  background: #fafafa;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.upa-item:hover {
+  background: #f1f3f4;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.upa-item h3 {
+  margin: 0 0 5px;
+  font-size: 1.1em;
+  color: #333;
+}
+.upa-item p {
+  margin: 4px 0;
+  color: #555;
+  line-height: 1.4;
+}
+
+/* ===== BADGES ===== */
+.badge {
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: #fff;
+  margin-left: 5px;
+  font-weight: 500;
+}
+.badge.blue { background: #007bff; }
+.badge.green { background: #28a745; }
+.badge.yellow { background: #ffc107; color: #333; }
+.badge.red { background: #dc3545; }
+
+/* ===== FAIXAS (GRADE) ===== */
+.faixas-section {
+  margin-top: 8px;
+}
+.faixas-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 12px; 
+  /* 4px nas linhas, 12px nas colunas */
+  align-items: center;
+  margin-top: 6px;
+}
+.faixa-label {
+  font-weight: 500;
+  color: #555;
+}
+
+/* ===== ÁREA DO MAPA ===== */
+.map-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== POPUP DO LEAFLET ===== */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.leaflet-popup-content {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+/* Popup Título */
+.popup-title {
+  margin-top: 0;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 6px;
+}
+.popup-row {
+  margin: 4px 0;
+}
+.popup-row strong {
+  color: #333;
+}
+
+/* ===== BOTÃO DE ROTA ===== */
+.route-button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: 0.2s ease;
+}
+.route-button:hover {
+  background: #0056b3;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    top: 60px; 
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 320px;
   }
 }
