@@ -15,7 +15,7 @@ const MOCK_UPAS = [
   {
     id: 1,
     name: 'UPA Dinamérica',
-    address: 'Rua Exemplo, 123 - Dinamérica, Campina Grande - PB',
+    address: 'Avenida Dinamérica Alves Correia, 1289 - Dinamérica',
     queueDetail: { blue: 2, green: 5, yellow: 10, red: 3 },
     lat: -7.245232,
     lng: -35.9114377,
@@ -25,7 +25,7 @@ const MOCK_UPAS = [
   {
     id: 2,
     name: 'UPA Alto Branco',
-    address: 'Avenida Principal, 999 - Alto Branco, Campina Grande - PB',
+    address: 'Avenida Manoel Tavares, 1735, Alto Branco',
     queueDetail: { blue: 0, green: 3, yellow: 2, red: 0 },
     lat: -7.1998982,
     lng: -35.8773173,
@@ -130,8 +130,7 @@ function App() {
   // Configura os handlers de swipe para a sidebar
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => setSidebarOpen(false),
-    onSwipedRight: () => setSidebarOpen(true),
-    delta: 50, // Distância mínima em pixels para acionar o swipe
+    delta: 80, // Distância mínima em pixels para acionar o swipe
     preventDefaultTouchmoveEvent: true,
     trackMouse: false
   });

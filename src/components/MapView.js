@@ -84,7 +84,7 @@ function getCircleOptions(total) {
 function getRouteColor(upaId, bestUpaId, worstUpaId) {
   if (upaId === bestUpaId) return '#34A853'; // verde forte
   if (upaId === worstUpaId) return '#EA4335'; // vermelho
-  return '#FBBC05'; // amarelo para intermediárias
+  return '#EA4335'; // amarelo para intermediárias
 }
 
 /** Duas polylines = uma trilha branca e uma colorida por cima */
