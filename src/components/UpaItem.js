@@ -1,6 +1,6 @@
 import React from 'react';
 
-function UpaItem({ upa, onSelectUpa }) {
+function UpaItem({ upa, onSelectUpa, bestUpaId }) {
   const { name, address, queueDetail, doctorOnDuty, averageWaitTime } = upa;
   const totalQueue = queueDetail.blue + queueDetail.green + queueDetail.yellow + queueDetail.red;
 
@@ -9,7 +9,7 @@ function UpaItem({ upa, onSelectUpa }) {
       <h3>{name}</h3>
       <p>{address}</p>
       <p><strong>Médica(o):</strong> {doctorOnDuty}</p>
-      <p><strong>Tempo médio:</strong> {averageWaitTime}</p>
+      <p><strong>Tempo médio em fila:</strong> {averageWaitTime}</p>
       
       <div className="faixas-grid">
         <span className="badge blue" title="Azul">{queueDetail.blue}</span>
@@ -21,6 +21,9 @@ function UpaItem({ upa, onSelectUpa }) {
       <p style={{ marginTop: '8px' }}>
         <strong>Total:</strong> {totalQueue} pessoa(s)
       </p>
+      {upa.id === bestUpaId && (
+        <div className="best-option-badge">Melhor opção!</div>
+      )}
     </div>
   );
 }

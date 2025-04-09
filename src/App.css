@@ -52,7 +52,7 @@
 
 /* ===== BANNER DE AVISO ===== */
 .notification-banner {
-  background-color: #ff6061;
+  background-color: #09ab97;
   color: #333;
   padding: 10px 20px;
   text-align: center;
@@ -62,6 +62,7 @@
 }
 
 /* ===== MAIN CONTENT ===== */
+
 .main-content {
   display: flex;
   flex: 1;
@@ -71,11 +72,13 @@
 }
 
 /* ===== SIDEBAR ===== */
+
 .sidebar {
   width: 320px;
   background: #fff;
   padding: 20px;
   overflow-y: auto;
+  transition: transform 0.3s ease;
   border-right: 1px solid #ddd;
 }
 

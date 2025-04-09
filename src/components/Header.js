@@ -1,14 +1,15 @@
 import React from 'react';
-import '../App.css';
+import '../styles/globals.css';
+import logo from '../assets/logo.png'; // ajuste o caminho conforme necessário
 
 function Header({ onToggleSidebar }) {
   return (
     <header className="app-header">
       <div className="header-left">
         <button className="menu-button" onClick={onToggleSidebar}>
-          &#9776; {/* Ícone "hamburger" */}
+          &#9776;
         </button>
-        <h1 className="header-title">Veja + Saúde</h1>
+        <img src={logo} alt="Logo" className="header-logo" />
       </div>
     </header>
   );

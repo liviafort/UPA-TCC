@@ -1,0 +1,36 @@
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Marcador de tempo (X min) no estilo Google Maps */
+.time-marker-div {
+  background: transparent; /* remove fundo do divIcon */
+  border: none;
+}
+
+/* Bolha com borda colorida, sombra e texto centralizado */
+.time-bubble {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fff;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Responsividade básica, ajustando layout no mobile */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    height: 100%;
+  }
+  .map-container {
+    flex: 1;
+    height: calc(100vh - 360px);
+  }
+}
