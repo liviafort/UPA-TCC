@@ -47,16 +47,21 @@ function createTimeIcon(timeInMin, color) {
   return L.divIcon({
     className: 'time-marker-div',
     html: `
-      <div class="time-bubble" style="
-        border:2px solid ${color}; 
-        box-shadow:0 1px 4px rgba(0,0,0,.3);
-      ">
+      <div 
+        class="time-bubble" 
+        style="
+          border:2px solid ${color};
+          white-space:nowrap;
+        "
+      >
         ${timeInMin} min
-      </div>`,
-    iconSize: [50, 30],
-    iconAnchor: [25, 15],
+      </div>
+    `,
+    iconSize: [60, 30],  // Ajuste conforme desejar
+    iconAnchor: [30, 15] // Centraliza o ícone no meio
   });
 }
+
 
 /** Retorna o ícone da UPA (vermelho/amarelo/verde) conforme a lotação total */
 function getMarkerIcon(total) {
