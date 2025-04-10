@@ -6,8 +6,6 @@ import {
   PieChart, Pie, Cell,
   LineChart, Line,
   ResponsiveContainer,
-  RadialBar,
-  RadialBarChart,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
@@ -29,9 +27,6 @@ function UpaStatsPage({ upas }) {
     );
   }
 
-  // Valores mockados (exemplo)
-  const totalFila = 839;          // Pacientes totais na fila
-  const atendidosHoje = 344;      // Pacientes atendidos hoje
 
   // Número de pacientes aguardando para cada classificação
   const azulAguardando = 83;
