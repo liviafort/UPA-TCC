@@ -4,7 +4,7 @@ import './App.css';
 import Header from './components/Header';
 import SidePanel from './components/SidePanel';
 import MapView from './components/MapView';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
 import UpaStatsPage from './pages/UpaStatsPage';
 
@@ -141,7 +141,7 @@ function App() {
   });
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="app-wrapper">
         <Header onToggleSidebar={toggleSidebar} />
 
