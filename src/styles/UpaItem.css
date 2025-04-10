@@ -1,0 +1,24 @@
+/* Estilo delicado para o link transformado em botão */
+.dash-link {
+    text-decoration: none;
+    color: #09AC96;             /* Cor base azul */
+    border: 2px solid #09AC96;   /* Borda azul para realce */
+    border-radius: 8px;          /* Bordas levemente arredondadas */
+    padding: 8px 16px;
+    font-weight: 500;
+    font-size: 1.2rem;
+    display: inline-block;
+    transition: all 0.3s ease;  /* Transição suave para todas as propriedades */
+  }
+  
+  /* Efeito de destaque ao passar o mouse ou focar */
+  .dash-link:hover,
+  .dash-link:focus {
+    background-color: #09AC96;   /* Preenche com azul ao passar o mouse */
+    color: #fff;                 /* Texto em branco quando o fundo é azul */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3); /* Sombra leve para dar profundidade */
+    transform: translateY(-2px); /* Leve elevação para evidenciar interação */
+  }
+
+
+  

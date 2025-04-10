@@ -4,11 +4,13 @@ import './App.css';
 import Header from './components/Header';
 import SidePanel from './components/SidePanel';
 import MapView from './components/MapView';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
+import UpaStatsPage from './pages/UpaStatsPage';
 
 
 // Coordenadas padrão se o usuário negar a geolocalização
-const DEFAULT_CENTER = [-7.2344179, -35.8791628];
+const DEFAULT_CENTER = [-7.2404146, -35.8883043];
 
 // Dados mockados das UPAs
 const MOCK_UPAS = [
@@ -136,26 +138,46 @@ function App() {
   });
 
   return (
-    <div className="app-wrapper">
-      <Header onToggleSidebar={toggleSidebar} />
-      <div className="notification-banner">
-        Se você estiver em emergência, procure a agência mais próxima. Você é prioridade!
-      </div>
-      <div className="main-content" {...swipeHandlers}>
-        <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
-          <SidePanel upas={upas} onSelectUpa={handleSelectUpa} bestUpaId={bestUpaId} />
+    <BrowserRouter>
+      <div className="app-wrapper">
+        <Header onToggleSidebar={toggleSidebar} />
+        <div className="notification-banner">
+          Se você estiver em emergência, procure a agência mais próxima. Você é prioridade!
         </div>
-        <div className="map-container">
-          <MapView
-            upas={upas}
-            selectedUpa={selectedUpa}
-            userLocation={userLocation}
-            routesData={routesData}
-            bestUpaId={bestUpaId}
-          />
-        </div>
+        <Routes>
+          <Route path="/" element={
+            <div className="main-content" {...swipeHandlers}>
+              <div className={`sidebar ${sidebarOpen ? "" : "sidebar-closed"}`}>
+                <SidePanel upas={upas} onSelectUpa={handleSelectUpa} bestUpaId={bestUpaId} />
+              </div>
+              <div className="map-container">
+                <MapView
+                  upas={upas}
+                  selectedUpa={selectedUpa}
+                  userLocation={userLocation}
+                  routesData={routesData}
+                  bestUpaId={bestUpaId}
+                />
+              </div>
+            </div>
+          } />
+          <Route path="/upa/:id" element={
+            <div className="main-content" {...swipeHandlers}>
+              <div className={`sidebar ${sidebarOpen ? "" : "sidebar-closed"}`}>
+                <SidePanel upas={upas} onSelectUpa={handleSelectUpa} bestUpaId={bestUpaId} />
+              </div>
+              <div className="main-content">
+                <UpaStatsPage
+                  upas={upas}
+                  sidebarOpen={sidebarOpen}
+                  onToggleSidebar={toggleSidebar}
+                />
+              </div>
+            </div>
+          } />
+        </Routes>
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 
