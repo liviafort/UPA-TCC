@@ -1,46 +1,38 @@
-// src/pages/UpaStatsPage.js
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
+  ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell,
   LineChart, Line,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  Radar,
-  PolarRadiusAxis
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, PolarRadiusAxis
 } from 'recharts';
 import '../styles/UpaStatsPage.css';
 
 function UpaStatsPage({ upas }) {
   const { id } = useParams();
-  const upa = upas.find((u) => u.id === parseInt(id));
+  const upa = upas.find(u => u.id === parseInt(id));
 
   if (!upa) {
     return (
       <div className="upa-stats-container">
         <h2>UPA não encontrada.</h2>
-        <Link to="/" className="back-link">Voltar ao Mapa</Link>
+        <Link to="/" className="back-link">← Voltar ao Mapa</Link>
       </div>
     );
   }
 
-
-  // Número de pacientes aguardando para cada classificação
+  // Dados mockados
   const azulAguardando = 83;
   const verdeAguardando = 34;
   const amareloAguardando = 26;
   const vermelhoAguardando = 3;
 
-  // Tempo médio de espera para cada classificação (exemplo)
-  const tempoMedioAzul = "15 min";
-  const tempoMedioVerde = "10 min";
-  const tempoMedioAmarelo = "20 min";
-  const tempoMedioVermelho = "30 min";
+  const tempoMedioAzul = '15 min';
+  const tempoMedioVerde = '10 min';
+  const tempoMedioAmarelo = '20 min';
+  const tempoMedioVermelho = '30 min';
 
-  // Histórico de atendimentos dos últimos 7 dias (mock)
   const historicoAtendimentos = [
     { dia: 'Seg', atendidos: 280 },
     { dia: 'Ter', atendidos: 300 },
@@ -51,7 +43,6 @@ function UpaStatsPage({ upas }) {
     { dia: 'Dom', atendidos: 150 },
   ];
 
-  // Dados para gráficos das classificações
   const classificacoesData = [
     { name: 'Azul', value: azulAguardando },
     { name: 'Verde', value: verdeAguardando },
@@ -66,7 +57,6 @@ function UpaStatsPage({ upas }) {
     { subject: 'Vermelha', tempo: 30 },
   ];
 
-  // Cores personalizadas para o gráfico de pizza
   const pieColors = ['#4b9cea', '#48db8b', '#ffe266', '#ff7c7c'];
 
   return (
@@ -75,11 +65,8 @@ function UpaStatsPage({ upas }) {
         <h1>{upa.name}</h1>
         <p>{upa.address}</p>
       </header>
-      
-      {/* Seção de cartões com KPIs */}
-      <div className="stats-main">
 
-        {/* Cartões de classificação com tempo médio de espera */}
+      <div className="stats-main">
         <div className="stats-card stats-card-blue">
           <h2>Classificação Azul</h2>
           <p className="stats-value">{azulAguardando}</p>
@@ -106,64 +93,69 @@ function UpaStatsPage({ upas }) {
         </div>
       </div>
 
-      {/* Seção de gráficos */}
       <div className="stats-charts">
+        {/* 1. BarChart */}
         <div className="chart-card">
           <h3>Distribuição de Pacientes por Classificação</h3>
-          <BarChart
-            width={400}
-            height={300}
-            data={classificacoesData}
-            margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#8884d8" name="Pacientes" />
-          </BarChart>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={classificacoesData}
+              margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#8884d8" name="Pacientes" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
+        {/* 2. PieChart */}
         <div className="chart-card">
           <h3>Percentual de Pacientes por Classificação</h3>
-          <PieChart width={350} height={300}>
-            <Pie
-              data={classificacoesData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              fill="#8884d8"
-              label
-            >
-              {classificacoesData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={pieColors[index]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={classificacoesData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                fill="#8884d8"
+                label
+              >
+                {classificacoesData.map((entry, i) => (
+                  <Cell key={i} fill={pieColors[i]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
-        <div className="chart-card chart-fullwidth">
-        <h3>Evolução de Atendimentos nos Últimos 7 Dias</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            data={historicoAtendimentos}
-            margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="dia" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="atendidos" stroke="#82ca9d" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+        {/* 3. LineChart */}
+        <div className="chart-card">
+          <h3>Evolução de Atendimentos nos Últimos 7 Dias</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={historicoAtendimentos}
+              margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="dia" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="atendidos" stroke="#82ca9d" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-      <div className="chart-card">
+        {/* 4. RadarChart */}
+        <div className="chart-card">
           <h3>Tempo Médio de Atendimento</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={mediaAtendimentoData}>
@@ -182,12 +174,10 @@ function UpaStatsPage({ upas }) {
             </RadarChart>
           </ResponsiveContainer>
         </div>
-
-
       </div>
 
       <footer className="stats-footer">
-        <Link to="/" className="back-link">Voltar ao Mapa</Link>
+        <Link to="/" className="back-link">← Voltar ao Mapa</Link>
       </footer>
     </div>
   );

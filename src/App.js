@@ -126,7 +126,10 @@ function App() {
     }
   }, [bestUpaId, selectedUpa, upas]);
 
-  const handleSelectUpa = (upa) => setSelectedUpa(upa);
+  const handleSelectUpa = (upa) => {
+    setSelectedUpa(upa);
+    setSidebarOpen(false);    // fecha a sidebar
+  };
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
   // Configura os handlers de swipe para a sidebar
@@ -141,14 +144,21 @@ function App() {
     <BrowserRouter>
       <div className="app-wrapper">
         <Header onToggleSidebar={toggleSidebar} />
+
         <div className="notification-banner">
           Se você estiver em emergência, procure a agência mais próxima. Você é prioridade!
         </div>
+
         <Routes>
+          {/* Página Principal */}
           <Route path="/" element={
             <div className="main-content" {...swipeHandlers}>
-              <div className={`sidebar ${sidebarOpen ? "" : "sidebar-closed"}`}>
-                <SidePanel upas={upas} onSelectUpa={handleSelectUpa} bestUpaId={bestUpaId} />
+              <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+                <SidePanel
+                  upas={upas}
+                  onSelectUpa={handleSelectUpa}
+                  bestUpaId={bestUpaId}
+                />
               </div>
               <div className="map-container">
                 <MapView
@@ -160,21 +170,23 @@ function App() {
                 />
               </div>
             </div>
-          } />
+          }/>
+
+          {/* Página de Estatísticas da UPA */}
           <Route path="/upa/:id" element={
             <div className="main-content" {...swipeHandlers}>
-              <div className={`sidebar ${sidebarOpen ? "" : "sidebar-closed"}`}>
-                <SidePanel upas={upas} onSelectUpa={handleSelectUpa} bestUpaId={bestUpaId} />
-              </div>
-              <div className="main-content">
-                <UpaStatsPage
+              <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+                <SidePanel
                   upas={upas}
-                  sidebarOpen={sidebarOpen}
-                  onToggleSidebar={toggleSidebar}
+                  onSelectUpa={handleSelectUpa}
+                  bestUpaId={bestUpaId}
                 />
               </div>
+              <div className="map-container">
+                <UpaStatsPage upas={upas} />
+              </div>
             </div>
-          } />
+          }/>
         </Routes>
       </div>
     </BrowserRouter>

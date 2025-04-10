@@ -12,27 +12,23 @@
   text-align: center;
   margin-bottom: 30px;
 }
-
 .stats-header h1 {
   margin: 0;
   font-size: 2rem;
   color: #333;
 }
-
 .stats-header p {
   margin: 5px 0 0;
   color: #555;
 }
 
-/* Seção de cartões principais com layout de grid responsivo */
+/* KPIs principais (cartões) */
 .stats-main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
-
-/* Cartões principais */
 .stats-card {
   background: #f8f8f8;
   border-radius: 8px;
@@ -40,104 +36,65 @@
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
 .stats-card h2 {
   margin-top: 0;
   font-size: 1.2rem;
   color: #444;
   margin-bottom: 10px;
 }
-
 .stats-value {
   font-size: 2.5rem;
   font-weight: bold;
   color: #333;
   margin: 5px 0;
 }
-
 .stats-label {
   color: #666;
   font-size: 1rem;
 }
-
-/* Cores de fundo específicas para cada tipo de cartão */
-.stats-card-grey {
-  background: #eef0f1;
+.stats-wait {
+  font-size: 1rem;
+  color: #555;
+  margin-top: 5px;
 }
+/* Cores */
+.stats-card-blue   { background: #e6f0ff; }
+.stats-card-green  { background: #e9f9ee; }
+.stats-card-yellow { background: #fff9e6; }
+.stats-card-red    { background: #ffe6e6; }
 
-.stats-card-blue {
-  background: #e6f0ff;
+/* Seção de gráficos */
+.stats-charts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
 }
-
-.stats-card-green {
-  background: #e9f9ee;
+@media (min-width: 768px) {
+  .stats-charts {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
-
-.stats-card-yellow {
-  background: #fff9e6;
-}
-
-.stats-card-red {
-  background: #ffe6e6;
-}
-
-/* Cartões para gráficos */
 .chart-card {
   background: #f8f8f8;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
-
-/* Para gráficos que você deseja que ocupem toda a largura da linha */
-.chart-fullwidth {
-  grid-column: 1 / -1;
-}
-
 .chart-card h3 {
   margin-top: 0;
   color: #333;
   margin-bottom: 10px;
 }
 
-/* Footer do dashboard */
+/* Footer */
 .stats-footer {
   text-align: center;
   margin-top: 20px;
 }
-
-.stats-wait {
-  font-size: 1rem;
-  color: #555;
-  margin-top: 5px;
-}
-
 .back-link {
   text-decoration: none;
   color: #007bff;
   font-weight: bold;
 }
-
-.stats-charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-/* Por padrão, a classe chart-fullwidth faz o item ocupar todas as colunas */
-.chart-fullwidth {
-  grid-column: 1 / -1;
-}
-
-/* Em telas maiores (por exemplo, acima de 1024px) queremos 2 colunas e removemos essa regra */
-@media (min-width: 1024px) {
-  .stats-charts {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .chart-fullwidth {
-    grid-column: auto; /* Remove o span para que o item se comporte como os demais */
-  }
-}
-
