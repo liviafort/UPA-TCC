@@ -1,15 +1,42 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import {
-  ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart, Pie, Cell,
-  LineChart, Line,
-  RadarChart, PolarGrid, PolarAngleAxis, Radar, PolarRadiusAxis
-} from 'recharts';
 import '../styles/UpaStatsPage.css';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  RadialLinearScale,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Bar, Pie, Line, Radar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  RadialLinearScale,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function UpaStatsPage({ upas }) {
+  const commonOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: { enabled: true }
+    }
+  };
   const { id } = useParams();
   const upa = upas.find(u => u.id === parseInt(id));
 
@@ -97,84 +124,89 @@ function UpaStatsPage({ upas }) {
         {/* 1. BarChart */}
         <div className="chart-card">
           <h3>Distribuição de Pacientes por Classificação</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={classificacoesData}
-              margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="value" fill="#8884d8" name="Pacientes" />
-            </BarChart>
-          </ResponsiveContainer>
+          <Bar
+            data={{
+              labels: classificacoesData.map(c => c.name),
+              datasets: [{
+                label: 'Pacientes',
+                data: classificacoesData.map(c => c.value),
+                backgroundColor: ['#4b9cea','#48db8b','#ffe266','#ff7c7c']
+              }]
+            }}
+            options={{
+              ...commonOptions,
+              scales: { y: { beginAtZero: true } }
+            }}
+            height={300}
+          />
         </div>
 
         {/* 2. PieChart */}
         <div className="chart-card">
           <h3>Percentual de Pacientes por Classificação</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={classificacoesData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                label
-              >
-                {classificacoesData.map((entry, i) => (
-                  <Cell key={i} fill={pieColors[i]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <Pie
+            data={{
+              labels: classificacoesData.map(c => c.name),
+              datasets: [{
+                data: classificacoesData.map(c => c.value),
+                backgroundColor: ['#4b9cea','#48db8b','#ffe266','#ff7c7c']
+              }]
+            }}
+            options={commonOptions}
+            height={300}
+          />
         </div>
 
         {/* 3. LineChart */}
         <div className="chart-card">
           <h3>Evolução de Atendimentos nos Últimos 7 Dias</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={historicoAtendimentos}
-              margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="dia" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="atendidos" stroke="#82ca9d" />
-            </LineChart>
-          </ResponsiveContainer>
+          <Line
+            data={{
+              labels: historicoAtendimentos.map(h => h.dia),
+              datasets: [{
+                label: 'Atendidos',
+                data: historicoAtendimentos.map(h => h.atendidos),
+                borderColor: '#82ca9d',
+                tension: 0.4,
+                fill: false
+              }]
+            }}
+            options={{
+              ...commonOptions,
+              scales: { y: { beginAtZero: true } }
+            }}
+            height={300}
+          />
         </div>
 
         {/* 4. RadarChart */}
         <div className="chart-card">
           <h3>Tempo Médio de Atendimento</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart data={mediaAtendimentoData}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="subject" />
-              <PolarRadiusAxis angle={30} domain={[0, 40]} />
-              <Radar
-                name="Tempo (min)"
-                dataKey="tempo"
-                stroke="#8884d8"
-                fill="#8884d8"
-                fillOpacity={0.6}
-              />
-              <Legend />
-              <Tooltip />
-            </RadarChart>
-          </ResponsiveContainer>
+          <Radar
+            data={{
+              labels: mediaAtendimentoData.map(m => m.subject),
+              datasets: [{
+                label: 'Tempo (min)',
+                data: mediaAtendimentoData.map(m => m.tempo),
+                backgroundColor: 'rgba(136,132,216,0.6)',
+                borderColor: '#8884d8',
+                borderWidth: 1
+              }]
+            }}
+            options={{
+              ...commonOptions,
+              scales: {
+                r: {
+                  beginAtZero: true,
+                  max: 40
+                }
+              }
+            }}
+            height={300}
+          />
         </div>
       </div>
+
 
       <footer className="stats-footer">
         <Link to="/" className="back-link">← Voltar ao Mapa</Link>
