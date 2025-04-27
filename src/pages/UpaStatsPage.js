@@ -84,8 +84,6 @@ function UpaStatsPage({ upas }) {
     { subject: 'Vermelha', tempo: 30 },
   ];
 
-  const pieColors = ['#4b9cea', '#48db8b', '#ffe266', '#ff7c7c'];
-
   return (
     <div className="upa-stats-container">
       <header className="stats-header">
