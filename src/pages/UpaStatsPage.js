@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link  } from 'react-router-dom';
 import '../styles/UpaStatsPage.css';
 import {
   Chart as ChartJS,
@@ -71,17 +71,17 @@ function UpaStatsPage({ upas }) {
   ];
 
   const classificacoesData = [
-    { name: 'Azul', value: azulAguardando },
-    { name: 'Verde', value: verdeAguardando },
-    { name: 'Amarelo', value: amareloAguardando },
-    { name: 'Vermelho', value: vermelhoAguardando },
+    { name: 'Não Urgente', value: azulAguardando },
+    { name: 'Pouco Urgente', value: verdeAguardando },
+    { name: 'Urgente', value: amareloAguardando },
+    { name: 'Emergência', value: vermelhoAguardando },
   ];
 
   const mediaAtendimentoData = [
-    { subject: 'Azul', tempo: 15 },
-    { subject: 'Verde', tempo: 10 },
-    { subject: 'Amarela', tempo: 20 },
-    { subject: 'Vermelha', tempo: 30 },
+    { subject: 'Não Urgente', tempo: 15 },
+    { subject: 'Pouco Urgente', tempo: 10 },
+    { subject: 'Urgente', tempo: 20 },
+    { subject: 'Emergência', tempo: 30 },
   ];
 
   return (
@@ -93,25 +93,25 @@ function UpaStatsPage({ upas }) {
 
       <div className="stats-main">
         <div className="stats-card stats-card-blue">
-          <h2>Classificação Azul</h2>
+          <h2>Não Urgente</h2>
           <p className="stats-value">{azulAguardando}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio de Espera: {tempoMedioAzul}</p>
         </div>
         <div className="stats-card stats-card-green">
-          <h2>Classificação Verde</h2>
+          <h2>Pouco Urgente</h2>
           <p className="stats-value">{verdeAguardando}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio de Espera: {tempoMedioVerde}</p>
         </div>
         <div className="stats-card stats-card-yellow">
-          <h2>Classificação Amarela</h2>
+          <h2>Urgente</h2>
           <p className="stats-value">{amareloAguardando}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio de Espera: {tempoMedioAmarelo}</p>
         </div>
         <div className="stats-card stats-card-red">
-          <h2>Classificação Vermelha</h2>
+          <h2>Emergência</h2>
           <p className="stats-value">{vermelhoAguardando}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio de Espera: {tempoMedioVermelho}</p>

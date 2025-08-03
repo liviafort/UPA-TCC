@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/UpaItem.css';
+import icon from '../assets/hospital-icon.svg'
 
 function UpaItem({ upa, onSelectUpa, bestUpaId }) {
   const { name, address, queueDetail, doctorOnDuty, averageWaitTime } = upa;
@@ -10,10 +11,9 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
 
   return (
     <div className="upa-item" onClick={() => onSelectUpa(upa)}>
+      <img src={icon} alt="Icon" className="icon-painel" />
       {/* Nome da UPA como link destacado */}
-      <Link to={`/upa/${upa.id}`} className="dash-link">
-        <text className='text-upa-item'>{name}</text>
-      </Link>
+      <h3 className='text-upa-item'>{name}</h3>
       <p>{address}</p>
       <p><strong>Médica(o):</strong> {doctorOnDuty}</p>
       <p><strong>Tempo médio em fila:</strong> {averageWaitTime}</p>
@@ -26,6 +26,9 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
       <p style={{ marginTop: '8px' }}>
         <strong>Total:</strong> {totalQueue} pessoa(s)
       </p>
+      <Link to={`/upa/${upa.id}`} className="dash-link">
+        <text className='text-upa-item'>Ver detalhes</text>
+      </Link>
     </div>
   );
 }

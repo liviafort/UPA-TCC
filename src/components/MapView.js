@@ -87,8 +87,8 @@ function DoublePolyline({ coords, color }) {
   if (!coords) return null;
   return (
     <>
-      <Polyline positions={coords} color="#FFFFFF" weight={10} opacity={1} />
-      <Polyline positions={coords} color={color} weight={6} opacity={1} />
+      <Polyline positions={coords} color="#FFFFFF" weight={8} opacity={1} />
+      <Polyline positions={coords} color={color} weight={5} opacity={1} />
     </>
   );
 }
@@ -106,27 +106,27 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
   const zoom = selectedUpa ? 15 : 13;
 
   return (
+  <div className="map-wrapper">
     <MapContainer
       center={center}
       zoom={zoom}
-      className="leaflet-container"
-      zoomAnimation={false}  // Desabilita animação para evitar o erro
-      fadeAnimation={false}  // Opcionalmente desabilita também fade animation
+      className="leaflet-map"
+      zoomAnimation={false}
+      fadeAnimation={false}
     >
       <ChangeView center={center} zoom={zoom} />
       <TileLayer 
-        attribution="&copy; OpenStreetMap contributors" 
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
+        attribution='Map data &copy; OpenStreetMap'
+        url={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZ2lzbGFueSIsImEiOiJjbWRuazBsMHkwMm9yMndxNGkxNjY1MWlvIn0.ZGrQwbfe8DXTxIQIFdvc6Q`}
+        maxZoom={19}
       />
 
-      {/* Marker do usuário */}
       {userLocation && (
         <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
           <Popup>Você está aqui</Popup>
         </Marker>
       )}
 
-      {/* Markers das UPAs e círculos */}
       {upas.map((upa) => {
         const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
         return (
@@ -134,10 +134,8 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
             <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(totalQueue)} />
             <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(totalQueue)}>
               <Popup>
-                <h3 style={{ margin: '0 0 5px' }}>
-                  <Link to={`/upa/${upa.id}`} className="dash-link">
-                    {upa.name}
-                  </Link>
+                <h3 style={{ margin: '0 0 4px' }}>
+                  <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
                 </h3>
                 <p style={{ margin: 0 }}>{upa.address}</p>
                 <p style={{ margin: 0 }}><strong>Médica(o):</strong> {upa.doctorOnDuty}</p>
@@ -148,7 +146,6 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
         );
       })}
 
-      {/* Desenha a rota traçada para cada UPA */}
       {upas.map((upa) => {
         const route = routesData[upa.id];
         if (!route || !route.coords) return null;
@@ -167,7 +164,18 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
         );
       })}
     </MapContainer>
-  );
+
+    <div className="map-legend">
+      <h4>Classificação:</h4>
+      <div><span className="badge blue" /> Sem urgência</div>
+      <div><span className="badge green" /> Pouco urgente</div>
+      <div><span className="badge yellow" /> Urgente</div>
+      <div><span className="badge red" /> Emergência</div>
+    </div>
+  </div>
+);
+
+
 }
 
 export default MapView;

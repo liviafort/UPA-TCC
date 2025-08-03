@@ -34,3 +34,54 @@
     height: calc(100vh - 360px);
   }
 }
+
+/* Legenda de cores */
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%; /* ou altura que desejar para o mapa */
+}
+
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+}
+
+.map-legend {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  z-index: 1000;
+}
+
+.map-legend h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.map-legend div {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-legend .badge {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.map-legend .blue   { background-color: #217BC0; }
+.map-legend .green  { background-color: #1BB232; }
+.map-legend .yellow { background-color: #E1AF18; }
+.map-legend .red    { background-color: #B21B1B; }
+
