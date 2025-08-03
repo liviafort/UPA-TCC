@@ -8,7 +8,7 @@
 /* ===== HEADER ===== */
 .app-header {
   background: #fff;
-  padding: 10px 20px;
+  padding: 13px 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
   width: 100%;
@@ -20,16 +20,16 @@
   justify-content: space-between;
 }
 
-.header-left {
+.header-left, .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .menu-button {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   cursor: pointer;
 }
 
@@ -52,13 +52,13 @@
 
 /* ===== BANNER DE AVISO ===== */
 .notification-banner {
-  background-color: #FF6961;
-  color: #333;
-  padding: 10px 20px;
+  background-color: #DC3545;
+  color: #fff;
+  padding: 12px 20px;
   text-align: center;
-  font-size: 0.95rem;
-  font-weight: bold;
-  margin-top: 60px; /* logo abaixo do header */
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 63px;
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -74,7 +74,7 @@
 /* ===== SIDEBAR ===== */
 
 .sidebar {
-  width: 320px;
+  width: 380px;
   background: #fff;
   padding: 20px;
   overflow-y: auto;
@@ -93,7 +93,15 @@
 }
 
 /* ===== ITENS DA UPA (CARDS) ===== */
+
+.icon-painel{
+  width: 72px;
+
+}
 .upa-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: #fafafa;
   padding: 16px;
   margin-bottom: 16px;
@@ -109,14 +117,16 @@
 }
 
 .upa-item h3 {
-  margin: 0 0 5px;
-  font-size: 1.1em;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  font-size: 1.75em;
   color: #333;
 }
 
 .upa-item p {
-  margin: 4px 0;
+  margin: 5px 0;
   color: #555;
+  text-align: center;
   line-height: 1.4;
 }
 
@@ -134,10 +144,10 @@
   margin-right: 8px;
 }
 
-.badge.blue { background: #007bff; }
-.badge.green { background: #28a745; }
-.badge.yellow { background: #ffc107; color: #333; }
-.badge.red { background: #dc3545; }
+.badge.blue { background: #217BC0; }
+.badge.green { background: #1BB232; }
+.badge.yellow { background: #E1AF18; }
+.badge.red { background: #B21B1B; }
 
 /* ===== GRID DAS FAIXAS ===== */
 .faixas-grid {

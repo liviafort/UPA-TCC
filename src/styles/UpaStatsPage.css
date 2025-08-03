@@ -49,26 +49,27 @@
   margin: 5px 0;
 }
 .stats-label {
-  color: #666;
+  color: #333;
   font-size: 1rem;
 }
 .stats-wait {
   font-size: 1rem;
-  color: #555;
+  color: #333;
   margin-top: 5px;
 }
 /* Cores */
-.stats-card-blue   { background: #e6f0ff; }
-.stats-card-green  { background: #e9f9ee; }
-.stats-card-yellow { background: #fff9e6; }
-.stats-card-red    { background: #ffe6e6; }
+.stats-card-blue   { background: #92c6f7; }
+.stats-card-green  { background: #88ebb4; }
+.stats-card-yellow { background: #ecdc94; }
+.stats-card-red    { background: #faa3a3; }
 
 /* Seção de gráficos */
 .stats-charts {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 50px;
   margin-bottom: 40px;
+  justify-self: center;
 }
 @media (min-width: 768px) {
   .stats-charts {
@@ -79,6 +80,7 @@
   background: #f8f8f8;
   border-radius: 8px;
   padding: 20px;
+  width: 31.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
@@ -95,6 +97,22 @@
 }
 .back-link {
   text-decoration: none;
-  color: #007bff;
+  background-color: #09AC96;  
+  color: #fff;
   font-weight: bold;
+  border-radius: 6px;         
+  padding: 8px 16px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  display: inline-block;
+  transition: all 0.3s ease;
 }
+
+.back-link:hover,
+  .back-link:focus {
+    background-color: #FAFAFA;   /* Preenche com azul ao passar o mouse */
+    color: #09AC96;
+    border: 1px solid #09AC96;              /* Texto em branco quando o fundo é azul */
+    box-shadow: 0 4px 8px rgba(12, 174, 152, 0.4); /* Sombra leve para dar profundidade */
+    transform: translateY(-2px); /* Leve elevação para evidenciar interação */
+  }

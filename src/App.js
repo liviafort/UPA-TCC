@@ -146,7 +146,7 @@ function App() {
         <Header onToggleSidebar={toggleSidebar} />
 
         <div className="notification-banner">
-          Se você estiver em emergência, procure a agência mais próxima. Você é prioridade!
+          ⚠️ Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
         </div>
 
         <Routes>
