@@ -8,7 +8,7 @@
 /* ===== HEADER ===== */
 .app-header {
   background: #fff;
-  padding: 13px 20px;
+  padding: 13px 40px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
   width: 100%;
@@ -30,6 +30,23 @@
   background: none;
   border: none;
   font-size: 1.9rem;
+  cursor: pointer;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+}
+
+.maps-logo{
+  height: 34px;
+  margin-top: 5px;
+  margin-left: 1.5rem;
   cursor: pointer;
 }
 
@@ -75,6 +92,8 @@
 
 .sidebar {
   width: 380px;
+  height: 100%;
+  display: block;
   background: #fff;
   padding: 20px;
   overflow-y: auto;
@@ -103,12 +122,19 @@
   flex-direction: column;
   align-items: center;
   background: #fafafa;
+  height: 50%;
   padding: 16px;
   margin-bottom: 16px;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .upa-item{
+    height: 22rem;
+  }
 }
 
 .upa-item:hover {

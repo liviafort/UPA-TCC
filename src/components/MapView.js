@@ -76,10 +76,31 @@ function getCircleOptions(total) {
 }
 
 /** Define a cor da rota com base no padrão Google */
-function getRouteColor(upaId, bestUpaId, worstUpaId) {
-  if (upaId === bestUpaId) return '#34A853'; // verde forte
-  if (upaId === worstUpaId) return '#EA4335'; // vermelho
-  return '#EA4335'; // amarelo para intermediárias
+// function getRouteColor(upaId, bestUpaId, worstUpaId) {
+//   if (upaId === bestUpaId) return '#34A853'; // verde forte
+//   if (upaId === worstUpaId) return '#EA4335'; // vermelho
+//   return '#EA4335'; // amarelo para intermediárias
+// }
+
+/** Define a cor da rota com base no status da UPA */
+function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
+  // Verificações de segurança
+  if (!upaId || !upas) return '#EA4335';
+  
+  const upa = upas.find(u => u.id === upaId);
+  if (!upa || !upa.queueDetail) return '#EA4335';
+  
+  // Calcula o total de pacientes na fila
+  const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
+  
+  // Define cores baseadas no status
+  if (upaId === bestUpaId) return '#34A853'; // verde (melhor opção)
+  if (upaId === worstUpaId) return '#EA4335'; // vermelho (pior opção)
+  
+  // Cores baseadas na lotação (igual aos ícones)
+  if (totalQueue > 15) return '#EA4335'; // vermelho
+  if (totalQueue > 9) return '#FBBC05';  // amarelo
+  return '#34A853';                      // verde
 }
 
 /** Duas polylines: uma trilha branca e uma colorida por cima */
@@ -138,7 +159,6 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
                   <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
                 </h3>
                 <p style={{ margin: 0 }}>{upa.address}</p>
-                <p style={{ margin: 0 }}><strong>Médica(o):</strong> {upa.doctorOnDuty}</p>
                 <p style={{ margin: 0 }}><strong>Tempo médio:</strong> {upa.averageWaitTime}</p>
               </Popup>
             </Marker>
@@ -149,7 +169,7 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
       {upas.map((upa) => {
         const route = routesData[upa.id];
         if (!route || !route.coords) return null;
-        const color = getRouteColor(upa.id, bestUpaId, worstUpaId);
+        const color = getRouteColor(upa.id, bestUpaId, worstUpaId,upas);
         const travelMin = Math.ceil(route.duration / 60);
         const waitMin = parseInt(upa.averageWaitTime.split(" ")[0]);
         const totalMin = travelMin + waitMin;
