@@ -5,7 +5,7 @@ import '../styles/UpaItem.css';
 import icon from '../assets/hospital-icon.svg'
 
 function UpaItem({ upa, onSelectUpa, bestUpaId }) {
-  const { name, address, queueDetail, doctorOnDuty, averageWaitTime } = upa;
+  const { name, address, queueDetail, averageWaitTime } = upa;
   const totalQueue =
     queueDetail.blue + queueDetail.green + queueDetail.yellow + queueDetail.red;
 
@@ -15,7 +15,6 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
       {/* Nome da UPA como link destacado */}
       <h3 className='text-upa-item'>{name}</h3>
       <p>{address}</p>
-      <p><strong>Médica(o):</strong> {doctorOnDuty}</p>
       <p><strong>Tempo médio em fila:</strong> {averageWaitTime}</p>
       <div className="faixas-grid">
         <span className="badge blue" title="Azul">{queueDetail.blue}</span>

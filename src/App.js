@@ -7,41 +7,34 @@ import MapView from './components/MapView';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
 import UpaStatsPage from './pages/UpaStatsPage';
+import { fetchUpasComStatus } from './server/Api';
 
 
 // Coordenadas padrão se o usuário negar a geolocalização
 const DEFAULT_CENTER = [-7.2404146, -35.8883043];
 
-// Dados mockados das UPAs
-const MOCK_UPAS = [
-  {
-    id: 1,
-    name: 'UPA Dinamérica',
-    address: 'Avenida Dinamérica Alves Correia, 1289 - Dinamérica',
-    queueDetail: { blue: 2, green: 5, yellow: 10, red: 3 },
-    lat: -7.245232,
-    lng: -35.9114377,
-    doctorOnDuty: 'Dra. Maria Souza',
-    averageWaitTime: '35 min',
-  },
-  {
-    id: 2,
-    name: 'UPA Alto Branco',
-    address: 'Avenida Manoel Tavares, 1735, Alto Branco',
-    queueDetail: { blue: 0, green: 3, yellow: 2, red: 0 },
-    lat: -7.1998982,
-    lng: -35.8773173,
-    doctorOnDuty: 'Dr. João Silva',
-    averageWaitTime: '20 min',
-  },
-];
-
 function App() {
-  const [upas] = useState(MOCK_UPAS);
+  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const [upas, setUpas] = useState([]);
   const [selectedUpa, setSelectedUpa] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [routesData, setRoutesData] = useState({});
+
+
+  useEffect(() => {
+    async function loadUpas() {
+      const data = await fetchUpasComStatus();
+      setUpas(data);
+    }
+    loadUpas();
+  }, []);
+
 
   // Solicita a localização do usuário via navegador
   useEffect(() => {
@@ -130,8 +123,6 @@ function App() {
     setSelectedUpa(upa);
     setSidebarOpen(false);    // fecha a sidebar
   };
-  const toggleSidebar = () => setSidebarOpen(prev => !prev);
-
   // Configura os handlers de swipe para a sidebar
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => setSidebarOpen(false),
@@ -143,8 +134,12 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-wrapper">
-        <Header onToggleSidebar={toggleSidebar} />
-
+        <Header
+          onToggleSidebar={toggleSidebar}
+          isSidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
+          
         <div className="notification-banner">
           ⚠️ Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
         </div>

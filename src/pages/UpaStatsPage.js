@@ -1,46 +1,107 @@
-import React from 'react';
-import { useParams, Link  } from 'react-router-dom';
-import '../styles/UpaStatsPage.css';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import '../styles/Dashboard.css';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  RadialLinearScale,
-  ArcElement,
-  Title,
+  BarChart,
+  PieChart,
+  LineChart,
+  RadarChart,
+  Bar,
+  Pie,
+  Line,
+  Radar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend
-} from 'chart.js';
-import { Bar, Pie, Line, Radar } from 'react-chartjs-2';
+  Legend,
+  ResponsiveContainer,
+  Cell,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis
+} from 'recharts';
+import {
+  getUpaStatistics,
+  getUpaDistribution,
+  getUpaPercentages,
+  getUpaEvolution,
+  getUpaWaitTimes
+} from '../server/Api';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  RadialLinearScale,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const COLOR_MAP = {
+  'NAO_TRIADO': '#a29eebff',
+  'AZUL': '#4b9cea',
+  'VERDE': '#48db8b',
+  'AMARELO': '#ffe266',
+  'VERMELHO': '#ff7c7c'
+};
 
-function UpaStatsPage({ upas }) {
-  const commonOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'bottom' },
-      tooltip: { enabled: true }
-    }
-  };
+const CLASSIFICATION_LABELS = {
+  'NAO_TRIADO': 'Não Triado',
+  'AZUL': 'Não Urgente',
+  'VERDE': 'Pouco Urgente',
+  'AMARELO': 'Urgente',
+  'VERMELHO': 'Emergência'
+};
+
+function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
   const { id } = useParams();
-  const upa = upas.find(u => u.id === parseInt(id));
+  const [stats, setStats] = useState({});
+  const [distribution, setDistribution] = useState({});
+  const [percentages, setPercentages] = useState({});
+  const [evolution, setEvolution] = useState({});
+  const [waitTimes, setWaitTimes] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!upa) {
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const [statsData, distData, percData, evolData, waitData] = await Promise.all([
+          getUpaStatistics(id).catch(() => ({})),
+          getUpaDistribution(id).catch(() => ({ distribution: {} })),
+          getUpaPercentages(id).catch(() => ({ percentages: {} })),
+          getUpaEvolution(id).catch(() => ({ data: [] })),
+          getUpaWaitTimes(id).catch(() => ({ wait_times: {} }))
+        ]);
+
+        setStats(statsData || {});
+        setDistribution(distData || { distribution: {} });
+        setPercentages(percData || { percentages: {} });
+        setEvolution(evolData || { data: [] });
+        setWaitTimes(waitData || { wait_times: {} });
+        
+      } catch (err) {
+        console.error("Failed to load UPA data:", err);
+        setError("Não foi possível carregar os dados da UPA");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [id]);
+
+  const upa = (upas || []).find(u => u.id === id) || {};
+
+  if (loading) {
+    return <div className="upa-stats-container">Carregando dados...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="upa-stats-container">
+        <h2>{error}</h2>
+        <Link to="/" className="back-link">← Voltar ao Mapa</Link>
+      </div>
+    );
+  }
+
+  if (!upa.id) {
     return (
       <div className="upa-stats-container">
         <h2>UPA não encontrada.</h2>
@@ -49,162 +110,220 @@ function UpaStatsPage({ upas }) {
     );
   }
 
-  // Dados mockados
-  const azulAguardando = 83;
-  const verdeAguardando = 34;
-  const amareloAguardando = 26;
-  const vermelhoAguardando = 3;
+  // Prepara dados para os gráficos com verificações de segurança
+  const distributionData = Object.entries(distribution.distribution || {}).map(([key, value]) => ({
+    name: CLASSIFICATION_LABELS[key] || key,
+    count: value?.count || 0,
+    fill: COLOR_MAP[key] || '#8884d8'
+  }));
 
-  const tempoMedioAzul = '15 min';
-  const tempoMedioVerde = '10 min';
-  const tempoMedioAmarelo = '20 min';
-  const tempoMedioVermelho = '30 min';
+  const percentagesData = Object.entries(percentages.percentages || {}).map(([key, value]) => ({
+    name: CLASSIFICATION_LABELS[key] || key,
+    value: value || 0,
+    fill: COLOR_MAP[key] || '#8884d8'
+  }));
 
-  const historicoAtendimentos = [
-    { dia: 'Seg', atendidos: 280 },
-    { dia: 'Ter', atendidos: 300 },
-    { dia: 'Qua', atendidos: 200 },
-    { dia: 'Qui', atendidos: 400 },
-    { dia: 'Sex', atendidos: 350 },
-    { dia: 'Sáb', atendidos: 100 },
-    { dia: 'Dom', atendidos: 150 },
-  ];
+  // Substitua o mapeamento de evolutionData por:
+  const evolutionData = evolution.data?.map(item => {
+    // Corrige o problema do fuso horário criando a data no UTC
+    const dateObj = new Date(item.date + 'T12:00:00Z'); // Meio-dia UTC evita problemas de timezone
+    const dia = dateObj.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: 'short',
+      timeZone: 'UTC' 
+    });
+    
+    return {
+      ...item,
+      date: item.date, 
+      dia: dia,        
+      total: (item.entradas || 0) + (item.triagens || 0) + (item.atendimentos || 0)
+    };
+  }) || [];
 
-  const classificacoesData = [
-    { name: 'Não Urgente', value: azulAguardando },
-    { name: 'Pouco Urgente', value: verdeAguardando },
-    { name: 'Urgente', value: amareloAguardando },
-    { name: 'Emergência', value: vermelhoAguardando },
-  ];
+  
+  const waitTimesData = Object.entries(waitTimes.wait_times || {}).map(([key, value]) => ({
+    subject: CLASSIFICATION_LABELS[key] || key,
+    tempo: value || 0,
+    fullMark: 120
+  }));
 
-  const mediaAtendimentoData = [
-    { subject: 'Não Urgente', tempo: 15 },
-    { subject: 'Pouco Urgente', tempo: 10 },
-    { subject: 'Urgente', tempo: 20 },
-    { subject: 'Emergência', tempo: 30 },
-  ];
+  const getCardData = (classification) => {
+  const data = distributionData.find(d => d.name === classification) || {};
+  const waitTimeKey = Object.keys(CLASSIFICATION_LABELS).find(
+    key => CLASSIFICATION_LABELS[key] === classification
+  );
+  const waitTime = waitTimes.wait_times?.[waitTimeKey] || 0;
+  
+  return {
+    count: data.count || 0,
+    waitTime: waitTime
+  };
+};
+ 
+
+  const blueData = getCardData('Não Urgente');
+  const greenData = getCardData('Pouco Urgente');
+  const yellowData = getCardData('Urgente');
+  const redData = getCardData('Emergência');
+  const triaData = getCardData('Não Triado');
+
 
   return (
     <div className="upa-stats-container">
       <header className="stats-header">
-        <h1>{upa.name}</h1>
-        <p>{upa.address}</p>
+        <h1>{upa.name || 'UPA'}</h1>
+        <p>{upa.address || 'Endereço não disponível'}</p>
+        {distribution?.last_updated && (
+          <p>Última atualização: {new Date(distribution.last_updated).toLocaleString()}</p>
+        )}
       </header>
 
       <div className="stats-main">
+        <div className="stats-card stats-card-triagem">
+          <h2>Sem Triagem</h2>
+          <p className="stats-value">{triaData.count}</p>
+          <p className="stats-label">Pacientes aguardando</p>
+          <p className="stats-wait">Tempo Médio: {triaData.waitTime} min</p>
+        </div>
         <div className="stats-card stats-card-blue">
           <h2>Não Urgente</h2>
-          <p className="stats-value">{azulAguardando}</p>
+          <p className="stats-value">{blueData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio de Espera: {tempoMedioAzul}</p>
+          <p className="stats-wait">Tempo Médio: {blueData.waitTime} min</p>
         </div>
+        
         <div className="stats-card stats-card-green">
           <h2>Pouco Urgente</h2>
-          <p className="stats-value">{verdeAguardando}</p>
+          <p className="stats-value">{greenData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio de Espera: {tempoMedioVerde}</p>
+          <p className="stats-wait">Tempo Médio: {greenData.waitTime} min</p>
         </div>
+        
         <div className="stats-card stats-card-yellow">
           <h2>Urgente</h2>
-          <p className="stats-value">{amareloAguardando}</p>
+          <p className="stats-value">{yellowData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio de Espera: {tempoMedioAmarelo}</p>
+          <p className="stats-wait">Tempo Médio: {yellowData.waitTime} min</p>
         </div>
+        
         <div className="stats-card stats-card-red">
           <h2>Emergência</h2>
-          <p className="stats-value">{vermelhoAguardando}</p>
+          <p className="stats-value">{redData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio de Espera: {tempoMedioVermelho}</p>
+          <p className="stats-wait">Tempo Médio: {redData.waitTime} min</p>
         </div>
       </div>
 
       <div className="stats-charts">
-        {/* 1. BarChart */}
         <div className="chart-card">
-          <h3>Distribuição de Pacientes por Classificação</h3>
-          <Bar
-            data={{
-              labels: classificacoesData.map(c => c.name),
-              datasets: [{
-                label: 'Pacientes',
-                data: classificacoesData.map(c => c.value),
-                backgroundColor: ['#4b9cea','#48db8b','#ffe266','#ff7c7c']
-              }]
-            }}
-            options={{
-              ...commonOptions,
-              scales: { y: { beginAtZero: true } }
-            }}
-            height={300}
-          />
+          <h3>Distribuição por Classificação</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            {distributionData.length > 0 ? (
+              <BarChart data={distributionData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count">
+                  {distributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            ) : (
+              <div className="no-data">Sem dados de distribuição</div>
+            )}
+          </ResponsiveContainer>
         </div>
 
-        {/* 2. PieChart */}
         <div className="chart-card">
-          <h3>Percentual de Pacientes por Classificação</h3>
-          <Pie
-            data={{
-              labels: classificacoesData.map(c => c.name),
-              datasets: [{
-                data: classificacoesData.map(c => c.value),
-                backgroundColor: ['#4b9cea','#48db8b','#ffe266','#ff7c7c']
-              }]
-            }}
-            options={commonOptions}
-            height={300}
-          />
+          <h3>Percentual por Classificação</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            {percentagesData.length > 0 ? (
+              <PieChart>
+                <Pie
+                  data={percentagesData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  dataKey="value"
+                  nameKey="name"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {percentagesData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            ) : (
+              <div className="no-data">Sem dados percentuais</div>
+            )}
+          </ResponsiveContainer>
         </div>
 
-        {/* 3. LineChart */}
         <div className="chart-card">
-          <h3>Evolução de Atendimentos nos Últimos 7 Dias</h3>
-          <Line
-            data={{
-              labels: historicoAtendimentos.map(h => h.dia),
-              datasets: [{
-                label: 'Atendidos',
-                data: historicoAtendimentos.map(h => h.atendidos),
-                borderColor: '#82ca9d',
-                tension: 0.4,
-                fill: false
-              }]
-            }}
-            options={{
-              ...commonOptions,
-              scales: { y: { beginAtZero: true } }
-            }}
-            height={300}
-          />
+          <h3>Evolução dos Pacientes </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            {evolutionData.length > 0 ? (
+            <LineChart
+              data={evolutionData}
+              margin={{ top: 20, right: 20, left: 20, bottom: 60 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="dia" 
+                angle={-45} 
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis />
+              <Tooltip 
+                formatter={(value) => [`${value} pacientes`, 'Total']}
+                labelFormatter={(dia) => `Dia: ${dia}`}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="total"
+                name="Total de Pacientes"
+                stroke="#4b9cea"  // Azul consistente com seu tema
+                strokeWidth={3}
+                activeDot={{ r: 8 }}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          ) : (
+            <div className="no-data">Sem dados históricos</div>
+          )}
+          </ResponsiveContainer>
         </div>
 
-        {/* 4. RadarChart */}
         <div className="chart-card">
-          <h3>Tempo Médio de Atendimento</h3>
-          <Radar
-            data={{
-              labels: mediaAtendimentoData.map(m => m.subject),
-              datasets: [{
-                label: 'Tempo (min)',
-                data: mediaAtendimentoData.map(m => m.tempo),
-                backgroundColor: 'rgba(136,132,216,0.6)',
-                borderColor: '#8884d8',
-                borderWidth: 1
-              }]
-            }}
-            options={{
-              ...commonOptions,
-              scales: {
-                r: {
-                  beginAtZero: true,
-                  max: 40
-                }
-              }
-            }}
-            height={300}
-          />
+          <h3>Tempos Médios de Espera</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            {waitTimesData.length > 0 ? (
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={waitTimesData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="subject" />
+                <PolarRadiusAxis angle={30} domain={[0, 120]} />
+                <Radar
+                  name="Tempo médio"
+                  dataKey="tempo"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  fillOpacity={0.6}
+                />
+                <Tooltip />
+              </RadarChart>
+            ) : (
+              <div className="no-data">Sem dados de tempo de espera</div>
+            )}
+          </ResponsiveContainer>
         </div>
       </div>
-
 
       <footer className="stats-footer">
         <Link to="/" className="back-link">← Voltar ao Mapa</Link>
