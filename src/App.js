@@ -162,6 +162,7 @@ function App() {
                   userLocation={userLocation}
                   routesData={routesData}
                   bestUpaId={bestUpaId}
+                  isSidebarOpen={sidebarOpen}
                 />
               </div>
             </div>
