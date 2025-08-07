@@ -48,7 +48,9 @@
   
   .header-left{
     gap: 0px;
-    
+  }
+  .app-header{
+    padding: 13px 20px;
   }
   
 }
