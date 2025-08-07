@@ -57,11 +57,16 @@
 
 @media (max-width: 770px) {
   .upa-stats-container{
-    width: 92%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
   }
-  .chart-card{
-    width: 92%;
-  }
+  /* .chart-card{
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  } */
 }
 
 .stats-card-blue { background-color: #92c6f7; }
@@ -89,7 +94,7 @@
 
 .stats-charts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
 }
 
