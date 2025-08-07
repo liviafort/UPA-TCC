@@ -43,7 +43,6 @@ const userIcon = L.icon({
   iconAnchor: [22, 22],
 });
 
-
 /** Bolha de tempo (X min) no estilo Google Maps (divIcon) */
 function createTimeIcon(timeInMin, color) {
   return L.divIcon({
@@ -75,32 +74,21 @@ function getCircleOptions(total) {
     return { color: '#34A853', fillColor: '#34A853', fillOpacity: 0.2, radius: 300 };
 }
 
-/** Define a cor da rota com base no padrão Google */
-// function getRouteColor(upaId, bestUpaId, worstUpaId) {
-//   if (upaId === bestUpaId) return '#34A853'; // verde forte
-//   if (upaId === worstUpaId) return '#EA4335'; // vermelho
-//   return '#EA4335'; // amarelo para intermediárias
-// }
-
 /** Define a cor da rota com base no status da UPA */
 function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
-  // Verificações de segurança
   if (!upaId || !upas) return '#EA4335';
   
   const upa = upas.find(u => u.id === upaId);
   if (!upa || !upa.queueDetail) return '#EA4335';
   
-  // Calcula o total de pacientes na fila
   const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
   
-  // Define cores baseadas no status
-  if (upaId === bestUpaId) return '#34A853'; // verde (melhor opção)
-  if (upaId === worstUpaId) return '#EA4335'; // vermelho (pior opção)
+  if (upaId === bestUpaId) return '#34A853';
+  if (upaId === worstUpaId) return '#EA4335';
   
-  // Cores baseadas na lotação (igual aos ícones)
-  if (totalQueue > 15) return '#EA4335'; // vermelho
-  if (totalQueue > 9) return '#FBBC05';  // amarelo
-  return '#34A853';                      // verde
+  if (totalQueue > 15) return '#EA4335';
+  if (totalQueue > 9) return '#FBBC05';
+  return '#34A853';
 }
 
 /** Duas polylines: uma trilha branca e uma colorida por cima */
@@ -121,81 +109,79 @@ function getMidpoint(coords) {
   return coords[midIndex];
 }
 
-function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worstUpaId }) {
+function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worstUpaId, isSidebarOpen }) {
   const defaultCenter = useMemo(() => [-7.2404146, -35.8883043], []);
   const center = selectedUpa ? [selectedUpa.lat, selectedUpa.lng] : defaultCenter;
   const zoom = selectedUpa ? 15 : 13;
 
   return (
-  <div className="map-wrapper">
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      className="leaflet-map"
-      zoomAnimation={false}
-      fadeAnimation={false}
-    >
-      <ChangeView center={center} zoom={zoom} />
-      <TileLayer 
-        attribution='Map data &copy; OpenStreetMap'
-        url={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZ2lzbGFueSIsImEiOiJjbWRuazBsMHkwMm9yMndxNGkxNjY1MWlvIn0.ZGrQwbfe8DXTxIQIFdvc6Q`}
-        maxZoom={19}
-      />
+    <div className="map-wrapper">
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        className="leaflet-map"
+        zoomAnimation={false}
+        fadeAnimation={false}
+      >
+        <ChangeView center={center} zoom={zoom} />
+        <TileLayer 
+          attribution='Map data &copy; OpenStreetMap'
+          url={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZ2lzbGFueSIsImEiOiJjbWRuazBsMHkwMm9yMndxNGkxNjY1MWlvIn0.ZGrQwbfe8DXTxIQIFdvc6Q`}
+          maxZoom={19}
+        />
 
-      {userLocation && (
-        <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
-          <Popup>Você está aqui</Popup>
-        </Marker>
-      )}
+        {userLocation && (
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+            <Popup>Você está aqui</Popup>
+          </Marker>
+        )}
 
-      {upas.map((upa) => {
-        const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
-        return (
-          <React.Fragment key={upa.id}>
-            <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(totalQueue)} />
-            <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(totalQueue)}>
-              <Popup>
-                <h3 style={{ margin: '0 0 4px' }}>
-                  <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
-                </h3>
-                <p style={{ margin: 0 }}>{upa.address}</p>
-                <p style={{ margin: 0 }}><strong>Tempo médio:</strong> {upa.averageWaitTime}</p>
-              </Popup>
-            </Marker>
-          </React.Fragment>
-        );
-      })}
+        {upas.map((upa) => {
+          const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
+          return (
+            <React.Fragment key={upa.id}>
+              <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(totalQueue)} />
+              <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(totalQueue)}>
+                <Popup>
+                  <h3 style={{ margin: '0 0 4px' }}>
+                    <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
+                  </h3>
+                  <p style={{ margin: 0 }}>{upa.address}</p>
+                  <p style={{ margin: 0 }}><strong>Tempo médio:</strong> {upa.averageWaitTime}</p>
+                </Popup>
+              </Marker>
+            </React.Fragment>
+          );
+        })}
 
-      {upas.map((upa) => {
-        const route = routesData[upa.id];
-        if (!route || !route.coords) return null;
-        const color = getRouteColor(upa.id, bestUpaId, worstUpaId,upas);
-        const travelMin = Math.ceil(route.duration / 60);
-        const waitMin = parseInt(upa.averageWaitTime.split(" ")[0]);
-        const totalMin = travelMin + waitMin;
-        const midpoint = getMidpoint(route.coords);
-        return (
-          <React.Fragment key={`route-${upa.id}`}>
-            <DoublePolyline coords={route.coords} color={color} />
-            {midpoint && (
-              <Marker position={midpoint} icon={createTimeIcon(totalMin, color)} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </MapContainer>
+        {upas.map((upa) => {
+          const route = routesData[upa.id];
+          if (!route || !route.coords) return null;
+          const color = getRouteColor(upa.id, bestUpaId, worstUpaId, upas);
+          const travelMin = Math.ceil(route.duration / 60);
+          const waitMin = parseInt(upa.averageWaitTime.split(" ")[0]);
+          const totalMin = travelMin + waitMin;
+          const midpoint = getMidpoint(route.coords);
+          return (
+            <React.Fragment key={`route-${upa.id}`}>
+              <DoublePolyline coords={route.coords} color={color} />
+              {midpoint && (
+                <Marker position={midpoint} icon={createTimeIcon(totalMin, color)} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </MapContainer>
 
-    <div className="map-legend">
-      <h4>Classificação:</h4>
-      <div><span className="badge blue" /> Sem urgência</div>
-      <div><span className="badge green" /> Pouco urgente</div>
-      <div><span className="badge yellow" /> Urgente</div>
-      <div><span className="badge red" /> Emergência</div>
+      <div className={`map-legend ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        <h4>Classificação:</h4>
+        <div><span className="badge blue" /> Sem urgência</div>
+        <div><span className="badge green" /> Pouco urgente</div>
+        <div><span className="badge yellow" /> Urgente</div>
+        <div><span className="badge red" /> Emergência</div>
+      </div>
     </div>
-  </div>
-);
-
-
+  );
 }
 
 export default MapView;

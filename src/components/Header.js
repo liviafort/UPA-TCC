@@ -18,7 +18,11 @@ function Header({ onToggleSidebar, isSidebarOpen, setSidebarOpen }) {
     <header className="app-header">
       <div className="header-left">
         {isUpaDetail ? (
-          <Link to="/" className="back-link">← Voltar ao Mapa</Link>
+          <>
+            <Link to="/" className="back-link desktop-only">
+              ← Voltar ao Mapa
+            </Link>
+          </>
         ) : (
           <>
             <button className="menu-button" onClick={onToggleSidebar}>
@@ -27,7 +31,7 @@ function Header({ onToggleSidebar, isSidebarOpen, setSidebarOpen }) {
             <Link to="/">
               <img
                 src={mapa}
-                alt="Logo"
+                alt="Mapa"
                 className="maps-logo mobile-only"
                 onClick={handleMobileMapClick}
               />

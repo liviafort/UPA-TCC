@@ -30,11 +30,11 @@ import {
 } from '../server/Api';
 
 const COLOR_MAP = {
-  'NAO_TRIADO': '#a29eebff',
-  'AZUL': '#4b9cea',
-  'VERDE': '#48db8b',
-  'AMARELO': '#ffe266',
-  'VERMELHO': '#ff7c7c'
+  'NAO_TRIADO': '#b7b6b6d0',
+  'AZUL': '#6ea5d8ab',
+  'VERDE': '#5cc38ac5',
+  'AMARELO': '#ceba61f8',
+  'VERMELHO': '#d37474d1'
 };
 
 const CLASSIFICATION_LABELS = {
@@ -89,8 +89,14 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
   const upa = (upas || []).find(u => u.id === id) || {};
 
   if (loading) {
-    return <div className="upa-stats-container">Carregando dados...</div>;
+    return (
+      <div className="loading-container">
+        <div className="spinner" />
+        <p>Carregando dados...</p>
+      </div>
+    );
   }
+
 
   if (error) {
     return (
@@ -289,7 +295,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
                 type="monotone"
                 dataKey="total"
                 name="Total de Pacientes"
-                stroke="#4b9cea"  // Azul consistente com seu tema
+                stroke="#09AC96"  // Azul consistente com seu tema
                 strokeWidth={3}
                 activeDot={{ r: 8 }}
                 dot={{ r: 4 }}
@@ -312,8 +318,8 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
                 <Radar
                   name="Tempo médio"
                   dataKey="tempo"
-                  stroke="#8884d8"
-                  fill="#8884d8"
+                  stroke="#09AC96"
+                  fill="#09AC96"
                   fillOpacity={0.6}
                 />
                 <Tooltip />
@@ -326,7 +332,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
       </div>
 
       <footer className="stats-footer">
-        <Link to="/" className="back-link">← Voltar ao Mapa</Link>
+        <Link to="/" className="back-link desktop-only">← Voltar ao Mapa</Link>
       </footer>
     </div>
   );

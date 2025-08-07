@@ -58,6 +58,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   font-size: 0.85rem;
   z-index: 1000;
+  transition: opacity 0.3s ease;
 }
 
 .map-legend h4 {
@@ -84,4 +85,12 @@
 .map-legend .green  { background-color: #1BB232; }
 .map-legend .yellow { background-color: #E1AF18; }
 .map-legend .red    { background-color: #B21B1B; }
+
+@media (max-width: 768px) {
+  .map-legend.sidebar-open {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+}
 
