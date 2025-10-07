@@ -2,25 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dashboard.css';
 import {
-  BarChart,
-  PieChart,
-  LineChart,
-  RadarChart,
-  Bar,
-  Pie,
-  Line,
-  Radar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  Cell,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis
-} from 'recharts';
+  Filler
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   getUpaStatistics,
   getUpaDistribution,
@@ -28,13 +22,28 @@ import {
   getUpaEvolution,
   getUpaWaitTimes
 } from '../server/Api';
+import webSocketService from '../services/WebSocketService';
+
+// Registrar componentes do Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 const COLOR_MAP = {
-  'NAO_TRIADO': '#b7b6b6d0',
-  'AZUL': '#6ea5d8ab',
-  'VERDE': '#5cc38ac5',
-  'AMARELO': '#ceba61f8',
-  'VERMELHO': '#d37474d1'
+  'NAO_TRIADO': '#94a3b8',
+  'AZUL': '#3b82f6',
+  'VERDE': '#10b981',
+  'AMARELO': '#f59e0b',
+  'VERMELHO': '#ef4444'
 };
 
 const CLASSIFICATION_LABELS = {
@@ -60,7 +69,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
       try {
         setLoading(true);
         setError(null);
-        
+
         const [statsData, distData, percData, evolData, waitData] = await Promise.all([
           getUpaStatistics(id).catch(() => ({})),
           getUpaDistribution(id).catch(() => ({ distribution: {} })),
@@ -74,7 +83,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
         setPercentages(percData || { percentages: {} });
         setEvolution(evolData || { data: [] });
         setWaitTimes(waitData || { wait_times: {} });
-        
+
       } catch (err) {
         console.error("Failed to load UPA data:", err);
         setError("Não foi possível carregar os dados da UPA");
@@ -84,6 +93,58 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
     };
 
     loadData();
+
+    // Inscreve-se para receber atualizações da UPA específica via WebSocket
+    webSocketService.subscribeToUpa(id);
+
+    // Escuta atualizações de fila em tempo real
+    const unsubscribeQueue = webSocketService.onQueueUpdate((data) => {
+      if (data.upaId === id) {
+        // Atualiza distribuição
+        setDistribution({
+          upaId: id,
+          distribution: {
+            VERMELHO: { count: data.data.porClassificacao.vermelho || 0 },
+            AMARELO: { count: data.data.porClassificacao.amarelo || 0 },
+            VERDE: { count: data.data.porClassificacao.verde || 0 },
+            AZUL: { count: data.data.porClassificacao.azul || 0 },
+            NAO_TRIADO: { count: data.data.porClassificacao.semTriagem || 0 },
+          },
+          lastUpdated: data.data.ultimaAtualizacao,
+        });
+
+        // Atualiza percentagens
+        const total = data.data.totalPacientes || 1;
+        setPercentages({
+          upaId: id,
+          percentages: {
+            VERMELHO: (data.data.porClassificacao.vermelho / total) * 100,
+            AMARELO: (data.data.porClassificacao.amarelo / total) * 100,
+            VERDE: (data.data.porClassificacao.verde / total) * 100,
+            AZUL: (data.data.porClassificacao.azul / total) * 100,
+          },
+          totalPatients: data.data.totalPacientes,
+          lastUpdated: data.data.ultimaAtualizacao,
+        });
+
+        // Atualiza tempos de espera
+        setWaitTimes({
+          upaId: id,
+          wait_times: data.data.metricasPorClassificacao.map(m => ({
+            classification: m.classificacao,
+            average_wait_time_minutes: m.tempoMedioEsperaMinutos,
+            max_protocol_wait_time: m.tempoMaximoEsperaProtocolo,
+            patients_over_time: m.pacientesAcimaTempo,
+          })),
+          lastUpdated: data.data.ultimaAtualizacao,
+        });
+      }
+    });
+
+    return () => {
+      unsubscribeQueue();
+      webSocketService.unsubscribeFromUpa(id);
+    };
   }, [id]);
 
   const upa = (upas || []).find(u => u.id === id) || {};
@@ -148,9 +209,9 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
   }) || [];
 
   
-  const waitTimesData = Object.entries(waitTimes.wait_times || {}).map(([key, value]) => ({
-    subject: CLASSIFICATION_LABELS[key] || key,
-    tempo: value || 0,
+  const waitTimesData = (waitTimes.wait_times || []).map(item => ({
+    subject: CLASSIFICATION_LABELS[item.classification] || item.classification,
+    tempo: item.average_wait_time_minutes || 0,
     fullMark: 120
   }));
 
@@ -159,11 +220,14 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
   const waitTimeKey = Object.keys(CLASSIFICATION_LABELS).find(
     key => CLASSIFICATION_LABELS[key] === classification
   );
-  const waitTime = waitTimes.wait_times?.[waitTimeKey] || 0;
-  
+  const waitTimeItem = (waitTimes.wait_times || []).find(
+    item => item.classification === waitTimeKey
+  );
+  const waitTime = waitTimeItem?.average_wait_time_minutes || 0;
+
   return {
     count: data.count || 0,
-    waitTime: waitTime
+    waitTime: Math.round(waitTime)
   };
 };
  
@@ -222,112 +286,264 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
       </div>
 
       <div className="stats-charts">
-        <div className="chart-card">
-          <h3>Distribuição por Classificação</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            {distributionData.length > 0 ? (
-              <BarChart data={distributionData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count">
-                  {distributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            ) : (
-              <div className="no-data">Sem dados de distribuição</div>
-            )}
-          </ResponsiveContainer>
-        </div>
-
-        <div className="chart-card">
-          <h3>Percentual por Classificação</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            {percentagesData.length > 0 ? (
-              <PieChart>
-                <Pie
-                  data={percentagesData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {percentagesData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            ) : (
-              <div className="no-data">Sem dados percentuais</div>
-            )}
-          </ResponsiveContainer>
-        </div>
-
-        <div className="chart-card">
-          <h3>Evolução dos Pacientes </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            {evolutionData.length > 0 ? (
-            <LineChart
-              data={evolutionData}
-              margin={{ top: 20, right: 20, left: 20, bottom: 60 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="dia" 
-                angle={-45} 
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis />
-              <Tooltip 
-                formatter={(value) => [`${value} pacientes`, 'Total']}
-                labelFormatter={(dia) => `Dia: ${dia}`}
-              />
-              <Legend />
+        {/* Gráfico de Evolução - Ocupa 2 colunas */}
+        <div className="chart-card chart-wide">
+          <h3>Evolução dos Pacientes ao Longo do Tempo</h3>
+          {evolutionData.length > 0 ? (
+            <div style={{ width: '100%', height: '350px' }}>
               <Line
-                type="monotone"
-                dataKey="total"
-                name="Total de Pacientes"
-                stroke="#09AC96"  // Azul consistente com seu tema
-                strokeWidth={3}
-                activeDot={{ r: 8 }}
-                dot={{ r: 4 }}
+                data={{
+                  labels: evolutionData.map(item => item.dia),
+                  datasets: [{
+                    label: 'Total de Pacientes',
+                    data: evolutionData.map(item => item.total),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'top',
+                      labels: {
+                        font: { size: 12, weight: '600' },
+                        color: '#2c3e50',
+                        padding: 15
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                      padding: 12,
+                      titleFont: { size: 13, weight: 'bold' },
+                      bodyFont: { size: 12 },
+                      cornerRadius: 8
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                      },
+                      ticks: {
+                        font: { size: 11 },
+                        color: '#6c757d'
+                      }
+                    },
+                    x: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        font: { size: 11 },
+                        color: '#6c757d'
+                      }
+                    }
+                  }
+                }}
               />
-            </LineChart>
+            </div>
           ) : (
             <div className="no-data">Sem dados históricos</div>
           )}
-          </ResponsiveContainer>
         </div>
 
+        {/* Gráfico de Tempos de Espera - Ocupa 2 colunas */}
+        <div className="chart-card chart-wide">
+          <h3>Tempos Médios de Espera por Classificação</h3>
+          {waitTimesData.length > 0 ? (
+            <div style={{ width: '100%', height: '350px' }}>
+              <Line
+                data={{
+                  labels: waitTimesData.map(item => item.subject),
+                  datasets: [{
+                    label: 'Tempo Médio (minutos)',
+                    data: waitTimesData.map(item => item.tempo),
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#f59e0b',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'top',
+                      labels: {
+                        font: { size: 12, weight: '600' },
+                        color: '#2c3e50',
+                        padding: 15
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                      padding: 12,
+                      titleFont: { size: 13, weight: 'bold' },
+                      bodyFont: { size: 12 },
+                      cornerRadius: 8,
+                      callbacks: {
+                        label: (context) => `Tempo: ${context.parsed.y} minutos`
+                      }
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                      },
+                      ticks: {
+                        font: { size: 11 },
+                        color: '#6c757d',
+                        callback: (value) => `${value} min`
+                      }
+                    },
+                    x: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        font: { size: 11 },
+                        color: '#6c757d'
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="no-data">Sem dados de tempo de espera</div>
+          )}
+        </div>
+
+        {/* Gráfico de Distribuição */}
         <div className="chart-card">
-          <h3>Tempos Médios de Espera</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            {waitTimesData.length > 0 ? (
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={waitTimesData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarRadiusAxis angle={30} domain={[0, 120]} />
-                <Radar
-                  name="Tempo médio"
-                  dataKey="tempo"
-                  stroke="#09AC96"
-                  fill="#09AC96"
-                  fillOpacity={0.6}
-                />
-                <Tooltip />
-              </RadarChart>
-            ) : (
-              <div className="no-data">Sem dados de tempo de espera</div>
-            )}
-          </ResponsiveContainer>
+          <h3>Distribuição por Classificação</h3>
+          {distributionData.length > 0 ? (
+            <div style={{ width: '100%', height: '300px' }}>
+              <Bar
+                data={{
+                  labels: distributionData.map(item => item.name),
+                  datasets: [{
+                    label: 'Pacientes',
+                    data: distributionData.map(item => item.count),
+                    backgroundColor: distributionData.map(item => item.fill + '90'),
+                    borderColor: distributionData.map(item => item.fill),
+                    borderWidth: 2,
+                    borderRadius: 8
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                      padding: 12,
+                      cornerRadius: 8
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                      },
+                      ticks: {
+                        font: { size: 11 },
+                        color: '#6c757d'
+                      }
+                    },
+                    x: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        font: { size: 11 },
+                        color: '#6c757d'
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="no-data">Sem dados de distribuição</div>
+          )}
+        </div>
+
+        {/* Gráfico de Percentual */}
+        <div className="chart-card">
+          <h3>Percentual por Classificação</h3>
+          {percentagesData.length > 0 ? (
+            <div style={{ width: '100%', height: '300px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Doughnut
+                data={{
+                  labels: percentagesData.map(item => item.name),
+                  datasets: [{
+                    data: percentagesData.map(item => item.value),
+                    backgroundColor: percentagesData.map(item => item.fill + 'B0'),
+                    borderColor: percentagesData.map(item => item.fill),
+                    borderWidth: 2,
+                    hoverOffset: 15
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        font: { size: 11 },
+                        color: '#2c3e50',
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                      padding: 12,
+                      cornerRadius: 8,
+                      callbacks: {
+                        label: (context) => {
+                          const label = context.label || '';
+                          const value = context.parsed || 0;
+                          return `${label}: ${value.toFixed(1)}%`;
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="no-data">Sem dados percentuais</div>
+          )}
         </div>
       </div>
 

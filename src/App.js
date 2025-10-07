@@ -8,6 +8,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
 import UpaStatsPage from './pages/UpaStatsPage';
 import { fetchUpasComStatus } from './server/Api';
+import RoutingService from './services/RoutingService';
+import webSocketService from './services/WebSocketService';
 
 
 // Coordenadas padrão se o usuário negar a geolocalização
@@ -33,6 +35,38 @@ function App() {
       setUpas(data);
     }
     loadUpas();
+
+    // Conecta ao WebSocket
+    webSocketService.connect();
+
+    // Escuta atualizações de todas as UPAs
+    const unsubscribe = webSocketService.onAllUpasUpdate((data) => {
+      // Atualiza a UPA específica que recebeu atualização
+      setUpas(prevUpas => {
+        return prevUpas.map(upa => {
+          if (upa.id === data.upaId) {
+            return {
+              ...upa,
+              totalPacientes: data.data.totalPacientes,
+              statusOcupacao: data.data.statusOcupacao,
+              averageWaitTime: `${Math.round(data.data.tempoMedioEsperaMinutos)} min`,
+              queueDetail: {
+                blue: data.data.porClassificacao.azul || 0,
+                green: data.data.porClassificacao.verde || 0,
+                yellow: data.data.porClassificacao.amarelo || 0,
+                red: data.data.porClassificacao.vermelho || 0,
+              },
+            };
+          }
+          return upa;
+        });
+      });
+    });
+
+    return () => {
+      unsubscribe();
+      webSocketService.disconnect();
+    };
   }, []);
 
 
@@ -56,31 +90,47 @@ function App() {
     }
   }, []);
 
-  // Chamadas à API OSRM para cada UPA (manter como antes)
+  // Calcula rotas com todos os modos de transporte (carro, bicicleta, a pé)
   useEffect(() => {
-    if (userLocation) {
+    if (userLocation && upas.length > 0) {
       Promise.all(
-        upas.map((upa) => {
-          const url = `https://router.project-osrm.org/route/v1/walking/${userLocation.lng},${userLocation.lat};${upa.lng},${upa.lat}?overview=full&geometries=geojson`;
-          return fetch(url)
-            .then(res => res.json())
-            .then(data => {
-              if (data.routes && data.routes.length > 0) {
-                const route = data.routes[0];
-                return {
-                  id: upa.id,
-                  duration: route.duration, // em segundos
-                  distance: route.distance, // em metros
-                  coords: route.geometry.coordinates.map(c => [c[1], c[0]])
-                };
-              } else {
-                return { id: upa.id, duration: Infinity, distance: Infinity, coords: null };
-              }
-            })
-            .catch(err => {
-              console.error("Erro na rota OSRM p/ UPA " + upa.id + ":", err);
-              return { id: upa.id, duration: Infinity, distance: Infinity, coords: null };
-            });
+        upas.map(async (upa) => {
+          try {
+            // Busca todas as rotas simultaneamente
+            const routes = await RoutingService.calculateAllRoutes(
+              userLocation.lat,
+              userLocation.lng,
+              upa.lat,
+              upa.lng
+            );
+
+            // Busca a geometria da rota (usando car para visualização da rota principal)
+            const url = `https://router.project-osrm.org/route/v1/car/${userLocation.lng},${userLocation.lat};${upa.lng},${upa.lat}?overview=full&geometries=geojson`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            let coords = null;
+            if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+              coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+            }
+
+            return {
+              id: upa.id,
+              driving: routes.driving,
+              bike: routes.bike,
+              foot: routes.foot,
+              coords: coords
+            };
+          } catch (err) {
+            console.error(`Erro ao calcular rotas para UPA ${upa.id}:`, err);
+            return {
+              id: upa.id,
+              driving: null,
+              bike: null,
+              foot: null,
+              coords: null
+            };
+          }
         })
       ).then(results => {
         const dataObj = {};
@@ -92,14 +142,14 @@ function App() {
     }
   }, [userLocation, upas]);
 
-  // Calcula o "score" para cada UPA
+  // Calcula o "score" para cada UPA usando tempo de carro
   const { bestUpaId } = useMemo(() => {
     let bestScore = Infinity;
     let bestId = null;
     upas.forEach(upa => {
       const route = routesData[upa.id];
-      if (route && route.duration !== Infinity) {
-        const travelMin = Math.ceil(route.duration / 60);
+      if (route && route.driving && route.driving.duration) {
+        const travelMin = Math.ceil(route.driving.duration / 60);
         const waitMin = parseInt(upa.averageWaitTime.split(" ")[0]);
         const score = travelMin + waitMin;
         if (score < bestScore) {
@@ -141,7 +191,7 @@ function App() {
         />
           
         <div className="notification-banner">
-          ⚠️ Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
+          Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
         </div>
 
         <Routes>

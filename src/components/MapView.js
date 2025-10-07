@@ -5,6 +5,11 @@ import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../styles/MapView.css';
+import RoutingService from '../services/RoutingService';
+import carIcon from '../assets/car.svg';
+import bikeIcon from '../assets/bike.svg';
+import walkIcon from '../assets/walk.svg';
+import clockIcon from '../assets/clock.svg';
 
 /** Recalcula e centraliza o mapa ao mudar center/zoom */
 function ChangeView({ center, zoom }) {
@@ -43,17 +48,59 @@ const userIcon = L.icon({
   iconAnchor: [22, 22],
 });
 
-/** Bolha de tempo (X min) no estilo Google Maps (divIcon) */
-function createTimeIcon(timeInMin, color) {
+/** Bolha de tempo de DESLOCAMENTO na rota com múltiplos modos */
+function createTravelTimeIcon(routes) {
+  let html = '<div class="time-bubble-multi">';
+  let hasAnyRoute = false;
+
+  // Exibe tempo de carro
+  if (routes.driving && routes.driving.duration) {
+    const minutes = Math.ceil(routes.driving.duration / 60);
+    html += `<div class="time-item"><img src="${carIcon}" alt="Carro" class="transport-icon" /> ${minutes}min</div>`;
+    hasAnyRoute = true;
+  }
+
+  // Exibe tempo de bicicleta
+  if (routes.bike && routes.bike.duration) {
+    const minutes = Math.ceil(routes.bike.duration / 60);
+    html += `<div class="time-item"><img src="${bikeIcon}" alt="Bicicleta" class="transport-icon" /> ${minutes}min</div>`;
+    hasAnyRoute = true;
+  }
+
+  // Exibe tempo a pé
+  if (routes.foot && routes.foot.duration) {
+    const minutes = Math.ceil(routes.foot.duration / 60);
+    html += `<div class="time-item"><img src="${walkIcon}" alt="A pé" class="transport-icon" /> ${minutes}min</div>`;
+    hasAnyRoute = true;
+  }
+
+  // Se nenhuma rota foi encontrada, exibe mensagem
+  if (!hasAnyRoute) {
+    html += '<div class="time-item">Calculando...</div>';
+  }
+
+  html += '</div>';
+
   return L.divIcon({
     className: 'time-marker-div',
+    html: html,
+    iconSize: [160, 100],
+    iconAnchor: [80, 50],
+  });
+}
+
+/** Bolha de tempo de ESPERA na UPA (ao lado do marcador) */
+function createWaitTimeIcon(waitTime, color) {
+  return L.divIcon({
+    className: 'wait-time-marker-div',
     html: `
-      <div class="time-bubble" style="border:2px solid ${color}; white-space:nowrap;">
-        ${timeInMin} min
+      <div class="wait-time-bubble">
+        <img src="${clockIcon}" alt="Tempo de espera" class="wait-icon-svg" />
+        <span class="wait-value">${waitTime}</span>
       </div>
     `,
-    iconSize: [60, 30],
-    iconAnchor: [30, 15],
+    iconSize: [80, 24],
+    iconAnchor: [-15, 20],
   });
 }
 
@@ -88,6 +135,13 @@ function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
   
   if (totalQueue > 15) return '#EA4335';
   if (totalQueue > 9) return '#FBBC05';
+  return '#34A853';
+}
+
+/** Retorna a cor para o indicador de tempo de espera */
+function getWaitTimeColor(total) {
+  if (total > 15) return '#EA4335';
+  if (total > 9) return '#FBBC05';
   return '#34A853';
 }
 
@@ -138,47 +192,118 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
 
         {upas.map((upa) => {
           const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
+          const route = routesData[upa.id];
           return (
             <React.Fragment key={upa.id}>
               <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(totalQueue)} />
               <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(totalQueue)}>
-                <Popup>
-                  <h3 style={{ margin: '0 0 4px' }}>
-                    <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
-                  </h3>
-                  <p style={{ margin: 0 }}>{upa.address}</p>
-                  <p style={{ margin: 0 }}><strong>Tempo médio:</strong> {upa.averageWaitTime}</p>
+                <Popup minWidth={280} maxWidth={320}>
+                  <div style={{ padding: '8px' }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem', fontWeight: '700' }}>
+                      <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
+                    </h3>
+                    <p style={{ margin: '0 0 6px', fontSize: '0.95rem', color: '#6c757d' }}>{upa.address}</p>
+                    <p style={{ margin: '0 0 8px', fontSize: '0.95rem' }}><strong>Tempo de espera:</strong> {upa.averageWaitTime}</p>
+                    {route && (route.driving || route.bike || route.foot) && (
+                      <div style={{ marginTop: 12, borderTop: '2px solid #e0e0e0', paddingTop: 10 }}>
+                        <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '8px' }}>Tempo de deslocamento:</strong>
+                        {route.driving && route.driving.duration && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem' }}>
+                            <img src={carIcon} alt="Carro" style={{ width: '18px', height: '18px' }} />
+                            <span><strong>Carro:</strong> {RoutingService.formatDuration(route.driving.duration)} ({RoutingService.formatDistance(route.driving.distance)})</span>
+                          </div>
+                        )}
+                        {route.bike && route.bike.duration && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem' }}>
+                            <img src={bikeIcon} alt="Bicicleta" style={{ width: '18px', height: '18px' }} />
+                            <span><strong>Bicicleta:</strong> {RoutingService.formatDuration(route.bike.duration)} ({RoutingService.formatDistance(route.bike.distance)})</span>
+                          </div>
+                        )}
+                        {route.foot && route.foot.duration && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem' }}>
+                            <img src={walkIcon} alt="A pé" style={{ width: '18px', height: '18px' }} />
+                            <span><strong>A pé:</strong> {RoutingService.formatDuration(route.foot.duration)} ({RoutingService.formatDistance(route.foot.distance)})</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </Popup>
               </Marker>
+              {/* Indicador de tempo de espera flutuando sobre a UPA */}
+              <Marker
+                position={[upa.lat, upa.lng]}
+                icon={createWaitTimeIcon(upa.averageWaitTime, getWaitTimeColor(totalQueue))}
+              />
             </React.Fragment>
           );
         })}
 
+        {/* Rotas com tempos de DESLOCAMENTO (carro, bike, pé) */}
         {upas.map((upa) => {
           const route = routesData[upa.id];
           if (!route || !route.coords) return null;
           const color = getRouteColor(upa.id, bestUpaId, worstUpaId, upas);
-          const travelMin = Math.ceil(route.duration / 60);
-          const waitMin = parseInt(upa.averageWaitTime.split(" ")[0]);
-          const totalMin = travelMin + waitMin;
           const midpoint = getMidpoint(route.coords);
           return (
             <React.Fragment key={`route-${upa.id}`}>
               <DoublePolyline coords={route.coords} color={color} />
-              {midpoint && (
-                <Marker position={midpoint} icon={createTimeIcon(totalMin, color)} />
+              {midpoint && route.driving && (
+                <Marker position={midpoint} icon={createTravelTimeIcon({
+                  driving: route.driving,
+                  bike: route.bike,
+                  foot: route.foot
+                })} />
               )}
             </React.Fragment>
           );
         })}
       </MapContainer>
 
-      <div className={`map-legend ${isSidebarOpen ? 'sidebar-open' : ''}`}>
-        <h4>Classificação:</h4>
-        <div><span className="badge blue" /> Sem urgência</div>
-        <div><span className="badge green" /> Pouco urgente</div>
-        <div><span className="badge yellow" /> Urgente</div>
-        <div><span className="badge red" /> Emergência</div>
+      <div className={`map-legends-container ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        <div className="map-legend classification-legend">
+          <h4>Classificação de Risco</h4>
+          <div className="legend-items">
+            <div className="legend-item">
+              <span className="badge blue" />
+              <span>Não Urgente</span>
+            </div>
+            <div className="legend-item">
+              <span className="badge green" />
+              <span>Pouco Urgente</span>
+            </div>
+            <div className="legend-item">
+              <span className="badge yellow" />
+              <span>Urgente</span>
+            </div>
+            <div className="legend-item">
+              <span className="badge red" />
+              <span>Emergência</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="map-legend indicators-legend">
+          <h4>Indicadores</h4>
+          <div className="legend-items">
+            <div className="legend-item">
+              <img src={carIcon} alt="Carro" className="legend-transport-icon" />
+              <span>Carro</span>
+            </div>
+            <div className="legend-item">
+              <img src={bikeIcon} alt="Bicicleta" className="legend-transport-icon" />
+              <span>Bicicleta</span>
+            </div>
+            <div className="legend-item">
+              <img src={walkIcon} alt="A pé" className="legend-transport-icon" />
+              <span>A pé</span>
+            </div>
+            <div className="legend-item">
+              <img src={clockIcon} alt="Tempo de espera" className="legend-transport-icon" />
+              <span>Tempo de espera</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

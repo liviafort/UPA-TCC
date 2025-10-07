@@ -1,23 +1,108 @@
 .leaflet-container {
   width: 100%;
   height: 100%;
+  border-radius: 12px;
 }
 
-/* Marcador de tempo (X min) no estilo Google Maps */
-.time-marker-div {
-  background: transparent; /* remove fundo do divIcon */
+/* ===== MARCADORES DE TEMPO ===== */
+
+/* Container dos marcadores */
+.time-marker-div,
+.wait-time-marker-div {
+  background: transparent;
   border: none;
 }
 
-/* Bolha com borda colorida, sombra e texto centralizado */
+/* Bolha de tempo de DESLOCAMENTO - Estilo Google Maps */
 .time-bubble {
-  display: inline-block;
-  padding: 2px 8px;
-  background: #fff;
-  border-radius: 14px;
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: #000;
+  color: #202124;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.time-bubble .time-icon {
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.time-bubble .time-value {
+  font-weight: 500;
+  color: #202124;
+}
+
+/* Bolha com múltiplos tempos de deslocamento */
+.time-bubble-multi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #202124;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-width: 120px;
+}
+
+.time-bubble-multi .time-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.time-bubble-multi .time-item span:first-child {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* Bolha de tempo de ESPERA - Estilo Google Maps */
+.wait-time-bubble {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #202124;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.wait-time-bubble .wait-icon {
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.wait-time-bubble .wait-icon-svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.wait-time-bubble .wait-value {
+  font-weight: 500;
+  color: #202124;
 }
 
 /* Responsividade básica, ajustando layout no mobile */
@@ -47,50 +132,172 @@
   height: 100%;
 }
 
-.map-legend {
+/* Container para as legendas */
+.map-legends-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  font-size: 0.85rem;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   z-index: 1000;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
 }
 
+/* Card individual de legenda */
+.map-legend {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(9, 172, 150, 0.15);
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.map-legend:hover {
+  box-shadow: 0 6px 24px rgba(9, 172, 150, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Título da legenda */
 .map-legend h4 {
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: 700;
+  border-bottom: 2px solid #09AC96;
+  padding-bottom: 8px;
+  letter-spacing: 0.3px;
 }
 
-.map-legend div {
-  margin-bottom: 4px;
+/* Container dos itens da legenda */
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Item individual da legenda */
+.legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  color: #495057;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 4px 0;
 }
 
+.legend-item:hover {
+  color: #2c3e50;
+  transform: translateX(3px);
+}
+
+/* Badge colorido */
 .map-legend .badge {
   display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
-.map-legend .blue   { background-color: #217BC0; }
-.map-legend .green  { background-color: #1BB232; }
-.map-legend .yellow { background-color: #E1AF18; }
-.map-legend .red    { background-color: #B21B1B; }
+.map-legend .blue {
+  background: linear-gradient(135deg, #217BC0, #1a5f94);
+}
+.map-legend .green {
+  background: linear-gradient(135deg, #1BB232, #148a25);
+}
+.map-legend .yellow {
+  background: linear-gradient(135deg, #E1AF18, #b88c13);
+}
+.map-legend .red {
+  background: linear-gradient(135deg, #B21B1B, #8a1515);
+}
 
+/* Ícone dos indicadores */
+.indicator-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  flex-shrink: 0;
+}
+
+/* Ícones SVG de transporte na legenda */
+.legend-transport-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Ícones SVG de transporte na bolha de tempo */
+.time-bubble-multi .transport-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Estilos específicos para cada card */
+.indicators-legend h4 {
+  border-bottom-color: #6c757d;
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
-  .map-legend.sidebar-open {
+  .map-legends-container {
+    bottom: 12px;
+    right: 12px;
+    gap: 8px;
+    transform: scale(0.85);
+    transform-origin: bottom right;
+  }
+
+  .map-legends-container.sidebar-open {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+  }
+
+  .map-legend {
+    min-width: 200px;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .map-legend h4 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+  }
+
+  .legend-items {
+    gap: 6px;
+  }
+
+  .legend-item {
+    font-size: 0.9rem;
+    gap: 9px;
+  }
+
+  .map-legend .badge {
+    width: 14px;
+    height: 14px;
+  }
+
+  .legend-transport-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .indicator-icon {
+    width: 20px;
+    font-size: 1rem;
   }
 }
 
