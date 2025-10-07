@@ -83,6 +83,16 @@
   }
 }
 
+@media (max-width: 768px) {
+  /* .stats-main {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  } */
+  .back-link{
+    padding: 10px 24px;
+    font-size: 0.7rem;
+  }
+}
+
 
 .chart-card {
   background: #f8f8f8;

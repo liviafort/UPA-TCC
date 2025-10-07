@@ -45,6 +45,7 @@ function Header({ onToggleSidebar, isSidebarOpen, setSidebarOpen }) {
         </Link>
       </div>
     </header>
+    
   );
 }
 

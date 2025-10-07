@@ -1,47 +1,30 @@
-/* Estilo delicado para o link transformado em botão */
-/* .dash-link {
-    text-decoration: none;
-    color: #09AC96;             
-    border: 2px solid #09AC96;   
-    border-radius: 8px;        
-    padding: 8px 16px;
-    font-weight: 500;
-    font-size: 1.2rem;
-    display: inline-block;
-    transition: all 0.3s ease;  
-  } */
-  
-  /* Efeito de destaque ao passar o mouse ou focar */
-  /* .dash-link:hover,
-  .dash-link:focus {
-    background-color: #09AC96;  
-    color: #fff;                
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-    transform: translateY(-2px); 
-  } */
+.dash-link {
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-block;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #09AC96, #0c8f7e);
+  color: #fff;
+  align-self: center;
+  margin-top: 14px;
+  box-shadow: 0 4px 12px rgba(9, 172, 150, 0.3);
+  border: 2px solid transparent;
+  letter-spacing: 0.3px;
+}
 
+.dash-link:hover,
+.dash-link:focus {
+  background: #ffffff;
+  color: #09AC96;
+  border: 2px solid #09AC96;
+  box-shadow: 0 6px 16px rgba(9, 172, 150, 0.4);
+  transform: translateY(-2px);
+}
 
-  .dash-link {
-    text-decoration: none;  /* Cor base azul */
-    border-radius: 6px;         
-    padding: 8px 16px;
-    font-weight: 500;
-    font-size: 0.9rem;
-    display: inline-block;
-    transition: all 0.3s ease;
-    background-color: #09AC96;  
-    color: #fff;
-    align-self: center;
-    margin-top: 11px;
-  }
-
-  
-  /* Efeito de destaque ao passar o mouse ou focar */
-  .dash-link:hover,
-  .dash-link:focus {
-    background-color: #FAFAFA;   /* Preenche com azul ao passar o mouse */
-    color: #09AC96;
-    border: 1px solid #09AC96;              /* Texto em branco quando o fundo é azul */
-    box-shadow: 0 4px 8px rgba(12, 174, 152, 0.4); /* Sombra leve para dar profundidade */
-    transform: translateY(-2px); /* Leve elevação para evidenciar interação */
-  }
+.dash-link:active {
+  transform: translateY(0px);
+  box-shadow: 0 3px 8px rgba(9, 172, 150, 0.3);
+}
