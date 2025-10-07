@@ -16,7 +16,7 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
         <h3 className='text-upa-item'>{name}</h3>
 
         <p style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '1rem' }}>📍</span> {address}
+          <span style={{ fontSize: '1rem' }}></span> {address}
         </p>
 
         <div style={{
