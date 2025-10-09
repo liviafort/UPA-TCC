@@ -1,9 +1,12 @@
-const OSRM_BASE_URL = 'https://router.project-osrm.org/route/v1';
+// URLs específicas para cada modo de transporte no OpenStreetMap
+const ROUTING_URLS = {
+  DRIVING: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',
+  BIKE: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving',
+  FOOT: 'https://routing.openstreetmap.de/routed-foot/route/v1/driving'
+};
 
-// Profiles suportados pela API OSRM pública
-// Nota: 'car' é o profile padrão, mas alguns servidores aceitam 'driving' como alias
 const TRANSPORT_MODES = {
-  DRIVING: 'car',
+  DRIVING: 'driving',
   BIKE: 'bike',
   FOOT: 'foot'
 };
@@ -20,12 +23,24 @@ class RoutingService {
    */
   static async calculateRoute(lat1, lon1, lat2, lon2, mode = TRANSPORT_MODES.DRIVING) {
     try {
-      const url = `${OSRM_BASE_URL}/${mode}/${lon1},${lat1};${lon2},${lat2}?overview=false`;
+      // Seleciona a URL base correta para o modo de transporte
+      let baseUrl;
+      if (mode === TRANSPORT_MODES.DRIVING) {
+        baseUrl = ROUTING_URLS.DRIVING;
+      } else if (mode === TRANSPORT_MODES.BIKE) {
+        baseUrl = ROUTING_URLS.BIKE;
+      } else if (mode === TRANSPORT_MODES.FOOT) {
+        baseUrl = ROUTING_URLS.FOOT;
+      } else {
+        baseUrl = ROUTING_URLS.DRIVING;
+      }
+
+      const url = `${baseUrl}/${lon1},${lat1};${lon2},${lat2}?overview=false`;
 
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error(`OSRM API error: ${response.status}`);
+        throw new Error(`Routing API error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -41,18 +56,14 @@ class RoutingService {
         duration: route.duration  // em segundos
       };
     } catch (error) {
-      console.error(`Erro ao calcular rota:`, error.message);
+      console.error(`Erro ao calcular rota (${mode}):`, error.message);
       return null;
     }
   }
 
   /**
    * Calcula rotas para todos os modos de transporte
-   *
-   * NOTA: O servidor OSRM público (router.project-osrm.org) só tem dados para carro.
-   * Para bike e pé, fazemos estimativas baseadas no tempo/distância de carro:
-   * - Bicicleta: ~2.5x mais tempo que carro (velocidade média: 15-20 km/h)
-   * - A pé: ~5x mais tempo que carro (velocidade média: 5-6 km/h)
+   * Busca tempos reais para carro, bicicleta e a pé usando APIs específicas do OpenStreetMap
    *
    * @param {number} lat1 - Latitude origem
    * @param {number} lon1 - Longitude origem
@@ -61,24 +72,12 @@ class RoutingService {
    * @returns {Promise<{driving: object, bike: object, foot: object}>}
    */
   static async calculateAllRoutes(lat1, lon1, lat2, lon2) {
-    // Busca apenas a rota de carro (única disponível no OSRM público)
-    const driving = await this.calculateRoute(lat1, lon1, lat2, lon2, TRANSPORT_MODES.DRIVING);
-
-    if (!driving) {
-      return { driving: null, bike: null, foot: null };
-    }
-
-    // Estima tempo de bicicleta (velocidade média: 15 km/h vs carro: 40 km/h)
-    const bike = {
-      distance: driving.distance,
-      duration: driving.duration * 2.7 // ~2.5x mais tempo
-    };
-
-    // Estima tempo a pé (velocidade média: 5 km/h vs carro: 40 km/h)
-    const foot = {
-      distance: driving.distance,
-      duration: driving.duration * 6 // ~6x mais tempo
-    };
+    // Busca rotas reais para cada modo de transporte em paralelo
+    const [driving, bike, foot] = await Promise.all([
+      this.calculateRoute(lat1, lon1, lat2, lon2, TRANSPORT_MODES.DRIVING),
+      this.calculateRoute(lat1, lon1, lat2, lon2, TRANSPORT_MODES.BIKE),
+      this.calculateRoute(lat1, lon1, lat2, lon2, TRANSPORT_MODES.FOOT)
+    ]);
 
     return { driving, bike, foot };
   }
@@ -91,13 +90,17 @@ class RoutingService {
   static formatDuration(seconds) {
     if (!seconds) return 'N/A';
 
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const totalMinutes = Math.ceil(seconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
 
     if (hours > 0) {
-      return `${hours}h ${minutes}min`;
+      if (minutes > 0) {
+        return `${hours}h ${minutes}min`;
+      }
+      return `${hours}h`;
     }
-    return `${minutes}min`;
+    return `${totalMinutes}min`;
   }
 
   /**
@@ -112,6 +115,27 @@ class RoutingService {
       return `${(meters / 1000).toFixed(1)} km`;
     }
     return `${Math.round(meters)} m`;
+  }
+
+  /**
+   * Formata minutos para formato legível (converte para horas se > 60 min)
+   * @param {number} minutes - Tempo em minutos
+   * @returns {string} Tempo formatado
+   */
+  static formatMinutes(minutes) {
+    if (!minutes || minutes <= 0) return '0 min';
+
+    const totalMinutes = Math.round(minutes);
+    const hours = Math.floor(totalMinutes / 60);
+    const remainingMinutes = totalMinutes % 60;
+
+    if (hours > 0) {
+      if (remainingMinutes > 0) {
+        return `${hours}h ${remainingMinutes}min`;
+      }
+      return `${hours}h`;
+    }
+    return `${totalMinutes} min`;
   }
 }
 

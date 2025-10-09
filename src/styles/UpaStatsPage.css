@@ -88,8 +88,8 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   } */
   .back-link{
-    padding: 10px 24px;
-    font-size: 0.7rem;
+    padding: 6px 12px;
+    font-size: 0.75rem;
   }
 }
 
@@ -115,13 +115,13 @@
 }
 .back-link {
   text-decoration: none;
-  background-color: #09AC96;  
+  background-color: #09AC96;
   color: #fff;
   font-weight: bold;
-  border-radius: 6px;         
-  padding: 8px 16px;
+  border-radius: 6px;
+  padding: 6px 14px;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   display: inline-block;
   transition: all 0.3s ease;
 }

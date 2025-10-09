@@ -32,10 +32,11 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
             color: '#09AC96',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            lineHeight: '1'
           }}>
-            <img src={clockIcon} alt="Tempo" style={{ width: '24px', height: '24px' }} />
-            <span>{averageWaitTime}</span>
+            <img src={clockIcon} alt="Tempo" style={{ width: '24px', height: '24px', flexShrink: 0, display: 'block' }} />
+            <span style={{ display: 'flex', alignItems: 'center' }}>{averageWaitTime}</span>
           </p>
         </div>
 
