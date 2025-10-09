@@ -10,6 +10,7 @@ import carIcon from '../assets/car.svg';
 import bikeIcon from '../assets/bike.svg';
 import walkIcon from '../assets/walk.svg';
 import clockIcon from '../assets/clock.svg';
+import usuarioIcon from '../assets/usuario.png'
 
 /** Recalcula e centraliza o mapa ao mudar center/zoom */
 function ChangeView({ center, zoom }) {
@@ -43,14 +44,20 @@ const greenIcon = L.icon({
 
 /** Ícone azul para o usuário */
 const userIcon = L.icon({
-  iconUrl: 'https://img.icons8.com/?size=100&id=0hBN66p6eZ8Q&format=png&color=000000',
-  iconSize: [44, 44],
+  iconUrl: usuarioIcon,
+  iconSize: [35, 35],
   iconAnchor: [22, 22],
 });
 
 /** Bolha de tempo de DESLOCAMENTO na rota com múltiplos modos */
-function createTravelTimeIcon(routes) {
+function createTravelTimeIcon(routes, upaName) {
   let html = '<div class="time-bubble-multi">';
+
+  // Adiciona o nome da UPA no topo
+  if (upaName) {
+    html += `<div class="time-upa-name">${upaName}</div>`;
+  }
+
   let hasAnyRoute = false;
 
   // Exibe tempo de carro
@@ -84,8 +91,8 @@ function createTravelTimeIcon(routes) {
   return L.divIcon({
     className: 'time-marker-div',
     html: html,
-    iconSize: [160, 100],
-    iconAnchor: [80, 50],
+    iconSize: [140, 100],
+    iconAnchor: [70, 50],
   });
 }
 
@@ -197,32 +204,40 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
             <React.Fragment key={upa.id}>
               <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(totalQueue)} />
               <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(totalQueue)}>
-                <Popup minWidth={280} maxWidth={320}>
-                  <div style={{ padding: '8px' }}>
-                    <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem', fontWeight: '700' }}>
-                      <Link to={`/upa/${upa.id}`} className="dash-link">{upa.name}</Link>
+                <Popup minWidth={180} maxWidth={200} className="upa-popup">
+                  <div className="popup-content">
+                    <h3 className="popup-title">
+                      <Link to={`/upa/${upa.id}`} className="popup-link">{upa.name}</Link>
                     </h3>
-                    <p style={{ margin: '0 0 6px', fontSize: '0.95rem', color: '#6c757d' }}>{upa.address}</p>
-                    <p style={{ margin: '0 0 8px', fontSize: '0.95rem' }}><strong>Tempo de espera:</strong> {upa.averageWaitTime}</p>
+                    <p className="popup-address">{upa.address}</p>
+
+                    <div className="popup-wait-info">
+                      <img src={clockIcon} alt="Tempo" className="popup-clock-icon" />
+                      <span className="popup-wait-time">{upa.averageWaitTime}</span>
+                    </div>
+
                     {route && (route.driving || route.bike || route.foot) && (
-                      <div style={{ marginTop: 12, borderTop: '2px solid #e0e0e0', paddingTop: 10 }}>
-                        <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '8px' }}>Tempo de deslocamento:</strong>
+                      <div className="popup-routes">
+                        <div className="popup-routes-title">Deslocamento</div>
                         {route.driving && route.driving.duration && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem' }}>
-                            <img src={carIcon} alt="Carro" style={{ width: '18px', height: '18px' }} />
-                            <span><strong>Carro:</strong> {RoutingService.formatDuration(route.driving.duration)} ({RoutingService.formatDistance(route.driving.distance)})</span>
+                          <div className="popup-route-item">
+                            <img src={carIcon} alt="Carro" className="popup-route-icon" />
+                            <span>{RoutingService.formatDuration(route.driving.duration)}</span>
+                            <span className="popup-distance">({RoutingService.formatDistance(route.driving.distance)})</span>
                           </div>
                         )}
                         {route.bike && route.bike.duration && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem' }}>
-                            <img src={bikeIcon} alt="Bicicleta" style={{ width: '18px', height: '18px' }} />
-                            <span><strong>Bicicleta:</strong> {RoutingService.formatDuration(route.bike.duration)} ({RoutingService.formatDistance(route.bike.distance)})</span>
+                          <div className="popup-route-item">
+                            <img src={bikeIcon} alt="Bicicleta" className="popup-route-icon" />
+                            <span>{RoutingService.formatDuration(route.bike.duration)}</span>
+                            <span className="popup-distance">({RoutingService.formatDistance(route.bike.distance)})</span>
                           </div>
                         )}
                         {route.foot && route.foot.duration && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem' }}>
-                            <img src={walkIcon} alt="A pé" style={{ width: '18px', height: '18px' }} />
-                            <span><strong>A pé:</strong> {RoutingService.formatDuration(route.foot.duration)} ({RoutingService.formatDistance(route.foot.distance)})</span>
+                          <div className="popup-route-item">
+                            <img src={walkIcon} alt="A pé" className="popup-route-icon" />
+                            <span>{RoutingService.formatDuration(route.foot.duration)}</span>
+                            <span className="popup-distance">({RoutingService.formatDistance(route.foot.distance)})</span>
                           </div>
                         )}
                       </div>
@@ -253,7 +268,7 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
                   driving: route.driving,
                   bike: route.bike,
                   foot: route.foot
-                })} />
+                }, upa.name)} />
               )}
             </React.Fragment>
           );

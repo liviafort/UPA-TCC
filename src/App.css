@@ -6,6 +6,12 @@
   background: #f8f9fa;
 }
 
+/* Permite scroll apenas nas páginas de dashboard/stats */
+.app-wrapper:has(.upa-stats-container) {
+  height: auto;
+  min-height: 100vh;
+}
+
 /* ===== HEADER ===== */
 .app-header {
   background: #ffffff;
@@ -59,16 +65,17 @@
     display: block;
   }
   .menu-button{
-    font-size: 2rem;
+    font-size: 1.5rem;
+    padding: 4px 8px;
   }
-  
+
   .header-left{
     gap: 0px;
   }
   .app-header{
     padding: 13px 20px;
   }
-  
+
 }
 
 
@@ -149,7 +156,7 @@
     height: 42px;
     margin-top: 0;
     position: fixed;
-    top: 74px;
+    top: 67px;
     left: 0;
     right: 0;
     width: 100%;
@@ -352,6 +359,12 @@
   background: #fff;
 }
 
+/* Permite scroll quando há conteúdo de dashboard/stats */
+.map-container:has(.upa-stats-container) {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .leaflet-container {
   width: 100%;
   height: 100%;
@@ -359,14 +372,135 @@
 
 /* ===== POPUP DO LEAFLET ===== */
 .leaflet-popup-content-wrapper {
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 180px !important;
+  max-width: 200px !important;
+  overflow: hidden;
+}
+
+/* Mantém popup menor no mobile */
+@media (max-width: 768px) {
+  .leaflet-popup-content-wrapper {
+    min-width: 160px !important;
+    max-width: 180px !important;
+  }
 }
 
 .leaflet-popup-content {
-  margin: 0;
-  font-size: 0.9em;
+  margin: 0 !important;
+  font-size: 0.75rem !important;
+  line-height: 1.3 !important;
+  width: auto !important;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos do popup da UPA */
+.popup-content {
+  padding: 10px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.popup-title {
+  margin: 0 0 6px 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.popup-link {
+  color: #09AC96;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.popup-link:hover {
+  color: #0c8f7e;
+  text-decoration: underline;
+}
+
+.popup-address {
+  margin: 0 0 8px 0;
+  font-size: 0.75rem;
+  color: #6c757d;
   line-height: 1.4;
+}
+
+.popup-wait-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: linear-gradient(135deg, #09AC96 0%, #0c8f7e 100%);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.popup-clock-icon {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+.popup-wait-time {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.popup-routes {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px solid #e9ecef;
+}
+
+.popup-routes-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #495057;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.popup-route-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  padding: 4px 6px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.popup-route-item:hover {
+  background: #e9ecef;
+}
+
+.popup-route-item:last-child {
+  margin-bottom: 0;
+}
+
+.popup-route-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.popup-route-item span {
+  font-size: 0.7rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.popup-distance {
+  color: #6c757d !important;
+  font-weight: 400 !important;
+  font-size: 0.65rem !important;
 }
 
 .popup-title {

@@ -24,6 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "dev": "react-scripts start",
     "serve": "serve -s build -l 8080"
   },
   "eslintConfig": {

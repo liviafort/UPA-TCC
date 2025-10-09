@@ -1,5 +1,6 @@
 // src/server/Api.js
 import axios from 'axios';
+import RoutingService from '../services/RoutingService';
 import {
   mockStatistics,
   mockDistribution,
@@ -76,7 +77,7 @@ export async function fetchUpasComStatus() {
             yellow: 0,
             red: 0,
           },
-          averageWaitTime: `${Math.round(tempoMedio)} min`,
+          averageWaitTime: RoutingService.formatMinutes(tempoMedio),
           totalPacientes: upa.totalPacientes,
           statusOcupacao: upa.statusOcupacao,
           isActive: upa.isActive,

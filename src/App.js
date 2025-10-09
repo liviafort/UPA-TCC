@@ -49,7 +49,7 @@ function App() {
               ...upa,
               totalPacientes: data.data.totalPacientes,
               statusOcupacao: data.data.statusOcupacao,
-              averageWaitTime: `${Math.round(data.data.tempoMedioEsperaMinutos)} min`,
+              averageWaitTime: RoutingService.formatMinutes(data.data.tempoMedioEsperaMinutos),
               queueDetail: {
                 blue: data.data.porClassificacao.azul || 0,
                 green: data.data.porClassificacao.verde || 0,
