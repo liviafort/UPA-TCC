@@ -258,6 +258,23 @@
   flex-shrink: 0;
 }
 
+/* Badge colorido de classificação de risco */
+.time-bubble-multi .classification-badge {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+/* Texto do tempo de classificação */
+.time-bubble-multi .classification-time {
+  font-weight: 600;
+  color: #202124;
+  font-size: 0.75rem;
+}
+
 /* Estilos específicos para cada card */
 .indicators-legend h4 {
   border-bottom-color: #6c757d;

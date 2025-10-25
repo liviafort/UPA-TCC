@@ -31,7 +31,34 @@
 .header-left, .header-right {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 16px;
+}
+
+/* Botão de Login para Gestores */
+.login-button-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #09AC96 0%, #07c9ac 100%);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(9, 172, 150, 0.2);
+  text-decoration: none;
+}
+
+.login-button-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(9, 172, 150, 0.3);
+}
+
+.login-button-header svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .menu-button {
@@ -59,6 +86,28 @@
   display: none;
 }
 
+/* Botão Voltar ao Mapa no Header */
+.desktop-only.back-link {
+  text-decoration: none;
+  background: linear-gradient(135deg, #09AC96, #0c8f7e);
+  color: #ffffff !important;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(9, 172, 150, 0.3);
+}
+
+.desktop-only.back-link:hover {
+  background: #ffffff;
+  color: #09AC96 !important;
+  border: 2px solid #09AC96;
+  box-shadow: 0 6px 16px rgba(9, 172, 150, 0.4);
+  transform: translateY(-2px);
+}
+
 
 @media (max-width: 770px) {
   .mobile-only {
@@ -76,6 +125,21 @@
     padding: 13px 20px;
   }
 
+  /* Botão de login responsivo */
+  .login-button-header {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+
+  .login-button-header svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .header-right {
+    gap: 10px;
+  }
 }
 
 
