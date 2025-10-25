@@ -60,6 +60,15 @@ export async function fetchUpasComStatus() {
 
         const tempoMedio = queueData?.tempoMedioEsperaMinutos || 0;
 
+        // Extrai os tempos de espera por classificação
+        const waitTimesByClassification = {};
+        if (queueData?.metricasPorClassificacao) {
+          queueData.metricasPorClassificacao.forEach(metrica => {
+            const classificacao = metrica.classificacao.toLowerCase();
+            waitTimesByClassification[classificacao] = metrica.tempoMedioEsperaMinutos;
+          });
+        }
+
         return {
           id: upa.id,
           name: upa.nome,
@@ -78,6 +87,7 @@ export async function fetchUpasComStatus() {
             red: 0,
           },
           averageWaitTime: RoutingService.formatMinutes(tempoMedio),
+          waitTimesByClassification: waitTimesByClassification,
           totalPacientes: upa.totalPacientes,
           statusOcupacao: upa.statusOcupacao,
           isActive: upa.isActive,
@@ -98,6 +108,7 @@ export async function fetchUpasComStatus() {
             red: 0,
           },
           averageWaitTime: `0 min`,
+          waitTimesByClassification: {},
           totalPacientes: upa.totalPacientes,
           statusOcupacao: upa.statusOcupacao,
           isActive: upa.isActive,

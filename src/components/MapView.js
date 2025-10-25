@@ -11,6 +11,8 @@ import bikeIcon from '../assets/bike.svg';
 import walkIcon from '../assets/walk.svg';
 import clockIcon from '../assets/clock.svg';
 import usuarioIcon from '../assets/usuario.png'
+import iconGreen from '../assets/icon-green.png';
+import iconRed from '../assets/icon-red.png';
 
 /** Recalcula e centraliza o mapa ao mudar center/zoom */
 function ChangeView({ center, zoom }) {
@@ -24,7 +26,7 @@ function ChangeView({ center, zoom }) {
 
 /** Ícones para as UPAs */
 const redIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  iconUrl: iconRed,
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -36,7 +38,7 @@ const yellowIcon = L.icon({
   iconAnchor: [12, 41],
 });
 const greenIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+  iconUrl: iconGreen,
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -45,7 +47,7 @@ const greenIcon = L.icon({
 /** Ícone azul para o usuário */
 const userIcon = L.icon({
   iconUrl: usuarioIcon,
-  iconSize: [35, 35],
+  iconSize: [41, 41],
   iconAnchor: [22, 22],
 });
 
@@ -62,22 +64,22 @@ function createTravelTimeIcon(routes, upaName) {
 
   // Exibe tempo de carro
   if (routes.driving && routes.driving.duration) {
-    const minutes = Math.ceil(routes.driving.duration / 60);
-    html += `<div class="time-item"><img src="${carIcon}" alt="Carro" class="transport-icon" /> ${minutes}min</div>`;
+    const formattedTime = RoutingService.formatDuration(routes.driving.duration);
+    html += `<div class="time-item"><img src="${carIcon}" alt="Carro" class="transport-icon" /> ${formattedTime}</div>`;
     hasAnyRoute = true;
   }
 
   // Exibe tempo de bicicleta
   if (routes.bike && routes.bike.duration) {
-    const minutes = Math.ceil(routes.bike.duration / 60);
-    html += `<div class="time-item"><img src="${bikeIcon}" alt="Bicicleta" class="transport-icon" /> ${minutes}min</div>`;
+    const formattedTime = RoutingService.formatDuration(routes.bike.duration);
+    html += `<div class="time-item"><img src="${bikeIcon}" alt="Bicicleta" class="transport-icon" /> ${formattedTime}</div>`;
     hasAnyRoute = true;
   }
 
   // Exibe tempo a pé
   if (routes.foot && routes.foot.duration) {
-    const minutes = Math.ceil(routes.foot.duration / 60);
-    html += `<div class="time-item"><img src="${walkIcon}" alt="A pé" class="transport-icon" /> ${minutes}min</div>`;
+    const formattedTime = RoutingService.formatDuration(routes.foot.duration);
+    html += `<div class="time-item"><img src="${walkIcon}" alt="A pé" class="transport-icon" /> ${formattedTime}</div>`;
     hasAnyRoute = true;
   }
 
@@ -97,32 +99,80 @@ function createTravelTimeIcon(routes, upaName) {
 }
 
 /** Bolha de tempo de ESPERA na UPA (ao lado do marcador) */
-function createWaitTimeIcon(waitTime, color) {
+function createWaitTimeIcon(waitTimesByClassification) {
+  let html = '<div class="time-bubble-multi">';
+
+  // Adiciona o título "Tempos de espera"
+  html += '<div class="time-upa-name">Tempos de espera</div>';
+
+  // Define a ordem e as cores das classificações
+  const classifications = [
+    { key: 'azul', label: 'Não Urgente', color: '#217BC0' },
+    { key: 'verde', label: 'Pouco Urgente', color: '#1BB232' },
+    { key: 'amarelo', label: 'Urgente', color: '#E1AF18' },
+    { key: 'vermelho', label: 'Emergência', color: '#B21B1B' }
+  ];
+
+  let hasAnyData = false;
+
+  // Exibe cada classificação com seu quadrado colorido e tempo
+  classifications.forEach(({ key, color }) => {
+    if (waitTimesByClassification && waitTimesByClassification[key] !== undefined) {
+      const minutes = Math.round(waitTimesByClassification[key]);
+      const formattedTime = RoutingService.formatMinutes(minutes);
+      html += `<div class="time-item">
+        <span class="classification-badge" style="background: ${color};"></span>
+        <span class="classification-time">${formattedTime}</span>
+      </div>`;
+      hasAnyData = true;
+    }
+  });
+
+  // Se não houver dados, exibe mensagem
+  if (!hasAnyData) {
+    html += '<div class="time-item">Sem dados</div>';
+  }
+
+  html += '</div>';
+
   return L.divIcon({
-    className: 'wait-time-marker-div',
-    html: `
-      <div class="wait-time-bubble">
-        <img src="${clockIcon}" alt="Tempo de espera" class="wait-icon-svg" />
-        <span class="wait-value">${waitTime}</span>
-      </div>
-    `,
-    iconSize: [80, 24],
-    iconAnchor: [-15, 20],
+    className: 'time-marker-div',
+    html: html,
+    iconSize: [140, 120],
+    iconAnchor: [-15, 60],
   });
 }
 
-/** Retorna o ícone da UPA conforme a lotação total */
-function getMarkerIcon(total) {
-  if (total > 15) return redIcon;
-  if (total > 9) return yellowIcon;
-  return greenIcon;
+/** Converte statusOcupacao em cor */
+function getColorByStatus(statusOcupacao) {
+  if (!statusOcupacao) return '#34A853'; // Verde padrão
+
+  const status = statusOcupacao.toUpperCase();
+  if (status === 'ALTA') return '#EA4335'; // Vermelho
+  if (status === 'MEDIA' || status === 'MÉDIA') return '#FBBC05'; // Amarelo
+  return '#34A853'; // Verde (BAIXA)
+}
+
+/** Retorna o ícone da UPA conforme o statusOcupacao */
+function getMarkerIcon(statusOcupacao) {
+  if (!statusOcupacao) return greenIcon;
+
+  const status = statusOcupacao.toUpperCase();
+  if (status === 'ALTA') return redIcon;
+  if (status === 'MEDIA' || status === 'MÉDIA') return yellowIcon;
+  return greenIcon; // BAIXA
 }
 
 /** Opções do círculo em volta da UPA */
-function getCircleOptions(total) {
-  if (total > 15)
+function getCircleOptions(statusOcupacao) {
+  if (!statusOcupacao) {
+    return { color: '#34A853', fillColor: '#34A853', fillOpacity: 0.2, radius: 300 };
+  }
+
+  const status = statusOcupacao.toUpperCase();
+  if (status === 'ALTA')
     return { color: '#EA4335', fillColor: '#EA4335', fillOpacity: 0.2, radius: 500 };
-  else if (total > 9)
+  else if (status === 'MEDIA' || status === 'MÉDIA')
     return { color: '#FBBC05', fillColor: '#FBBC05', fillOpacity: 0.2, radius: 400 };
   else
     return { color: '#34A853', fillColor: '#34A853', fillOpacity: 0.2, radius: 300 };
@@ -131,25 +181,17 @@ function getCircleOptions(total) {
 /** Define a cor da rota com base no status da UPA */
 function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
   if (!upaId || !upas) return '#EA4335';
-  
-  const upa = upas.find(u => u.id === upaId);
-  if (!upa || !upa.queueDetail) return '#EA4335';
-  
-  const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
-  
-  if (upaId === bestUpaId) return '#34A853';
-  if (upaId === worstUpaId) return '#EA4335';
-  
-  if (totalQueue > 15) return '#EA4335';
-  if (totalQueue > 9) return '#FBBC05';
-  return '#34A853';
-}
 
-/** Retorna a cor para o indicador de tempo de espera */
-function getWaitTimeColor(total) {
-  if (total > 15) return '#EA4335';
-  if (total > 9) return '#FBBC05';
-  return '#34A853';
+  const upa = upas.find(u => u.id === upaId);
+  if (!upa) return '#EA4335';
+
+  // Se for a melhor UPA, usa verde
+  if (upaId === bestUpaId) return '#34A853';
+  // Se for a pior UPA, usa vermelho
+  if (upaId === worstUpaId) return '#EA4335';
+
+  // Caso contrário, usa a cor baseada no statusOcupacao
+  return getColorByStatus(upa.statusOcupacao);
 }
 
 /** Duas polylines: uma trilha branca e uma colorida por cima */
@@ -185,11 +227,15 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
         fadeAnimation={false}
       >
         <ChangeView center={center} zoom={zoom} />
-        <TileLayer 
-          attribution='Map data &copy; OpenStreetMap'
-          url={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZ2lzbGFueSIsImEiOiJjbWRuazBsMHkwMm9yMndxNGkxNjY1MWlvIn0.ZGrQwbfe8DXTxIQIFdvc6Q`}
+        <TileLayer
+          attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          
+          url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZ2lzbGFueSIsImEiOiJjbWRuazBsMHkwMm9yMndxNGkxNjY1MWlvIn0.ZGrQwbfe8DXTxIQIFdvc6Q`}
+          tileSize={512}
+          zoomOffset={-1}
           maxZoom={19}
-        />
+          minZoom={1}
+        /> 
 
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
@@ -198,12 +244,11 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
         )}
 
         {upas.map((upa) => {
-          const totalQueue = Object.values(upa.queueDetail).reduce((a, b) => a + b, 0);
           const route = routesData[upa.id];
           return (
             <React.Fragment key={upa.id}>
-              <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(totalQueue)} />
-              <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(totalQueue)}>
+              <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(upa.statusOcupacao)} />
+              <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(upa.statusOcupacao)}>
                 <Popup minWidth={180} maxWidth={200} className="upa-popup">
                   <div className="popup-content">
                     <h3 className="popup-title">
@@ -248,7 +293,7 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
               {/* Indicador de tempo de espera flutuando sobre a UPA */}
               <Marker
                 position={[upa.lat, upa.lng]}
-                icon={createWaitTimeIcon(upa.averageWaitTime, getWaitTimeColor(totalQueue))}
+                icon={createWaitTimeIcon(upa.waitTimesByClassification)}
               />
             </React.Fragment>
           );
