@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom'; // Será usado quando implementar a autenticação
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import '../styles/LoginPage.css';
 
 function LoginPage() {
@@ -7,7 +8,8 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // const navigate = useNavigate(); // Será usado para redirecionar após login bem-sucedido
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,20 +24,16 @@ function LoginPage() {
     }
 
     try {
-      // TODO: Implementar chamada à API de autenticação
-      // const response = await api.post('/api/v1/auth/login', { username, password });
+      // Faz login usando o AuthContext
+      await login(username, password);
 
-      // Simulação temporária
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('✅ Login realizado com sucesso!');
 
-      // Se o login for bem-sucedido:
-      // localStorage.setItem('authToken', response.data.token);
-      // navigate('/gestao/dashboard');
-
-      console.log('Login:', { username, password });
-      setError('Credenciais inválidas'); // Temporário
+      // Redireciona para o dashboard administrativo
+      navigate('/admin/dashboard');
     } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.');
+      console.error('❌ Erro no login:', err);
+      setError(err.message || 'Erro ao fazer login. Tente novamente.');
     } finally {
       setLoading(false);
     }

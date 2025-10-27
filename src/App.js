@@ -8,6 +8,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
 import UpaStatsPage from './pages/UpaStatsPage';
 import LoginPage from './pages/LoginPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminReports from './pages/AdminReports';
+import PrivateRoute from './components/PrivateRoute';
+import { AuthProvider } from './contexts/AuthContext';
 import { fetchUpasComStatus } from './server/Api';
 import RoutingService from './services/RoutingService';
 import webSocketService from './services/WebSocketService';
@@ -193,10 +197,26 @@ function App() {
   });
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Página de Login para Gestores - Sem Header */}
-        <Route path="/gestao/login" element={<LoginPage />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Página de Login para Gestores - Sem Header */}
+          <Route path="/gestao/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Painel Administrativo - Rota Protegida */}
+          <Route path="/admin/dashboard" element={
+            <PrivateRoute>
+              <AdminDashboard />
+            </PrivateRoute>
+          } />
+
+          {/* Relatórios Administrativos - Rota Protegida */}
+          <Route path="/admin/reports" element={
+            <PrivateRoute>
+              <AdminReports />
+            </PrivateRoute>
+          } />
 
         {/* Páginas com Header e Layout padrão */}
         <Route path="/*" element={
@@ -255,6 +275,7 @@ function App() {
         } />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   );
 }
 
