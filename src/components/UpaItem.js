@@ -6,8 +6,9 @@ import icon from '../assets/hospital-icon.svg';
 import clockIcon from '../assets/clock.svg'
 
 function UpaItem({ upa, onSelectUpa, bestUpaId }) {
-  const { name, address, queueDetail, averageWaitTime, totalPacientes } = upa;
+  const { name, address, queueDetail, averageWaitTime, totalPacientes, aguardandoTriagem } = upa;
   const totalQueue = totalPacientes || 0;
+  const waitingTriage = aguardandoTriagem || 0;
 
   return (
       <div className="upa-item" onClick={() => onSelectUpa(upa)}>
@@ -19,25 +20,28 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
           <span style={{ fontSize: '1rem' }}></span> {address}
         </p>
 
-        <div style={{
-          marginBottom: '12px'
-        }}>
-          <p style={{ margin: '0', fontSize: '0.85rem', color: '#6c757d' }}>
+        <div style={{ marginBottom: '12px'}}>
+          <p style={{ 
+            margin: '0', 
+            fontWeight: '600',
+            fontSize: '0.85rem', 
+            color: '#6c757d' 
+          }}>
             Tempo médio de espera
           </p>
-          <p style={{
-            margin: '4px 0 0 0',
-            fontSize: '1.3rem',
-            fontWeight: '700',
-            color: '#09AC96',
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            lineHeight: '1'
+            marginTop: '4px',
+            marginLeft: '23px',
+            fontSize: '1.3rem',
+            fontWeight: '700',
+            color: '#09AC96'
           }}>
-            <img src={clockIcon} alt="Tempo" style={{ width: '24px', height: '24px', flexShrink: 0, display: 'block' }} />
-            <span style={{ display: 'flex', alignItems: 'center' }}>{averageWaitTime}</span>
-          </p>
+            <img src={clockIcon} alt="Tempo" style={{ width: '24px', height: '24px' }} />
+            <span>{averageWaitTime}</span>
+          </div>
         </div>
 
         <div style={{ marginBottom: '8px' }}>
@@ -58,7 +62,16 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
         </div>
 
         <p style={{
-          marginTop: '12px',
+          marginTop: '8px',
+          fontSize: '0.95rem',
+          fontWeight: '500',
+          color: '#6c757d'
+        }}>
+          Pacientes aguardando triagem: <span style={{ color: '#2c3e50', fontWeight: '600' }}>{waitingTriage}</span>
+        </p>
+
+        <p style={{
+          marginTop: '13px',
           fontSize: '0.95rem',
           fontWeight: '600',
           color: '#2c3e50'

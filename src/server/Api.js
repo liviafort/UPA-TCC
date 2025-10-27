@@ -24,6 +24,35 @@ const api = axios.create({
   timeout: 10000,
 });
 
+// Interceptor para adicionar o token JWT em todas as requisições
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para tratar erros de autenticação
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token inválido ou expirado
+      console.warn('⚠️ Token expirado ou inválido. Redirecionando para login...');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Busca todas as UPAs e seus respectivos status de fila.
  * Retorna uma lista de UPAs com detalhes formatados ou uma lista vazia em caso de erro.
@@ -69,7 +98,7 @@ export async function fetchUpasComStatus() {
           });
         }
 
-        return {
+        const upaFormatada = {
           id: upa.id,
           name: upa.nome,
           address: upa.endereco,
@@ -89,9 +118,12 @@ export async function fetchUpasComStatus() {
           averageWaitTime: RoutingService.formatMinutes(tempoMedio),
           waitTimesByClassification: waitTimesByClassification,
           totalPacientes: upa.totalPacientes,
+          aguardandoTriagem: queueData?.aguardandoTriagem || 0,
           statusOcupacao: upa.statusOcupacao,
           isActive: upa.isActive,
         };
+
+        return upaFormatada;
       } catch (err) {
         console.error(`Erro ao buscar dados da UPA ${upa.id}:`, err);
         // Fallback para dados básicos do sidebar
@@ -110,6 +142,7 @@ export async function fetchUpasComStatus() {
           averageWaitTime: `0 min`,
           waitTimesByClassification: {},
           totalPacientes: upa.totalPacientes,
+          aguardandoTriagem: 0,
           statusOcupacao: upa.statusOcupacao,
           isActive: upa.isActive,
         };

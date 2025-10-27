@@ -13,6 +13,7 @@ import clockIcon from '../assets/clock.svg';
 import usuarioIcon from '../assets/usuario.png'
 import iconGreen from '../assets/icon-green.png';
 import iconRed from '../assets/icon-red.png';
+import iconYellow from '../assets/icon-yellow.png';
 
 /** Recalcula e centraliza o mapa ao mudar center/zoom */
 function ChangeView({ center, zoom }) {
@@ -32,7 +33,7 @@ const redIcon = L.icon({
   iconAnchor: [12, 41],
 });
 const yellowIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
+  iconUrl: iconYellow,
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -180,18 +181,29 @@ function getCircleOptions(statusOcupacao) {
 
 /** Define a cor da rota com base no status da UPA */
 function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
-  if (!upaId || !upas) return '#EA4335';
+  if (!upaId || !upas) {
+    console.log('⚠️ getRouteColor: upaId ou upas não fornecido', { upaId, upas });
+    return '#EA4335';
+  }
 
   const upa = upas.find(u => u.id === upaId);
-  if (!upa) return '#EA4335';
+  if (!upa) {
+    console.log('⚠️ getRouteColor: UPA não encontrada', { upaId, upasDisponiveis: upas.map(u => u.id) });
+    return '#EA4335';
+  }
 
-  // Se for a melhor UPA, usa verde
-  if (upaId === bestUpaId) return '#34A853';
-  // Se for a pior UPA, usa vermelho
-  if (upaId === worstUpaId) return '#EA4335';
+  // SEMPRE usa a cor baseada no statusOcupacao (igual ao ícone)
+  const color = getColorByStatus(upa.statusOcupacao);
 
-  // Caso contrário, usa a cor baseada no statusOcupacao
-  return getColorByStatus(upa.statusOcupacao);
+  console.log('🗺️ getRouteColor para UPA:', {
+    nome: upa.name,
+    statusOcupacao: upa.statusOcupacao,
+    corDaRota: color,
+    isBest: upaId === bestUpaId,
+    isWorst: upaId === worstUpaId
+  });
+
+  return color;
 }
 
 /** Duas polylines: uma trilha branca e uma colorida por cima */
@@ -216,6 +228,27 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
   const defaultCenter = useMemo(() => [-7.2404146, -35.8883043], []);
   const center = selectedUpa ? [selectedUpa.lat, selectedUpa.lng] : defaultCenter;
   const zoom = selectedUpa ? 15 : 13;
+
+  // Console logs para debug
+  console.log('📍 MapView - Dados recebidos:', {
+    totalUpas: upas?.length || 0,
+    bestUpaId,
+    worstUpaId,
+    upasComStatus: upas?.map(u => ({
+      id: u.id,
+      nome: u.name,
+      statusOcupacao: u.statusOcupacao
+    }))
+  });
+
+  console.log('🚗 MapView - Rotas:', {
+    totalRotas: Object.keys(routesData || {}).length,
+    rotasDetalhadas: Object.entries(routesData || {}).map(([upaId, route]) => ({
+      upaId,
+      temCoords: !!route?.coords,
+      numPontos: route?.coords?.length || 0
+    }))
+  });
 
   return (
     <div className="map-wrapper">
@@ -245,10 +278,20 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
 
         {upas.map((upa) => {
           const route = routesData[upa.id];
+          const markerIcon = getMarkerIcon(upa.statusOcupacao);
+          const circleOptions = getCircleOptions(upa.statusOcupacao);
+
+          console.log(`📍 Renderizando marcador para ${upa.name}:`, {
+            upaId: upa.id,
+            statusOcupacao: upa.statusOcupacao,
+            corDoCirculo: circleOptions.color,
+            icone: markerIcon === redIcon ? 'VERMELHO' : markerIcon === yellowIcon ? 'AMARELO' : 'VERDE'
+          });
+
           return (
             <React.Fragment key={upa.id}>
-              <Circle center={[upa.lat, upa.lng]} pathOptions={getCircleOptions(upa.statusOcupacao)} />
-              <Marker position={[upa.lat, upa.lng]} icon={getMarkerIcon(upa.statusOcupacao)}>
+              <Circle center={[upa.lat, upa.lng]} pathOptions={circleOptions} />
+              <Marker position={[upa.lat, upa.lng]} icon={markerIcon}>
                 <Popup minWidth={180} maxWidth={200} className="upa-popup">
                   <div className="popup-content">
                     <h3 className="popup-title">
@@ -305,6 +348,14 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
           if (!route || !route.coords) return null;
           const color = getRouteColor(upa.id, bestUpaId, worstUpaId, upas);
           const midpoint = getMidpoint(route.coords);
+
+          console.log(`🎨 Renderizando rota para ${upa.name}:`, {
+            upaId: upa.id,
+            statusOcupacao: upa.statusOcupacao,
+            corDaRota: color,
+            numPontos: route.coords.length
+          });
+
           return (
             <React.Fragment key={`route-${upa.id}`}>
               <DoublePolyline coords={route.coords} color={color} />
