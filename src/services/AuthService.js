@@ -102,12 +102,15 @@ class AuthService {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        return JSON.parse(userStr);
+        const userData = JSON.parse(userStr);
+        console.log('👤 Dados do usuário retornados:', userData);
+        return userData;
       } catch (error) {
         console.error('Erro ao parsear dados do usuário:', error);
         return null;
       }
     }
+    console.log('⚠️ Nenhum usuário encontrado no localStorage');
     return null;
   }
 

@@ -182,9 +182,6 @@ function AdminReports() {
 
           <div className="admin-user-menu">
             <button onClick={() => navigate('/admin/dashboard')} className="admin-back-btn">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 9H5.83L11.42 3.41L10 2L2 10L10 18L11.41 16.59L5.83 11H20V9Z" fill="currentColor"/>
-              </svg>
               Voltar
             </button>
             <div className="admin-user-info">

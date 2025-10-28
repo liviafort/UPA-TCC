@@ -116,7 +116,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="spinner" />
+        <div className="spinner-large"></div>
         <p>Carregando dados...</p>
       </div>
     );

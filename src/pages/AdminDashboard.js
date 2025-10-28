@@ -8,6 +8,26 @@ import RoutingService from '../services/RoutingService';
 import { fetchUpasComStatus } from '../server/Api';
 import logo from '../assets/logo.png';
 import '../styles/AdminDashboard.css';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+// Registrar componentes do Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -151,34 +171,61 @@ function AdminDashboard() {
           {/* Comparação entre UPAs */}
           {comparison.length > 0 && (
             <div className="comparison-section">
-              <div className="comparison-table-container">
-                <h3>Comparação entre UPAs</h3>
-                <table className="comparison-table">
-                  <thead>
-                    <tr>
-                      <th>UPA</th>
-                      <th>Total Pacientes</th>
-                      <th>Tempo Médio</th>
-                      <th>Status</th>
-                      <th>Bairros Únicos</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {comparison.map((upa, index) => (
-                      <tr key={index}>
-                        <td><strong>{upa.upaNome}</strong></td>
-                        <td>{upa.totalPacientes}</td>
-                        <td>{RoutingService.formatMinutes(upa.tempoMedioEspera)}</td>
-                        <td>
-                          <span className={`status-badge ${upa.statusOcupacao}`}>
-                            {upa.statusOcupacao?.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>{upa.bairrosUnicos}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <h3>Comparação entre UPAs</h3>
+
+              <div className="comparison-grid">
+                {comparison.map((upa, index) => (
+                  <div key={index} className="upa-comparison-card">
+                    <div className="upa-comparison-header">
+                      <h4>{upa.upaNome}</h4>
+                    </div>
+
+                    <div className="comparison-metrics">
+                      <div className="metric-row">
+                        <span className="metric-label">Total de Pacientes</span>
+                        <div className="metric-bar-container">
+                          <div
+                            className="metric-bar metric-bar-patients"
+                            style={{ width: `${(upa.totalPacientes / Math.max(...comparison.map(u => u.totalPacientes))) * 100}%` }}
+                          >
+                            <span className="metric-value">{upa.totalPacientes}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="metric-row">
+                        <span className="metric-label">Tempo Médio</span>
+                        <div className="metric-bar-container">
+                          <div
+                            className="metric-bar metric-bar-time"
+                            style={{ width: `${(upa.tempoMedioEspera / Math.max(...comparison.map(u => u.tempoMedioEspera))) * 100}%` }}
+                          >
+                            <span className="metric-value">{RoutingService.formatMinutes(upa.tempoMedioEspera)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="metric-row">
+                        <span className="metric-label">Bairros Atendidos</span>
+                        <div className="metric-bar-container">
+                          <div
+                            className="metric-bar metric-bar-bairros"
+                            style={{ width: `${(upa.bairrosUnicos / Math.max(...comparison.map(u => u.bairrosUnicos))) * 100}%` }}
+                          >
+                            <span className="metric-value">{upa.bairrosUnicos}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="metric-row">
+                        <span className="metric-label">Status de Ocupação</span>
+                        <div className={`metric-status-container status-${upa.statusOcupacao?.toLowerCase()}`}>
+                          <span className="metric-status-text">{upa.statusOcupacao?.toUpperCase()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -46,7 +46,6 @@ function LoginPage() {
         <div className="login-left">
           <div className="login-branding">
             <img src={logo} alt="Veja+Saúde Logo" />
-            {/* <p className="login-subtitle">Área Administrativa</p> */}
           </div>
           <div className="login-illustration">
             <div className="illustration-circle circle-1"></div>
@@ -116,9 +115,7 @@ function LoginPage() {
                 ) : (
                   <>
                     Entrar
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10 0L8.59 1.41L15.17 8H0V10H15.17L8.59 16.59L10 18L20 8L10 0Z" fill="currentColor"/>
-                    </svg>
+                    
                   </>
                 )}
               </button>
