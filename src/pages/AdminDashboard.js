@@ -3,6 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
+import AnalyticsService from '../services/AnalyticsService';
+import RoutingService from '../services/RoutingService';
+import { fetchUpasComStatus } from '../server/Api';
 import logo from '../assets/logo.png';
 import '../styles/AdminDashboard.css';
 
@@ -11,9 +14,12 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [totalUpas, setTotalUpas] = useState(0);
+  const [comparison, setComparison] = useState([]);
 
   useEffect(() => {
     loadUserProfile();
+    loadUpaData();
   }, []);
 
   const loadUserProfile = async () => {
@@ -28,6 +34,20 @@ function AdminDashboard() {
       }
     } else {
       setLoading(false);
+    }
+  };
+
+  const loadUpaData = async () => {
+    try {
+      // Busca todas as UPAs
+      const upas = await fetchUpasComStatus();
+      setTotalUpas(upas.length);
+
+      // Busca dados de comparação
+      const comparisonData = await AnalyticsService.getUpaComparison();
+      setComparison(comparisonData);
+    } catch (error) {
+      console.error('Erro ao carregar dados das UPAs:', error);
     }
   };
 
@@ -80,7 +100,7 @@ function AdminDashboard() {
         <div className="admin-container">
           <div className="admin-welcome">
             <h2>Bem-vindo(a), {user?.username}!</h2>
-            <p>Painel de controle do sistema UPA Fácil</p>
+            <p>Painel de controle do sistema Veja+Saúde</p>
           </div>
 
           {/* Cards de estatísticas */}
@@ -107,7 +127,7 @@ function AdminDashboard() {
               </div>
               <div className="stat-content">
                 <h3>UPAs Cadastradas</h3>
-                <p className="stat-value">-</p>
+                <p className="stat-value">{totalUpas}</p>
                 <p className="stat-label">Total de unidades</p>
               </div>
             </div>
@@ -128,8 +148,43 @@ function AdminDashboard() {
             </div>
           </div>
 
+          {/* Comparação entre UPAs */}
+          {comparison.length > 0 && (
+            <div className="comparison-section">
+              <div className="comparison-table-container">
+                <h3>Comparação entre UPAs</h3>
+                <table className="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>UPA</th>
+                      <th>Total Pacientes</th>
+                      <th>Tempo Médio</th>
+                      <th>Status</th>
+                      <th>Bairros Únicos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparison.map((upa, index) => (
+                      <tr key={index}>
+                        <td><strong>{upa.upaNome}</strong></td>
+                        <td>{upa.totalPacientes}</td>
+                        <td>{RoutingService.formatMinutes(upa.tempoMedioEspera)}</td>
+                        <td>
+                          <span className={`status-badge ${upa.statusOcupacao}`}>
+                            {upa.statusOcupacao?.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>{upa.bairrosUnicos}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Ações rápidas */}
-          <div className="admin-actions">
+          <div className="admin-actions" style={{ marginTop: '32px' }}>
             <h3>Ações Rápidas</h3>
             <div className="action-buttons">
               <button className="action-btn" onClick={() => navigate('/')}>

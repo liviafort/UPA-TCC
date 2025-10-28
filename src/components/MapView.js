@@ -52,71 +52,27 @@ const userIcon = L.icon({
   iconAnchor: [22, 22],
 });
 
-/** Bolha de tempo de DESLOCAMENTO na rota com múltiplos modos */
-function createTravelTimeIcon(routes, upaName) {
-  let html = '<div class="time-bubble-multi">';
+/** Bolha unificada com tempo de DESLOCAMENTO e ESPERA */
+function createCombinedInfoIcon(routes, upaName, waitTimesByClassification) {
+  let html = '<div class="time-bubble-combined">';
 
-  // Adiciona o nome da UPA no topo
+  // Nome da UPA no topo
   if (upaName) {
     html += `<div class="time-upa-name">${upaName}</div>`;
   }
 
-  let hasAnyRoute = false;
+  // Seção de Tempo de Espera (PRIMEIRO)
+  html += '<div class="info-section">';
+  html += '<div class="section-title">Tempo de Espera</div>';
 
-  // Exibe tempo de carro
-  if (routes.driving && routes.driving.duration) {
-    const formattedTime = RoutingService.formatDuration(routes.driving.duration);
-    html += `<div class="time-item"><img src="${carIcon}" alt="Carro" class="transport-icon" /> ${formattedTime}</div>`;
-    hasAnyRoute = true;
-  }
-
-  // Exibe tempo de bicicleta
-  if (routes.bike && routes.bike.duration) {
-    const formattedTime = RoutingService.formatDuration(routes.bike.duration);
-    html += `<div class="time-item"><img src="${bikeIcon}" alt="Bicicleta" class="transport-icon" /> ${formattedTime}</div>`;
-    hasAnyRoute = true;
-  }
-
-  // Exibe tempo a pé
-  if (routes.foot && routes.foot.duration) {
-    const formattedTime = RoutingService.formatDuration(routes.foot.duration);
-    html += `<div class="time-item"><img src="${walkIcon}" alt="A pé" class="transport-icon" /> ${formattedTime}</div>`;
-    hasAnyRoute = true;
-  }
-
-  // Se nenhuma rota foi encontrada, exibe mensagem
-  if (!hasAnyRoute) {
-    html += '<div class="time-item">Calculando...</div>';
-  }
-
-  html += '</div>';
-
-  return L.divIcon({
-    className: 'time-marker-div',
-    html: html,
-    iconSize: [140, 100],
-    iconAnchor: [70, 50],
-  });
-}
-
-/** Bolha de tempo de ESPERA na UPA (ao lado do marcador) */
-function createWaitTimeIcon(waitTimesByClassification) {
-  let html = '<div class="time-bubble-multi">';
-
-  // Adiciona o título "Tempos de espera"
-  html += '<div class="time-upa-name">Tempos de espera</div>';
-
-  // Define a ordem e as cores das classificações
   const classifications = [
-    { key: 'azul', label: 'Não Urgente', color: '#217BC0' },
-    { key: 'verde', label: 'Pouco Urgente', color: '#1BB232' },
+    { key: 'vermelho', label: 'Emergência', color: '#B21B1B' },
     { key: 'amarelo', label: 'Urgente', color: '#E1AF18' },
-    { key: 'vermelho', label: 'Emergência', color: '#B21B1B' }
+    { key: 'verde', label: 'Pouco Urgente', color: '#1BB232' },
+    { key: 'azul', label: 'Não Urgente', color: '#217BC0' }
   ];
 
-  let hasAnyData = false;
-
-  // Exibe cada classificação com seu quadrado colorido e tempo
+  let hasAnyWaitData = false;
   classifications.forEach(({ key, color }) => {
     if (waitTimesByClassification && waitTimesByClassification[key] !== undefined) {
       const minutes = Math.round(waitTimesByClassification[key]);
@@ -125,22 +81,47 @@ function createWaitTimeIcon(waitTimesByClassification) {
         <span class="classification-badge" style="background: ${color};"></span>
         <span class="classification-time">${formattedTime}</span>
       </div>`;
-      hasAnyData = true;
+      hasAnyWaitData = true;
     }
   });
 
-  // Se não houver dados, exibe mensagem
-  if (!hasAnyData) {
+  if (!hasAnyWaitData) {
     html += '<div class="time-item">Sem dados</div>';
   }
+  html += '</div>';
+
+  // Seção de Deslocamento (DEPOIS)
+  html += '<div class="info-section">';
+  html += '<div class="section-title">Deslocamento</div>';
+
+  let hasAnyRoute = false;
+  if (routes.driving && routes.driving.duration) {
+    const formattedTime = RoutingService.formatDuration(routes.driving.duration);
+    html += `<div class="time-item"><img src="${carIcon}" alt="Carro" class="transport-icon" /> ${formattedTime}</div>`;
+    hasAnyRoute = true;
+  }
+  if (routes.bike && routes.bike.duration) {
+    const formattedTime = RoutingService.formatDuration(routes.bike.duration);
+    html += `<div class="time-item"><img src="${bikeIcon}" alt="Bicicleta" class="transport-icon" /> ${formattedTime}</div>`;
+    hasAnyRoute = true;
+  }
+  if (routes.foot && routes.foot.duration) {
+    const formattedTime = RoutingService.formatDuration(routes.foot.duration);
+    html += `<div class="time-item"><img src="${walkIcon}" alt="A pé" class="transport-icon" /> ${formattedTime}</div>`;
+    hasAnyRoute = true;
+  }
+  if (!hasAnyRoute) {
+    html += '<div class="time-item">Calculando...</div>';
+  }
+  html += '</div>';
 
   html += '</div>';
 
   return L.divIcon({
     className: 'time-marker-div',
     html: html,
-    iconSize: [140, 120],
-    iconAnchor: [-15, 60],
+    iconSize: [180, 220],
+    iconAnchor: [-20, 110], // Posiciona à esquerda do ícone da UPA
   });
 }
 
@@ -224,6 +205,15 @@ function getMidpoint(coords) {
   return coords[midIndex];
 }
 
+/** Calcula posição adjacente ao ícone da UPA (próxima ao destino) */
+function getAdjacentPosition(coords, upaLat, upaLng) {
+  if (!coords || coords.length === 0) return null;
+
+  // Simplesmente retorna a posição da UPA
+  // O iconAnchor da bolha vai posicionar ela ao lado
+  return [upaLat, upaLng];
+}
+
 function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worstUpaId, isSidebarOpen }) {
   const defaultCenter = useMemo(() => [-7.2404146, -35.8883043], []);
   const center = selectedUpa ? [selectedUpa.lat, selectedUpa.lng] : defaultCenter;
@@ -289,7 +279,7 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
           });
 
           return (
-            <React.Fragment key={upa.id}>
+            <React.Fragment key={`marker-${upa.id}-${upa.statusOcupacao}`}>
               <Circle center={[upa.lat, upa.lng]} pathOptions={circleOptions} />
               <Marker position={[upa.lat, upa.lng]} icon={markerIcon}>
                 <Popup minWidth={180} maxWidth={200} className="upa-popup">
@@ -333,21 +323,16 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
                   </div>
                 </Popup>
               </Marker>
-              {/* Indicador de tempo de espera flutuando sobre a UPA */}
-              <Marker
-                position={[upa.lat, upa.lng]}
-                icon={createWaitTimeIcon(upa.waitTimesByClassification)}
-              />
             </React.Fragment>
           );
         })}
 
-        {/* Rotas com tempos de DESLOCAMENTO (carro, bike, pé) */}
+        {/* Rotas com bolha combinada de informações */}
         {upas.map((upa) => {
           const route = routesData[upa.id];
           if (!route || !route.coords) return null;
           const color = getRouteColor(upa.id, bestUpaId, worstUpaId, upas);
-          const midpoint = getMidpoint(route.coords);
+          const adjacentPosition = getAdjacentPosition(route.coords, upa.lat, upa.lng);
 
           console.log(`🎨 Renderizando rota para ${upa.name}:`, {
             upaId: upa.id,
@@ -357,14 +342,17 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
           });
 
           return (
-            <React.Fragment key={`route-${upa.id}`}>
+            <React.Fragment key={`route-${upa.id}-${upa.statusOcupacao}`}>
               <DoublePolyline coords={route.coords} color={color} />
-              {midpoint && route.driving && (
-                <Marker position={midpoint} icon={createTravelTimeIcon({
-                  driving: route.driving,
-                  bike: route.bike,
-                  foot: route.foot
-                }, upa.name)} />
+              {adjacentPosition && route.driving && (
+                <Marker
+                  position={adjacentPosition}
+                  icon={createCombinedInfoIcon({
+                    driving: route.driving,
+                    bike: route.bike,
+                    foot: route.foot
+                  }, upa.name, upa.waitTimesByClassification)}
+                />
               )}
             </React.Fragment>
           );
