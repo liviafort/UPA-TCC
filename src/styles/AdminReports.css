@@ -194,9 +194,11 @@
   position: relative;
   padding: 0;
   width: 80%;
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .chart-container canvas {
@@ -323,6 +325,11 @@
   transform: translateX(-2px);
 }
 
+.admin-container{
+  max-width: 95%;
+}
+
+
 /* Responsive */
 @media (max-width: 1024px) {
   .charts-grid {
@@ -336,14 +343,38 @@
 
 @media (max-width: 768px) {
   .admin-header-content {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    padding: 12px 16px;
   }
 
+  .admin-logo h1 {
+    font-size: 1.2rem;
+  }
+  
   .admin-user-menu {
-    width: 100%;
-    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .admin-user-info {
+    gap: 8px;
+  }
+
+  .admin-user-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .admin-user-name {
+    font-size: 0.85rem;
+  }
+
+  .admin-user-role {
+    font-size: 0.75rem;
+  }
+
+  .admin-logout-btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
   }
 
   .stats-quick-cards {
@@ -353,19 +384,22 @@
   .charts-grid {
     grid-template-columns: 1fr;
     padding: 0;
-    margin: 0 auto;
+    margin: 0;
+    width: 100%;
   }
 
   .chart-card {
-    width: 90%;
-    margin: 0;
+    width: 100%;
+    margin: 0 auto;
     padding: 16px;
+    box-sizing: border-box;
   }
 
   .chart-container {
     width: 100%;
     padding: 0;
     margin: 0 auto;
+    box-sizing: border-box;
   }
 
   .comparison-table-container {
@@ -384,6 +418,45 @@
 
   .admin-container {
     padding: 0;
+    width: 90%;
+    box-sizing: border-box;
+  }
+
+  .admin-header-content {
+    padding: 10px 12px;
+  }
+
+  .admin-logo img {
+    width: 80px;
+    height: auto;
+  }
+
+  .admin-logo h1 {
+    font-size: 1rem;
+  }
+
+  .admin-user-menu {
+    gap: 8px;
+  }
+
+  .admin-user-details {
+    display: none;
+  }
+
+  .admin-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .admin-logout-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .admin-logout-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .selector-header h2 {
@@ -406,21 +479,28 @@
   .charts-grid {
     padding: 0;
     gap: 16px;
+    width: 100%;
+    margin: 0;
   }
 
   .chart-card {
     padding: 12px;
-    margin: 0;
+    margin: 0 auto;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .chart-container {
     height: 250px;
     width: 100%;
+    max-width: 100%;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .chart-container canvas {
