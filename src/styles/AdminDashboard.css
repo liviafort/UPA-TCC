@@ -216,6 +216,31 @@
   margin: 0;
 }
 
+/* Comparison Section - Override AdminReports styles */
+.admin-dashboard .comparison-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 32px;
+  margin-bottom: 32px;
+  padding-top: 24px;
+  border-top: none;
+}
+
+.admin-dashboard .comparison-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.admin-dashboard .comparison-table-container {
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
 /* Actions */
 .admin-actions {
   background: white;
@@ -273,6 +298,14 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .admin-main {
+    padding: 16px 12px;
+  }
+
+  .admin-container {
+    padding: 0;
+  }
+
   .admin-header-content {
     flex-direction: column;
     gap: 16px;
@@ -294,5 +327,38 @@
 
   .admin-welcome h2 {
     font-size: 1.5rem;
+  }
+
+  .comparison-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-main {
+    padding: 12px 8px;
+  }
+
+  .admin-welcome h2 {
+    font-size: 1.3rem;
+  }
+
+  .admin-stat-card {
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .admin-actions,
+  .admin-dashboard .comparison-section {
+    padding: 16px;
   }
 }

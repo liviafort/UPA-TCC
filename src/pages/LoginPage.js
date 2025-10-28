@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
 import '../styles/LoginPage.css';
 
 function LoginPage() {
@@ -44,15 +45,8 @@ function LoginPage() {
       <div className="login-container">
         <div className="login-left">
           <div className="login-branding">
-            <div className="login-logo">
-              <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="60" height="60" rx="12" fill="#09AC96"/>
-                <path d="M30 15L20 25H26V40H34V25H40L30 15Z" fill="white"/>
-                <path d="M18 42H42V45H18V42Z" fill="white"/>
-              </svg>
-            </div>
-            <h1>UPA Fácil</h1>
-            <p>Sistema de Gestão</p>
+            <img src={logo} alt="Veja+Saúde Logo" />
+            {/* <p className="login-subtitle">Área Administrativa</p> */}
           </div>
           <div className="login-illustration">
             <div className="illustration-circle circle-1"></div>

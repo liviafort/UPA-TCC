@@ -66,12 +66,10 @@ function AdminReports() {
   const [evolution, setEvolution] = useState(null);
   const [waitTimes, setWaitTimes] = useState(null);
   const [bairroStats, setBairroStats] = useState(null);
-  const [comparison, setComparison] = useState([]);
 
   // Carregar lista de UPAs
   useEffect(() => {
     loadUpas();
-    loadComparison();
   }, []);
 
   // Carregar dados quando UPA for selecionada
@@ -149,15 +147,6 @@ function AdminReports() {
       console.error('Erro ao carregar dados da UPA:', error);
     } finally {
       setLoadingData(false);
-    }
-  };
-
-  const loadComparison = async () => {
-    try {
-      const data = await AnalyticsService.getUpaComparison();
-      setComparison(data);
-    } catch (error) {
-      console.error('Erro ao carregar comparação:', error);
     }
   };
 
@@ -515,41 +504,6 @@ function AdminReports() {
                 )}
               </div>
             </>
-          )}
-
-          {/* Comparação entre UPAs */}
-          {comparison.length > 0 && (
-            <div className="comparison-section">
-              <h2>Comparação entre UPAs</h2>
-              <div className="comparison-table-container">
-                <table className="comparison-table">
-                  <thead>
-                    <tr>
-                      <th>UPA</th>
-                      <th>Total Pacientes</th>
-                      <th>Tempo Médio</th>
-                      <th>Status</th>
-                      <th>Bairros Únicos</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {comparison.map((upa, index) => (
-                      <tr key={index}>
-                        <td><strong>{upa.upaNome}</strong></td>
-                        <td>{upa.totalPacientes}</td>
-                        <td>{upa.tempoMedioEspera} min</td>
-                        <td>
-                          <span className={`status-badge ${upa.statusOcupacao}`}>
-                            {upa.statusOcupacao?.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>{upa.bairrosUnicos}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
           )}
         </div>
       </main>

@@ -275,6 +275,75 @@
   font-size: 0.75rem;
 }
 
+/* Bolha combinada com deslocamento e espera */
+.time-bubble-combined {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #202124;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-width: 140px;
+  max-width: 200px;
+}
+
+/* Seção de informação */
+.time-bubble-combined .info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Título da seção */
+.time-bubble-combined .section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Itens dentro da bolha combinada */
+.time-bubble-combined .time-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+/* Ícones de transporte na bolha combinada */
+.time-bubble-combined .transport-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Badge de classificação na bolha combinada */
+.time-bubble-combined .classification-badge {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+/* Texto de tempo na bolha combinada */
+.time-bubble-combined .classification-time {
+  font-weight: 600;
+  color: #202124;
+  font-size: 0.7rem;
+}
+
 /* Estilos específicos para cada card */
 .indicators-legend h4 {
   border-bottom-color: #6c757d;
