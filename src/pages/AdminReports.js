@@ -23,7 +23,9 @@ import {
   getUpaPercentages,
   getUpaEvolution,
   getUpaWaitTimes,
-  fetchUpasComStatus
+  fetchUpasComStatus,
+  getWaitTimeAnalytics,
+  getDashboardAnalytics
 } from '../server/Api';
 import AnalyticsService from '../services/AnalyticsService';
 
@@ -66,6 +68,8 @@ function AdminReports() {
   const [evolution, setEvolution] = useState(null);
   const [waitTimes, setWaitTimes] = useState(null);
   const [bairroStats, setBairroStats] = useState(null);
+  const [waitTimeAnalytics, setWaitTimeAnalytics] = useState(null);
+  const [dashboardAnalytics, setDashboardAnalytics] = useState(null);
 
   // Carregar lista de UPAs
   useEffect(() => {
@@ -96,13 +100,15 @@ function AdminReports() {
   const loadUpaData = async (upaId) => {
     setLoadingData(true);
     try {
-      const [stats, dist, perc, evol, wait, bairros] = await Promise.all([
+      const [stats, dist, perc, evol, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
         getUpaStatistics(upaId),
         getUpaDistribution(upaId),
         getUpaPercentages(upaId),
         getUpaEvolution(upaId),
         getUpaWaitTimes(upaId),
-        AnalyticsService.getBairroStats(upaId)
+        AnalyticsService.getBairroStats(upaId),
+        getWaitTimeAnalytics(upaId),
+        getDashboardAnalytics(upaId)
       ]);
 
       console.log('=== DEBUG AdminReports ===');
@@ -112,6 +118,8 @@ function AdminReports() {
       console.log('Evolution:', evol);
       console.log('WaitTimes:', wait);
       console.log('BairroStats:', bairros);
+      console.log('WaitTimeAnalytics:', waitAnalytics);
+      console.log('DashboardAnalytics:', dashboard);
 
       // Transformar os dados dos objetos para arrays esperados pelos gráficos
       const distributionArray = dist?.distribution ? Object.entries(dist.distribution).map(([key, value]) => ({
@@ -143,6 +151,8 @@ function AdminReports() {
       setEvolution(evolutionArray);
       setWaitTimes(waitTimesArray);
       setBairroStats(bairros);
+      setWaitTimeAnalytics(waitAnalytics);
+      setDashboardAnalytics(dashboard);
     } catch (error) {
       console.error('Erro ao carregar dados da UPA:', error);
     } finally {
@@ -421,86 +431,268 @@ function AdminReports() {
                     </div>
                   </div>
                 )}
-
-                {/* Bairros Atendidos */}
+                
+                {/* Seção de Bairros: Gráfico e Tabela lado a lado */}
                 {bairroStats && bairroStats.bairros && Array.isArray(bairroStats.bairros) && bairroStats.bairros.length > 0 && (
-                  <div className="chart-card">
-                    <h3>Bairros Atendidos</h3>
-                    <div className="chart-container">
-                      <Pie
-                        data={{
-                          labels: bairroStats.bairros.map(b => b.bairro),
-                          datasets: [{
-                            data: bairroStats.bairros.map(b => b.total),
-                            backgroundColor: [
-                              '#3b82f6',
-                              '#10b981',
-                              '#f59e0b',
-                              '#ef4444',
-                              '#8b5cf6',
-                              '#ec4899',
-                              '#06b6d4'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#fff'
-                          }]
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: 'bottom',
-                              labels: {
-                                padding: 10,
-                                font: { size: 11 }
-                              }
-                            },
-                            tooltip: {
-                              callbacks: {
-                                label: (context) => {
-                                  const bairro = bairroStats.bairros[context.dataIndex];
-                                  return `${bairro.bairro}: ${bairro.total} (${bairro.percentual.toFixed(1)}%)`;
+                  <div className="bairros-section">
+                    {/* Gráfico de Bairros Atendidos */}
+                    <div className="chart-card">
+                      <h3>Bairros Atendidos</h3>
+                      <div className="chart-container">
+                        <Pie
+                          data={{
+                            labels: bairroStats.bairros.map(b => b.bairro),
+                            datasets: [{
+                              data: bairroStats.bairros.map(b => b.total),
+                              backgroundColor: [
+                                '#3b82f6',
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444',
+                                '#8b5cf6',
+                                '#ec4899',
+                                '#06b6d4'
+                              ],
+                              borderWidth: 2,
+                              borderColor: '#fff'
+                            }]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                position: 'bottom',
+                                labels: {
+                                  padding: 10,
+                                  font: { size: 11 }
+                                }
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: (context) => {
+                                    const bairro = bairroStats.bairros[context.dataIndex];
+                                    return `${bairro.bairro}: ${bairro.total} (${bairro.percentual.toFixed(1)}%)`;
+                                  }
                                 }
                               }
                             }
-                          }
-                        }}
-                      />
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tabela de Detalhes por Bairro */}
+                    <div className="chart-card">
+                      <h3>Detalhes por Bairro</h3>
+                      <div className="table-container">
+                        <table className="bairros-table">
+                          <thead>
+                            <tr>
+                              <th>Bairro</th>
+                              <th>Pacientes</th>
+                              <th>%</th>
+                              <th>Tempo Médio</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bairroStats.bairros.map((bairro, index) => (
+                              <tr key={index}>
+                                <td><strong>{bairro.bairro}</strong></td>
+                                <td>{bairro.total}</td>
+                                <td>{bairro.percentual.toFixed(1)}%</td>
+                                <td>{bairro.mediaTempoEspera} min</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Tabela de Bairros */}
-                {bairroStats && bairroStats.bairros && Array.isArray(bairroStats.bairros) && bairroStats.bairros.length > 0 && (
-                  <div className="chart-card">
-                    <h3>Detalhes por Bairro</h3>
-                    <div className="table-container">
-                      <table className="bairros-table">
-                        <thead>
-                          <tr>
-                            <th>Bairro</th>
-                            <th>Pacientes</th>
-                            <th>%</th>
-                            <th>Tempo Médio</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {bairroStats.bairros.map((bairro, index) => (
-                            <tr key={index}>
-                              <td><strong>{bairro.bairro}</strong></td>
-                              <td>{bairro.total}</td>
-                              <td>{bairro.percentual.toFixed(1)}%</td>
-                              <td>{bairro.mediaTempoEspera} min</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                {/* Análise de Tempos de Espera */}
+                {waitTimeAnalytics && (
+                  <div className="chart-card full-width">
+                    <h3>Análise Detalhada de Tempos de Espera</h3>
+                    <div className="wait-time-analytics">
+                      <div className="analytics-summary">
+                        <div className="summary-card">
+                          <span className="summary-label">Tempo Médio Geral</span>
+                          <span className="summary-value">{Math.max(0, waitTimeAnalytics.tempoMedioEsperaGeral || 0)} min</span>
+                        </div>
+                        <div className="summary-card">
+                          <span className="summary-label">Tempo Médio de Triagem</span>
+                          <span className="summary-value">{Math.max(0, waitTimeAnalytics.tempoMedioTriagem || 0)} min</span>
+                        </div>
+                        <div className="summary-card">
+                          <span className="summary-label">Tempo Médio de Atendimento</span>
+                          <span className="summary-value">{Math.max(0, waitTimeAnalytics.tempoMedioAtendimento || 0)} min</span>
+                        </div>
+                      </div>
+                      {waitTimeAnalytics.porClassificacao && Object.keys(waitTimeAnalytics.porClassificacao).length > 0 && (
+                        <div className="chart-container">
+                          <Bar
+                            data={{
+                              labels: Object.keys(waitTimeAnalytics.porClassificacao).map(k => k.toUpperCase()),
+                              datasets: [{
+                                label: 'Tempo de Espera (minutos)',
+                                data: Object.values(waitTimeAnalytics.porClassificacao).map(v => Math.max(0, v)),
+                                backgroundColor: Object.keys(waitTimeAnalytics.porClassificacao).map(k => {
+                                  const colorMap = {
+                                    'VERMELHO': '#ef4444',
+                                    'AMARELO': '#f59e0b',
+                                    'VERDE': '#10b981',
+                                    'AZUL': '#3b82f6'
+                                  };
+                                  return colorMap[k.toUpperCase()] || '#94a3b8';
+                                }),
+                                borderColor: Object.keys(waitTimeAnalytics.porClassificacao).map(k => {
+                                  const colorMap = {
+                                    'VERMELHO': '#dc2626',
+                                    'AMARELO': '#d97706',
+                                    'VERDE': '#059669',
+                                    'AZUL': '#2563eb'
+                                  };
+                                  return colorMap[k.toUpperCase()] || '#64748b';
+                                }),
+                                borderWidth: 2
+                              }]
+                            }}
+                            options={{
+                              responsive: true,
+                              maintainAspectRatio: false,
+                              plugins: {
+                                legend: {
+                                  display: false
+                                },
+                                tooltip: {
+                                  callbacks: {
+                                    label: function(context) {
+                                      return `Tempo: ${context.parsed.y} minutos`;
+                                    }
+                                  }
+                                }
+                              },
+                              scales: {
+                                y: {
+                                  beginAtZero: true,
+                                  ticks: {
+                                    callback: function(value) {
+                                      return value + ' min';
+                                    }
+                                  }
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
             </>
+          )}
+
+          {/* Dashboard Analytics da UPA Selecionada */}
+          {dashboardAnalytics && (
+            <div className="dashboard-analytics-section">
+              <h2>Estatísticas Gerais - {dashboardAnalytics.upaNome}</h2>
+
+              {/* Comparação: Últimas 24h vs Hoje vs Ontem */}
+              <div className="dashboard-comparison">
+                <div className="comparison-chart-card">
+                  <h3>Entradas de Pacientes</h3>
+                  <Bar
+                    data={{
+                      labels: ['Últimas 24h', 'Hoje', 'Ontem'],
+                      datasets: [{
+                        label: 'Entradas',
+                        data: [
+                          dashboardAnalytics.ultimas24h.totalEntradas,
+                          dashboardAnalytics.hoje.totalEntradas,
+                          dashboardAnalytics.ontem.totalEntradas
+                        ],
+                        backgroundColor: ['rgba(9, 172, 150, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(156, 163, 175, 0.7)'],
+                        borderColor: ['rgba(9, 172, 150, 1)', 'rgba(59, 130, 246, 1)', 'rgba(156, 163, 175, 1)'],
+                        borderWidth: 2
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: { beginAtZero: true }
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="comparison-chart-card">
+                  <h3>Triagens Realizadas</h3>
+                  <Bar
+                    data={{
+                      labels: ['Últimas 24h', 'Hoje', 'Ontem'],
+                      datasets: [{
+                        label: 'Triagens',
+                        data: [
+                          dashboardAnalytics.ultimas24h.totalTriagens,
+                          dashboardAnalytics.hoje.totalTriagens,
+                          dashboardAnalytics.ontem.totalTriagens
+                        ],
+                        backgroundColor: ['rgba(9, 172, 150, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(156, 163, 175, 0.7)'],
+                        borderColor: ['rgba(9, 172, 150, 1)', 'rgba(59, 130, 246, 1)', 'rgba(156, 163, 175, 1)'],
+                        borderWidth: 2
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: { beginAtZero: true }
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="comparison-chart-card">
+                  <h3>Atendimentos Concluídos</h3>
+                  <Bar
+                    data={{
+                      labels: ['Últimas 24h', 'Hoje', 'Ontem'],
+                      datasets: [{
+                        label: 'Atendimentos',
+                        data: [
+                          dashboardAnalytics.ultimas24h.totalAtendimentos,
+                          dashboardAnalytics.hoje.totalAtendimentos,
+                          dashboardAnalytics.ontem.totalAtendimentos
+                        ],
+                        backgroundColor: ['rgba(9, 172, 150, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(156, 163, 175, 0.7)'],
+                        borderColor: ['rgba(9, 172, 150, 1)', 'rgba(59, 130, 246, 1)', 'rgba(156, 163, 175, 1)'],
+                        borderWidth: 2
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: { beginAtZero: true }
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </main>

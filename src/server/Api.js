@@ -68,8 +68,8 @@ export async function fetchUpasComStatus() {
   try {
     console.log('🔄 Buscando lista de UPAs da API...');
 
-    // Usa o endpoint /api/v1/upas/sidebar que já retorna os dados formatados
-    const response = await api.get('/api/v1/upas/sidebar');
+    // Usa o endpoint /api/v1/upa-queue/sidebar/data que já retorna os dados formatados
+    const response = await api.get('/api/v1/upa-queue/sidebar/data');
 
     console.log('✅ Resposta da API recebida:', response.status);
 
@@ -84,7 +84,7 @@ export async function fetchUpasComStatus() {
     const upasFormatadas = await Promise.all(upas.map(async (upa) => {
       try {
         // Busca dados da fila para pegar o tempo médio de espera
-        const queueResponse = await api.get(`/api/v1/upas/${upa.id}/queue`);
+        const queueResponse = await api.get(`/api/v1/upa-queue/${upa.id}/queue`);
         const queueData = queueResponse.data.success ? queueResponse.data.data : null;
 
         const tempoMedio = queueData?.tempoMedioEsperaMinutos || 0;
@@ -181,8 +181,7 @@ export const getUpaStatistics = async (upaId) => {
     });
   }
 
-  // Como a rota /api/v1/queue/${upaId}/statistics não existe,
-  // vamos calcular as estatísticas a partir dos dados de evolution
+  // calcular as estatísticas a partir dos dados de evolution
   try {
     const evolutionResponse = await api.get(`/api/v1/queue/${upaId}/evolution?days=7`);
 
@@ -305,7 +304,7 @@ export const getUpaQueueData = async (upaId) => {
     });
   }
 
-  const response = await api.get(`/api/v1/upas/${upaId}/queue`);
+  const response = await api.get(`/api/v1/upa-queue/${upaId}/queue`);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar dados da fila');
@@ -423,5 +422,118 @@ export async function fetchUpaDataFormatted(upaId) {
     console.error("Erro ao buscar e formatar dados da UPA:", error);
     return null;
   }
-
 }
+
+/**
+ * Analytics Endpoints
+ */
+
+// Busca estatísticas de bairros para uma UPA
+export const getBairroStats = async (upaId) => {
+  const response = await api.get(`/api/v1/analytics/bairros/${upaId}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar estatísticas de bairros');
+  }
+
+  return response.data.data;
+};
+
+// Busca tendências de ocupação
+export const getOccupancyTrends = async (upaId, days = 1) => {
+  const response = await api.get(`/api/v1/analytics/occupancy/${upaId}?days=${days}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar tendências de ocupação');
+  }
+
+  return response.data.data;
+};
+
+// Busca distribuição de classificação
+export const getClassificationDistribution = async (upaId, days = 1) => {
+  const response = await api.get(`/api/v1/analytics/classification/${upaId}?days=${days}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar distribuição de classificação');
+  }
+
+  return response.data.data;
+};
+
+// Busca comparação entre UPAs
+export const getUpaComparison = async () => {
+  const response = await api.get('/api/v1/analytics/comparison');
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar comparação de UPAs');
+  }
+
+  return response.data.data;
+};
+
+// Busca métricas de eventos
+export const getEventsMetrics = async (upaId, startDate, endDate) => {
+  const response = await api.get(`/api/v1/analytics/events/${upaId}?startDate=${startDate}&endDate=${endDate}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar métricas de eventos');
+  }
+
+  return response.data.data;
+};
+
+// Busca total de entradas nas últimas 24h
+export const getTotalEntriesLast24h = async () => {
+  const response = await api.get('/api/v1/analytics/entries/last-24h');
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar total de entradas');
+  }
+
+  return response.data.data;
+};
+
+// Busca total de triagens nas últimas 24h
+export const getTotalScreeningsLast24h = async () => {
+  const response = await api.get('/api/v1/analytics/screenings/last-24h');
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar total de triagens');
+  }
+
+  return response.data.data;
+};
+
+// Busca total de atendimentos nas últimas 24h
+export const getTotalTreatmentsLast24h = async () => {
+  const response = await api.get('/api/v1/analytics/treatments/last-24h');
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar total de atendimentos');
+  }
+
+  return response.data.data;
+};
+
+// Busca análise de tempos de espera (para gráficos de relatórios)
+export const getWaitTimeAnalytics = async (upaId) => {
+  const response = await api.get(`/api/v1/analytics/wait-time/${upaId}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar análise de tempos de espera');
+  }
+
+  return response.data.data;
+};
+
+// Busca dashboard analytics completo de uma UPA
+export const getDashboardAnalytics = async (upaId) => {
+  const response = await api.get(`/api/v1/analytics/dashboard/${upaId}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar analytics do dashboard');
+  }
+
+  return response.data.data;
+};
