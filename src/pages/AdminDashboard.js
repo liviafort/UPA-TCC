@@ -5,7 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AnalyticsService from '../services/AnalyticsService';
 import RoutingService from '../services/RoutingService';
-import { fetchUpasComStatus } from '../server/Api';
+import {
+  fetchUpasComStatus,
+  getTotalEntriesLast24h,
+  getTotalScreeningsLast24h,
+  getTotalTreatmentsLast24h
+} from '../server/Api';
 import logo from '../assets/logo.png';
 import '../styles/AdminDashboard.css';
 import {
@@ -36,10 +41,17 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [totalUpas, setTotalUpas] = useState(0);
   const [comparison, setComparison] = useState([]);
+  const [upas, setUpas] = useState([]);
+  const [analytics24h, setAnalytics24h] = useState({
+    entries: null,
+    screenings: null,
+    treatments: null
+  });
 
   useEffect(() => {
     loadUserProfile();
     loadUpaData();
+    load24hAnalytics();
   }, []);
 
   const loadUserProfile = async () => {
@@ -60,14 +72,38 @@ function AdminDashboard() {
   const loadUpaData = async () => {
     try {
       // Busca todas as UPAs
-      const upas = await fetchUpasComStatus();
-      setTotalUpas(upas.length);
+      const upasData = await fetchUpasComStatus();
+      setUpas(upasData);
+      setTotalUpas(upasData.length);
 
       // Busca dados de comparação
       const comparisonData = await AnalyticsService.getUpaComparison();
       setComparison(comparisonData);
     } catch (error) {
       console.error('Erro ao carregar dados das UPAs:', error);
+    }
+  };
+
+  const load24hAnalytics = async () => {
+    try {
+      const [entries, screenings, treatments] = await Promise.all([
+        getTotalEntriesLast24h(),
+        getTotalScreeningsLast24h(),
+        getTotalTreatmentsLast24h()
+      ]);
+
+      console.log('=== 24h Analytics ===');
+      console.log('Entries:', entries);
+      console.log('Screenings:', screenings);
+      console.log('Treatments:', treatments);
+
+      setAnalytics24h({
+        entries,
+        screenings,
+        treatments
+      });
+    } catch (error) {
+      console.error('Erro ao carregar analytics das últimas 24h:', error);
     }
   };
 
@@ -226,6 +262,119 @@ function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Análises Gerais - Últimas 24h */}
+          {analytics24h.entries && analytics24h.screenings && analytics24h.treatments && (
+            <div className="analytics-24h-section">
+              <h3>Comparações Gerais - Últimas 24 Horas</h3>
+              <div className="analytics-24h-grid">
+                {/* Entradas */}
+                <div className="analytics-card">
+                  <h4>Entradas de Pacientes</h4>
+                  <div className="chart-container-small">
+                    <Bar
+                      data={{
+                        labels: Object.keys(analytics24h.entries).map(upaId => {
+                          const upa = upas.find(u => u.id === upaId);
+                          return upa ? upa.name : 'UPA';
+                        }),
+                        datasets: [{
+                          label: 'Entradas',
+                          data: Object.values(analytics24h.entries),
+                          backgroundColor: 'rgba(9, 172, 150, 0.7)',
+                          borderColor: 'rgba(9, 172, 150, 1)',
+                          borderWidth: 2
+                        }]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { display: false }
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 10 }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Triagens */}
+                <div className="analytics-card">
+                  <h4>Triagens Realizadas</h4>
+                  <div className="chart-container-small">
+                    <Bar
+                      data={{
+                        labels: Object.keys(analytics24h.screenings).map(upaId => {
+                          const upa = upas.find(u => u.id === upaId);
+                          return upa ? upa.name : 'UPA';
+                        }),
+                        datasets: [{
+                          label: 'Triagens',
+                          data: Object.values(analytics24h.screenings),
+                          backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                          borderColor: 'rgba(59, 130, 246, 1)',
+                          borderWidth: 2
+                        }]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { display: false }
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 10 }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Atendimentos */}
+                <div className="analytics-card">
+                  <h4>Atendimentos Concluídos</h4>
+                  <div className="chart-container-small">
+                    <Bar
+                      data={{
+                        labels: Object.keys(analytics24h.treatments).map(upaId => {
+                          const upa = upas.find(u => u.id === upaId);
+                          return upa ? upa.name : 'UPA';
+                        }),
+                        datasets: [{
+                          label: 'Atendimentos',
+                          data: Object.values(analytics24h.treatments),
+                          backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                          borderColor: 'rgba(245, 158, 11, 1)',
+                          borderWidth: 2
+                        }]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { display: false }
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 10 }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}

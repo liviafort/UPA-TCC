@@ -1,8 +1,15 @@
 /* src/styles/AdminReports.css */
 
+* {
+  box-sizing: border-box;
+}
+
 .admin-reports {
   min-height: 100vh;
   background: #f5f7fa;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* UPA Selector Card */
@@ -247,6 +254,140 @@
   background: #f9fafb;
 }
 
+/* Bairros Section - Grid Layout */
+.bairros-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+/* Wait Time Analytics */
+.wait-time-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.summary-card {
+  background: #F5F7FA;
+  border: 1px solid #ababab;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #09AC96;
+}
+
+/* Global Stats Section */
+.global-stats-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 3px solid #09AC96;
+}
+
+.global-stats-section h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+
+.total-summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #09AC96;
+  border-radius: 12px;
+}
+
+.total-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.total-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #09AC96;
+}
+
+/* Dashboard Analytics Section */
+.dashboard-analytics-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 3px solid #09AC96;
+}
+
+.dashboard-analytics-section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+
+.dashboard-comparison {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.comparison-chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 350px;
+}
+
+.comparison-chart-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.comparison-chart-card canvas {
+  max-height: 280px;
+  width: 50%;
+}
+
 /* Comparison Section */
 .comparison-section {
   margin-top: 48px;
@@ -325,8 +466,10 @@
   transform: translateX(-2px);
 }
 
-.admin-container{
-  max-width: 95%;
+.admin-container {
+  width: 90%;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 
@@ -395,6 +538,50 @@
     box-sizing: border-box;
   }
 
+  .analytics-summary {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+
+  .summary-value {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-analytics-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 24px;
+  }
+
+  .dashboard-comparison {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .comparison-chart-card {
+    min-height: 280px;
+    padding: 16px;
+  }
+
+  .comparison-chart-card h3 {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  .bairros-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .bairros-section .chart-card {
+    min-width: unset;
+    width: 100%;
+  }
+
   .chart-container {
     width: 100%;
     padding: 0;
@@ -417,9 +604,27 @@
   }
 
   .admin-container {
-    padding: 0;
-    width: 90%;
+    padding: 0 12px;
+    width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
+  }
+
+  .admin-main {
+    padding: 16px 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .upa-selector-card,
+  .stats-quick-cards,
+  .charts-grid,
+  .chart-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .admin-header-content {
