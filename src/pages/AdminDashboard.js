@@ -131,7 +131,7 @@ function AdminDashboard() {
           </div>
 
           <div className="admin-user-menu">
-            <div className="admin-user-info">
+            <div className="admin-user-info" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
               <div className="admin-user-avatar">
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
