@@ -537,3 +537,40 @@ export const getDashboardAnalytics = async (upaId) => {
 
   return response.data.data;
 };
+
+// ===================================
+// FUNÇÕES DE PERFIL DE USUÁRIO
+// ===================================
+
+// Busca perfil do usuário
+export const getUserProfile = async (userId) => {
+  const response = await api.get(`/api/v1/users/${userId}`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar perfil do usuário');
+  }
+
+  return response.data.data;
+};
+
+// Atualiza perfil do usuário
+export const updateUserProfile = async (userId, userData) => {
+  const response = await api.put(`/api/v1/users/${userId}`, userData);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao atualizar perfil');
+  }
+
+  return response.data.data;
+};
+
+// Altera senha do usuário
+export const changePassword = async (userId, passwordData) => {
+  const response = await api.put(`/api/v1/users/${userId}/password`, passwordData);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao alterar senha');
+  }
+
+  return response.data;
+};

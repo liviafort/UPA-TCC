@@ -208,6 +208,10 @@
   letter-spacing: 0.3px;
 }
 
+.form-group  input{
+  padding: 14px 16px 14px 48px;
+}
+
 .input-wrapper {
   position: relative;
   display: flex;
@@ -219,6 +223,7 @@
   left: 16px;
   pointer-events: none;
   z-index: 1;
+  color: #6B7280;
 }
 
 .input-wrapper input {
@@ -503,8 +508,12 @@
   }
 
   .input-wrapper input {
-    padding: 12px 12px 12px 40px;
+    padding: 12px 12px 12px 44px;
     font-size: 14px;
+  }
+
+  .input-icon {
+    left: 12px;
   }
 
   .login-button {

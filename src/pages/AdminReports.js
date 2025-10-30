@@ -28,6 +28,7 @@ import {
   getDashboardAnalytics
 } from '../server/Api';
 import AnalyticsService from '../services/AnalyticsService';
+import RoutingService from '../services/RoutingService';
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -194,7 +195,7 @@ function AdminReports() {
             <button onClick={() => navigate('/admin/dashboard')} className="admin-back-btn">
               Voltar
             </button>
-            <div className="admin-user-info">
+            <div className="admin-user-info" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
               <div className="admin-user-avatar">
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
@@ -405,7 +406,7 @@ function AdminReports() {
                         data={{
                           labels: waitTimes.map(w => w.classificacao),
                           datasets: [{
-                            label: 'Tempo (min)',
+                            label: 'Tempo',
                             data: waitTimes.map(w => w.tempoMedio),
                             backgroundColor: waitTimes.map(w => COLOR_MAP[w.classificacao] || '#94a3b8'),
                             borderRadius: 8
@@ -416,13 +417,20 @@ function AdminReports() {
                           responsive: true,
                           maintainAspectRatio: false,
                           plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            tooltip: {
+                              callbacks: {
+                                label: (context) => {
+                                  return 'Tempo: ' + RoutingService.formatMinutes(context.parsed.x);
+                                }
+                              }
+                            }
                           },
                           scales: {
                             x: {
                               beginAtZero: true,
                               ticks: {
-                                callback: (value) => value + ' min'
+                                callback: (value) => RoutingService.formatMinutes(value)
                               }
                             }
                           }
@@ -432,81 +440,80 @@ function AdminReports() {
                   </div>
                 )}
                 
-                {/* Seção de Bairros: Gráfico e Tabela lado a lado */}
+                {/* Gráfico de Bairros Atendidos */}
                 {bairroStats && bairroStats.bairros && Array.isArray(bairroStats.bairros) && bairroStats.bairros.length > 0 && (
-                  <div className="bairros-section">
-                    {/* Gráfico de Bairros Atendidos */}
-                    <div className="chart-card">
-                      <h3>Bairros Atendidos</h3>
-                      <div className="chart-container">
-                        <Pie
-                          data={{
-                            labels: bairroStats.bairros.map(b => b.bairro),
-                            datasets: [{
-                              data: bairroStats.bairros.map(b => b.total),
-                              backgroundColor: [
-                                '#3b82f6',
-                                '#10b981',
-                                '#f59e0b',
-                                '#ef4444',
-                                '#8b5cf6',
-                                '#ec4899',
-                                '#06b6d4'
-                              ],
-                              borderWidth: 2,
-                              borderColor: '#fff'
-                            }]
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: {
-                                position: 'bottom',
-                                labels: {
-                                  padding: 10,
-                                  font: { size: 11 }
-                                }
-                              },
-                              tooltip: {
-                                callbacks: {
-                                  label: (context) => {
-                                    const bairro = bairroStats.bairros[context.dataIndex];
-                                    return `${bairro.bairro}: ${bairro.total} (${bairro.percentual.toFixed(1)}%)`;
-                                  }
+                  <div className="chart-card">
+                    <h3>Bairros Atendidos</h3>
+                    <div className="chart-container">
+                      <Pie
+                        data={{
+                          labels: bairroStats.bairros.map(b => b.bairro),
+                          datasets: [{
+                            data: bairroStats.bairros.map(b => b.total),
+                            backgroundColor: [
+                              '#3b82f6',
+                              '#10b981',
+                              '#f59e0b',
+                              '#ef4444',
+                              '#8b5cf6',
+                              '#ec4899',
+                              '#06b6d4'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: 'bottom',
+                              labels: {
+                                padding: 10,
+                                font: { size: 11 }
+                              }
+                            },
+                            tooltip: {
+                              callbacks: {
+                                label: (context) => {
+                                  const bairro = bairroStats.bairros[context.dataIndex];
+                                  return `${bairro.bairro}: ${bairro.total} (${bairro.percentual.toFixed(1)}%)`;
                                 }
                               }
                             }
-                          }}
-                        />
-                      </div>
+                          }
+                        }}
+                      />
                     </div>
+                  </div>
+                )}
 
-                    {/* Tabela de Detalhes por Bairro */}
-                    <div className="chart-card">
-                      <h3>Detalhes por Bairro</h3>
-                      <div className="table-container">
-                        <table className="bairros-table">
-                          <thead>
-                            <tr>
-                              <th>Bairro</th>
-                              <th>Pacientes</th>
-                              <th>%</th>
-                              <th>Tempo Médio</th>
+                {/* Tabela de Detalhes por Bairro */}
+                {bairroStats && bairroStats.bairros && Array.isArray(bairroStats.bairros) && bairroStats.bairros.length > 0 && (
+                  <div className="chart-card">
+                    <h3>Detalhes por Bairro</h3>
+                    <div className="table-container">
+                      <table className="bairros-table">
+                        <thead>
+                          <tr>
+                            <th>Bairro</th>
+                            <th>Pacientes</th>
+                            <th>%</th>
+                            <th>Tempo Médio</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bairroStats.bairros.map((bairro, index) => (
+                            <tr key={index}>
+                              <td><strong>{bairro.bairro}</strong></td>
+                              <td>{bairro.total}</td>
+                              <td>{bairro.percentual.toFixed(1)}%</td>
+                              <td>{bairro.mediaTempoEspera} min</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {bairroStats.bairros.map((bairro, index) => (
-                              <tr key={index}>
-                                <td><strong>{bairro.bairro}</strong></td>
-                                <td>{bairro.total}</td>
-                                <td>{bairro.percentual.toFixed(1)}%</td>
-                                <td>{bairro.mediaTempoEspera} min</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}
@@ -519,15 +526,15 @@ function AdminReports() {
                       <div className="analytics-summary">
                         <div className="summary-card">
                           <span className="summary-label">Tempo Médio Geral</span>
-                          <span className="summary-value">{Math.max(0, waitTimeAnalytics.tempoMedioEsperaGeral || 0)} min</span>
+                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioEsperaGeral || 0))}</span>
                         </div>
                         <div className="summary-card">
                           <span className="summary-label">Tempo Médio de Triagem</span>
-                          <span className="summary-value">{Math.max(0, waitTimeAnalytics.tempoMedioTriagem || 0)} min</span>
+                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioTriagem || 0))}</span>
                         </div>
                         <div className="summary-card">
                           <span className="summary-label">Tempo Médio de Atendimento</span>
-                          <span className="summary-value">{Math.max(0, waitTimeAnalytics.tempoMedioAtendimento || 0)} min</span>
+                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioAtendimento || 0))}</span>
                         </div>
                       </div>
                       {waitTimeAnalytics.porClassificacao && Object.keys(waitTimeAnalytics.porClassificacao).length > 0 && (
@@ -569,7 +576,7 @@ function AdminReports() {
                                 tooltip: {
                                   callbacks: {
                                     label: function(context) {
-                                      return `Tempo: ${context.parsed.y} minutos`;
+                                      return `Tempo: ${RoutingService.formatMinutes(context.parsed.y)}`;
                                     }
                                   }
                                 }
@@ -579,7 +586,7 @@ function AdminReports() {
                                   beginAtZero: true,
                                   ticks: {
                                     callback: function(value) {
-                                      return value + ' min';
+                                      return RoutingService.formatMinutes(value);
                                     }
                                   }
                                 }

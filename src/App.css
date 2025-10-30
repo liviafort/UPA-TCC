@@ -420,7 +420,7 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  background: #fff;
+  background: #f5f7fa;
 }
 
 /* Permite scroll quando há conteúdo de dashboard/stats */

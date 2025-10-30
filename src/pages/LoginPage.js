@@ -76,6 +76,7 @@ function LoginPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Digite seu usuário"
                     disabled={loading}
+                    style={{ padding: '14px 16px 14px 48px' }}
                   />
                 </div>
               </div>
@@ -93,6 +94,7 @@ function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Digite sua senha"
                     disabled={loading}
+                    style={{ padding: '14px 16px 14px 48px' }}
                   />
                 </div>
               </div>

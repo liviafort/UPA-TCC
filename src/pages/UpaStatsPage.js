@@ -9,6 +9,7 @@ import {
   getUpaWaitTimes
 } from '../server/Api';
 import webSocketService from '../services/WebSocketService';
+import RoutingService from '../services/RoutingService';
 
 const CLASSIFICATION_LABELS = {
   'NAO_TRIADO': 'Não Triado',
@@ -180,34 +181,34 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
           <h2>Sem Triagem</h2>
           <p className="stats-value">{triaData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio: {triaData.waitTime} min</p>
+          <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(triaData.waitTime)}</p>
         </div>
         <div className="stats-card stats-card-blue">
           <h2>Não Urgente</h2>
           <p className="stats-value">{blueData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio: {blueData.waitTime} min</p>
+          <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(blueData.waitTime)}</p>
         </div>
-        
+
         <div className="stats-card stats-card-green">
           <h2>Pouco Urgente</h2>
           <p className="stats-value">{greenData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio: {greenData.waitTime} min</p>
+          <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(greenData.waitTime)}</p>
         </div>
-        
+
         <div className="stats-card stats-card-yellow">
           <h2>Urgente</h2>
           <p className="stats-value">{yellowData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio: {yellowData.waitTime} min</p>
+          <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(yellowData.waitTime)}</p>
         </div>
-        
+
         <div className="stats-card stats-card-red">
           <h2>Emergência</h2>
           <p className="stats-value">{redData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
-          <p className="stats-wait">Tempo Médio: {redData.waitTime} min</p>
+          <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(redData.waitTime)}</p>
         </div>
       </div>
 

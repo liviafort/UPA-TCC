@@ -10,6 +10,7 @@ import UpaStatsPage from './pages/UpaStatsPage';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminReports from './pages/AdminReports';
+import UserProfile from './pages/UserProfile';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { fetchUpasComStatus } from './server/Api';
@@ -215,6 +216,13 @@ function App() {
           <Route path="/admin/reports" element={
             <PrivateRoute>
               <AdminReports />
+            </PrivateRoute>
+          } />
+
+          {/* Perfil do Usuário - Rota Protegida */}
+          <Route path="/profile" element={
+            <PrivateRoute>
+              <UserProfile />
             </PrivateRoute>
           } />
 

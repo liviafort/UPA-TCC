@@ -63,6 +63,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.admin-user-info:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
 }
 
 .admin-user-avatar {
@@ -76,6 +84,11 @@
   justify-content: center;
   font-size: 1.2rem;
   font-weight: 600;
+  transition: all 0.2s;
+}
+
+.admin-user-info:hover .admin-user-avatar {
+  box-shadow: 0 4px 12px rgba(9, 172, 150, 0.3);
 }
 
 .admin-user-details {
@@ -492,10 +505,12 @@
 /* Analytics 24h Section */
 .analytics-24h-section {
   background: white;
+  width: 100%;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-top: 32px;
+  align-items: center;
 }
 
 .analytics-24h-section h3 {
@@ -509,13 +524,14 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
-  max-width: 100%;
 }
 
 .analytics-card {
   background: #f9fafb;
   border-radius: 8px;
   padding: 20px;
+  align-self: center;
+  width: 90%;
   border: 1px solid #e5e7eb;
 }
 
@@ -576,6 +592,21 @@
 }
 
 /* Responsive */
+@media (max-width: 1610px) {
+  .analytics-24h-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .analytics-card {
+    padding: 20px;
+  }
+
+  .chart-container-small {
+    height: 280px;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-main {
     padding: 16px 12px;
@@ -630,6 +661,14 @@
 
   .admin-welcome h2 {
     font-size: 1.5rem;
+  }
+
+  .analytics-card {
+    padding: 16px;
+  }
+
+  .chart-container-small {
+    height: 240px;
   }
 
   .comparison-table-container {
