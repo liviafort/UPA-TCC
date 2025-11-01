@@ -28,13 +28,23 @@ class AnalyticsService {
   /**
    * Busca estatísticas de bairros para uma UPA específica
    * @param {string} upaId - ID da UPA
+   * @param {object} dateParams - Parâmetros de filtro de data (year, month, day)
    * @returns {Promise} Dados dos bairros atendidos pela UPA
    */
-  async getBairroStats(upaId) {
+  async getBairroStats(upaId, dateParams = {}) {
     try {
       console.log(`📊 Buscando estatísticas de bairros para UPA ${upaId}...`);
 
-      const response = await api.get(`/api/v1/analytics/bairros/${upaId}`);
+      // Monta a query string com os parâmetros de data
+      const queryParams = new URLSearchParams();
+      if (dateParams.year) queryParams.append('year', dateParams.year);
+      if (dateParams.month) queryParams.append('month', dateParams.month);
+      if (dateParams.day) queryParams.append('day', dateParams.day);
+
+      const queryString = queryParams.toString();
+      const url = `/api/v1/analytics/bairros/${upaId}${queryString ? `?${queryString}` : ''}`;
+
+      const response = await api.get(url);
 
       if (response.data.success) {
         console.log('✅ Estatísticas de bairros carregadas:', response.data.data);

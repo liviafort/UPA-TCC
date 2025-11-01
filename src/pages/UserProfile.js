@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProfile, updateUserProfile, changePassword } from '../server/Api';
+import AdminSidebar from '../components/AdminSidebar';
 import logo from '../assets/logo.png';
 import '../styles/UserProfile.css';
 
@@ -32,6 +33,7 @@ const UserProfile = () => {
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -46,12 +48,6 @@ const UserProfile = () => {
       }
 
       const data = await getUserProfile(user.id);
-
-      console.log('=== GET USER PROFILE ===');
-      console.log('User ID:', user.id);
-      console.log('Profile Data:', data);
-      console.log('========================');
-
       setProfile(data);
       setFormData({
         name: data.name || '',
@@ -93,7 +89,59 @@ const UserProfile = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const updatedProfile = await updateUserProfile(user.id, formData);
+      // Validações
+      if (!formData.name || formData.name.trim() === '') {
+        setError('Nome é obrigatório');
+        setSaving(false);
+        return;
+      }
+
+      if (!formData.email || formData.email.trim() === '') {
+        setError('Email é obrigatório');
+        setSaving(false);
+        return;
+      }
+
+      // Validação de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setError('Email inválido');
+        setSaving(false);
+        return;
+      }
+
+      // Prepara os dados para atualização seguindo EXATAMENTE a estrutura do exemplo
+      // Remove username e role, enviar apenas os 5 campos editáveis
+      const updateData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        city: formData.city.trim(),
+        state: formData.state.trim()
+      };
+
+      // Verifica se todos os campos estão preenchidos
+      if (!updateData.name || !updateData.email || !updateData.phone || !updateData.city || !updateData.state) {
+        setError('Todos os campos são obrigatórios');
+        setSaving(false);
+        return;
+      }
+
+      // Verifica se state tem exatamente 2 caracteres (sigla)
+      if (updateData.state.length !== 2) {
+        setError('Estado deve ser uma sigla válida (ex: PB, SP, RJ)');
+        setSaving(false);
+        return;
+      }
+
+      // Verifica se o telefone tem apenas números
+      if (!/^\d+$/.test(updateData.phone)) {
+        setError('Telefone deve conter apenas números');
+        setSaving(false);
+        return;
+      }
+
+      const updatedProfile = await updateUserProfile(user.id, updateData);
       setProfile(updatedProfile);
       setEditMode(false);
       setSuccess('Perfil atualizado com sucesso!');
@@ -180,30 +228,24 @@ const UserProfile = () => {
 
   return (
     <div className="admin-reports">
+      {/* Sidebar */}
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userProfile={profile}
+      />
+
       {/* Header */}
       <header className="admin-header">
         <div className="admin-header-content">
+          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+
           <div className="admin-logo">
             <img src={logo} alt="Logo" width="106" height="40" />
-          </div>
-
-          <div className="admin-user-menu">
-            <button onClick={() => navigate('/admin/dashboard')} className="admin-back-btn">
-              Voltar
-            </button>
-            <div className="admin-user-info">
-              <div className="admin-user-avatar">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-              <span className="admin-user-name">{user?.username}</span>
-            </div>
-            <button onClick={handleLogout} className="admin-logout-btn">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 3H3V17H13V15H11V15H5V5H11V5H13V3Z" fill="currentColor"/>
-                <path d="M16.293 9.293L13.293 6.293L14.707 4.879L20 10.172L14.707 15.465L13.293 14.051L16.293 11.051H7V9.051H16.293V9.293Z" fill="currentColor"/>
-              </svg>
-              Sair
-            </button>
           </div>
         </div>
       </header>
@@ -339,16 +381,42 @@ const UserProfile = () => {
 
                 <div className="form-group">
                   <label>Estado</label>
-                  <input
-                    type="text"
+                  <select
                     name="state"
                     value={formData.state}
                     onChange={handleInputChange}
                     disabled={!editMode}
                     className={editMode ? 'editable' : ''}
-                    maxLength="2"
-                    placeholder="PB"
-                  />
+                  >
+                    <option value="">Selecione o estado</option>
+                    <option value="AC">AC - Acre</option>
+                    <option value="AL">AL - Alagoas</option>
+                    <option value="AP">AP - Amapá</option>
+                    <option value="AM">AM - Amazonas</option>
+                    <option value="BA">BA - Bahia</option>
+                    <option value="CE">CE - Ceará</option>
+                    <option value="DF">DF - Distrito Federal</option>
+                    <option value="ES">ES - Espírito Santo</option>
+                    <option value="GO">GO - Goiás</option>
+                    <option value="MA">MA - Maranhão</option>
+                    <option value="MT">MT - Mato Grosso</option>
+                    <option value="MS">MS - Mato Grosso do Sul</option>
+                    <option value="MG">MG - Minas Gerais</option>
+                    <option value="PA">PA - Pará</option>
+                    <option value="PB">PB - Paraíba</option>
+                    <option value="PR">PR - Paraná</option>
+                    <option value="PE">PE - Pernambuco</option>
+                    <option value="PI">PI - Piauí</option>
+                    <option value="RJ">RJ - Rio de Janeiro</option>
+                    <option value="RN">RN - Rio Grande do Norte</option>
+                    <option value="RS">RS - Rio Grande do Sul</option>
+                    <option value="RO">RO - Rondônia</option>
+                    <option value="RR">RR - Roraima</option>
+                    <option value="SC">SC - Santa Catarina</option>
+                    <option value="SP">SP - São Paulo</option>
+                    <option value="SE">SE - Sergipe</option>
+                    <option value="TO">TO - Tocantins</option>
+                  </select>
                 </div>
               </div>
 

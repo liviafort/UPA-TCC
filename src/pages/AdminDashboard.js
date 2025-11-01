@@ -5,11 +5,14 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AnalyticsService from '../services/AnalyticsService';
 import RoutingService from '../services/RoutingService';
+import AdminSidebar from '../components/AdminSidebar';
 import {
   fetchUpasComStatus,
   getTotalEntriesLast24h,
   getTotalScreeningsLast24h,
-  getTotalTreatmentsLast24h
+  getTotalTreatmentsLast24h,
+  getUpasByCityAndState,
+  getUpaEvolution
 } from '../server/Api';
 import logo from '../assets/logo.png';
 import '../styles/AdminDashboard.css';
@@ -18,20 +21,26 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 
 // Registrar componentes do Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 function AdminDashboard() {
@@ -42,17 +51,26 @@ function AdminDashboard() {
   const [totalUpas, setTotalUpas] = useState(0);
   const [comparison, setComparison] = useState([]);
   const [upas, setUpas] = useState([]);
+  const [upasByState, setUpasByState] = useState([]);
+  const [noUpasInState, setNoUpasInState] = useState(false);
   const [analytics24h, setAnalytics24h] = useState({
     entries: null,
     screenings: null,
     treatments: null
   });
+  const [evolutionData, setEvolutionData] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
-    loadUpaData();
     load24hAnalytics();
   }, []);
+
+  useEffect(() => {
+    if (userProfile?.state && userProfile?.city) {
+      loadUpasByUserState();
+    }
+  }, [userProfile]);
 
   const loadUserProfile = async () => {
     if (user?.id) {
@@ -69,18 +87,75 @@ function AdminDashboard() {
     }
   };
 
-  const loadUpaData = async () => {
+  const loadUpasByUserState = async () => {
     try {
-      // Busca todas as UPAs
-      const upasData = await fetchUpasComStatus();
-      setUpas(upasData);
-      setTotalUpas(upasData.length);
+      console.log('Buscando UPAs para cidade:', userProfile.city, 'estado:', userProfile.state);
 
-      // Busca dados de comparação
-      const comparisonData = await AnalyticsService.getUpaComparison();
-      setComparison(comparisonData);
+      const upasData = await getUpasByCityAndState(userProfile.city, userProfile.state);
+
+      console.log('UPAs encontradas:', upasData);
+
+      if (upasData.length === 0) {
+        setNoUpasInState(true);
+        setTotalUpas(0);
+        setUpasByState([]);
+      } else {
+        setNoUpasInState(false);
+        setUpasByState(upasData);
+        setTotalUpas(upasData.length);
+
+        // Busca todas as UPAs para os gráficos de comparação
+        const allUpasData = await fetchUpasComStatus();
+        setUpas(allUpasData);
+
+        // Busca dados de comparação
+        const comparisonData = await AnalyticsService.getUpaComparison();
+        setComparison(comparisonData);
+
+        // Busca dados de evolução das UPAs (últimos 7 dias)
+        if (upasData.length > 0) {
+          loadEvolutionData(upasData);
+        }
+      }
     } catch (error) {
-      console.error('Erro ao carregar dados das UPAs:', error);
+      console.error('Erro ao carregar UPAs do estado:', error);
+      setNoUpasInState(true);
+      setTotalUpas(0);
+      setUpasByState([]);
+    }
+  };
+
+  const loadEvolutionData = async (upasData) => {
+    try {
+      console.log('📊 Carregando evolução para UPAs:', upasData.map(u => ({ id: u.id, name: u.name })));
+
+      // Busca evolução de cada UPA (7 dias)
+      const evolutionPromises = upasData.map(upa => {
+        console.log(`  🔄 Buscando evolução para ${upa.name} (${upa.id})`);
+        return getUpaEvolution(upa.id, 7); // Garante que passa days=7
+      });
+      const evolutionResults = await Promise.all(evolutionPromises);
+
+      console.log('📈 Resultados de evolução recebidos:');
+      evolutionResults.forEach((result, index) => {
+        console.log(`  ${upasData[index].name}:`, {
+          period: result.period,
+          dataLength: result.data?.length,
+          data: result.data
+        });
+      });
+
+      // Organiza os dados por UPA
+      const organizedData = evolutionResults.map((result, index) => ({
+        upaId: upasData[index].id,
+        upaName: upasData[index].name,
+        data: result.data || []
+      }));
+
+      setEvolutionData(organizedData);
+      console.log('✅ Dados de evolução organizados:', organizedData);
+    } catch (error) {
+      console.error('❌ Erro ao carregar evolução das UPAs:', error);
     }
   };
 
@@ -123,30 +198,24 @@ function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
+      {/* Sidebar */}
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userProfile={userProfile}
+      />
+
       {/* Header */}
       <header className="admin-header">
         <div className="admin-header-content">
+          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+
           <div className="admin-logo">
             <img src={logo} alt="Logo" width="106" height="40" viewBox="0 0 60 60"/>
-          </div>
-
-          <div className="admin-user-menu">
-            <div className="admin-user-info" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
-              <div className="admin-user-avatar">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-              <div className="admin-user-details">
-                <span className="admin-user-name">{user?.username}</span>
-                <span className="admin-user-role">Administrador</span>
-              </div>
-            </div>
-            <button onClick={handleLogout} className="admin-logout-btn">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 3H3V17H13V15H11V15H5V5H11V5H13V3Z" fill="currentColor"/>
-                <path d="M16.293 9.293L13.293 6.293L14.707 4.879L20 10.172L14.707 15.465L13.293 14.051L16.293 11.051H7V9.051H16.293V9.293Z" fill="currentColor"/>
-              </svg>
-              Sair
-            </button>
           </div>
         </div>
       </header>
@@ -184,7 +253,11 @@ function AdminDashboard() {
               <div className="stat-content">
                 <h3>UPAs Cadastradas</h3>
                 <p className="stat-value">{totalUpas}</p>
-                <p className="stat-label">Total de unidades</p>
+                <p className="stat-label">
+                  {noUpasInState
+                    ? `UPAs indisponíveis em ${userProfile?.state}`
+                    : `Unidades em ${userProfile?.city} - ${userProfile?.state}`}
+                </p>
               </div>
             </div>
 
@@ -204,8 +277,22 @@ function AdminDashboard() {
             </div>
           </div>
 
+          {/* Mensagem de UPAs indisponíveis */}
+          {noUpasInState && (
+            <div className="no-upas-message">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 4C12.96 4 4 12.96 4 24C4 35.04 12.96 44 24 44C35.04 44 44 35.04 44 24C44 12.96 35.04 4 24 4ZM24 40C15.16 40 8 32.84 8 24C8 15.16 15.16 8 24 8C32.84 8 40 15.16 40 24C40 32.84 32.84 40 24 40Z" fill="#F59E0B"/>
+                <path d="M22 22H26V34H22V22Z" fill="#F59E0B"/>
+                <path d="M22 14H26V18H22V14Z" fill="#F59E0B"/>
+              </svg>
+              <h3>UPAs Indisponíveis</h3>
+              <p>Não existem UPAs cadastradas no estado de <strong>{userProfile?.state}</strong>.</p>
+              <p>Entre em contato com o administrador do sistema para mais informações.</p>
+            </div>
+          )}
+
           {/* Comparação entre UPAs */}
-          {comparison.length > 0 && (
+          {!noUpasInState && comparison.length > 0 && (
             <div className="comparison-section">
               <h3>Comparação entre UPAs</h3>
 
@@ -266,8 +353,112 @@ function AdminDashboard() {
             </div>
           )}
 
+          {/* Evolução das UPAs - Últimos 7 Dias */}
+          {!noUpasInState && evolutionData.length > 0 && (
+            <div className="evolution-section">
+              <h3>Evolução das UPAs - Últimos 7 Dias</h3>
+              <div className="evolution-chart-card">
+                <Line
+                  data={{
+                    labels: evolutionData[0]?.data.map(item => {
+                      const date = new Date(item.date);
+                      return `${date.getDate()}/${date.getMonth() + 1}`;
+                    }) || [],
+                    datasets: evolutionData.map((upaEvolution, index) => {
+                      const colors = [
+                        { bg: 'rgba(9, 172, 150, 0.2)', border: 'rgba(9, 172, 150, 1)' },
+                        { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 1)' },
+                        { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 1)' }
+                      ];
+                      const color = colors[index % colors.length];
+
+                      return {
+                        label: upaEvolution.upaName,
+                        data: upaEvolution.data.map(item => item.entradas),
+                        borderColor: color.border,
+                        backgroundColor: color.bg,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: color.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                      };
+                    })
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                          usePointStyle: true,
+                          padding: 15,
+                          font: {
+                            size: 13,
+                            weight: '600'
+                          }
+                        }
+                      },
+                      tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                          size: 14,
+                          weight: 'bold'
+                        },
+                        bodyFont: {
+                          size: 13
+                        },
+                        callbacks: {
+                          label: (context) => {
+                            return `${context.dataset.label}: ${context.parsed.y} entradas`;
+                          }
+                        }
+                      }
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          stepSize: 10,
+                          font: {
+                            size: 12
+                          }
+                        },
+                        grid: {
+                          color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                      },
+                      x: {
+                        ticks: {
+                          font: {
+                            size: 12
+                          }
+                        },
+                        grid: {
+                          display: false
+                        }
+                      }
+                    },
+                    interaction: {
+                      mode: 'nearest',
+                      axis: 'x',
+                      intersect: false
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Análises Gerais - Últimas 24h */}
-          {analytics24h.entries && analytics24h.screenings && analytics24h.treatments && (
+          {!noUpasInState && analytics24h.entries && analytics24h.screenings && analytics24h.treatments && (
             <div className="analytics-24h-section">
               <h3>Comparações Gerais - Últimas 24 Horas</h3>
               <div className="analytics-24h-grid">

@@ -229,6 +229,45 @@
   margin: 0;
 }
 
+/* No UPAs Message */
+.no-upas-message {
+  background: white;
+  border-radius: 12px;
+  padding: 48px 32px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 32px 0;
+}
+
+.no-upas-message svg {
+  margin: 0 auto 24px;
+}
+
+.no-upas-message h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.no-upas-message p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.no-upas-message p:last-child {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.no-upas-message strong {
+  color: #09AC96;
+  font-weight: 600;
+}
+
 /* Comparison Section - Override AdminReports styles */
 .admin-dashboard .comparison-section {
   background: white;
@@ -549,6 +588,27 @@
 
 .chart-container-small {
   height: 250px;
+}
+
+/* Evolution Section */
+.evolution-section {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.evolution-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.evolution-chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 400px;
 }
 
 .action-buttons {
