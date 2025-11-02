@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AuthService from '../services/AuthService';
+import AdminSidebar from '../components/AdminSidebar';
 import '../styles/AdminReports.css';
 import {
   Chart as ChartJS,
@@ -62,6 +64,15 @@ function AdminReports() {
   const [loading, setLoading] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
 
+  // Filtros de data
+  const [useFilter, setUseFilter] = useState(false);
+  const [filterYear, setFilterYear] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterDay, setFilterDay] = useState('');
+  const [noDataForDate, setNoDataForDate] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
   // Dados dos gráficos
   const [statistics, setStatistics] = useState(null);
   const [distribution, setDistribution] = useState(null);
@@ -72,17 +83,29 @@ function AdminReports() {
   const [waitTimeAnalytics, setWaitTimeAnalytics] = useState(null);
   const [dashboardAnalytics, setDashboardAnalytics] = useState(null);
 
-  // Carregar lista de UPAs
+  // Carregar lista de UPAs e perfil
   useEffect(() => {
     loadUpas();
+    loadUserProfile();
   }, []);
 
-  // Carregar dados quando UPA for selecionada
+  const loadUserProfile = async () => {
+    if (user?.id) {
+      try {
+        const profile = await AuthService.getUserProfile(user.id);
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    }
+  };
+
+  // Carregar dados quando UPA for selecionada ou filtros mudarem
   useEffect(() => {
     if (selectedUpaId) {
       loadUpaData(selectedUpaId);
     }
-  }, [selectedUpaId]);
+  }, [selectedUpaId, useFilter, filterYear, filterMonth, filterDay]);
 
   const loadUpas = async () => {
     try {
@@ -101,26 +124,46 @@ function AdminReports() {
   const loadUpaData = async (upaId) => {
     setLoadingData(true);
     try {
+      // Monta os parâmetros de filtro de data
+      const dateParams = {};
+      if (useFilter) {
+        if (filterYear) dateParams.year = filterYear;
+        if (filterMonth) dateParams.month = filterMonth;
+        if (filterDay) dateParams.day = filterDay;
+      }
+
+      console.log('==========================================');
+      console.log('🔍 CARREGANDO DADOS DA UPA');
+      console.log('==========================================');
+      console.log('UPA ID:', upaId);
+      console.log('Filtro ativo:', useFilter);
+      console.log('Parâmetros de data:', dateParams);
+      console.log('------------------------------------------');
+
+      // Endpoints que NÃO recebem filtro de data: getUpaStatistics, getUpaEvolution (usam days fixo)
+      // Endpoints que RECEBEM filtro de data: getUpaDistribution, getUpaPercentages, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
       const [stats, dist, perc, evol, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
-        getUpaStatistics(upaId),
-        getUpaDistribution(upaId),
-        getUpaPercentages(upaId),
-        getUpaEvolution(upaId),
-        getUpaWaitTimes(upaId),
-        AnalyticsService.getBairroStats(upaId),
-        getWaitTimeAnalytics(upaId),
-        getDashboardAnalytics(upaId)
+        getUpaStatistics(upaId), // SEM filtro (usa days=7)
+        getUpaDistribution(upaId, dateParams), // COM filtro
+        getUpaPercentages(upaId, dateParams), // COM filtro
+        getUpaEvolution(upaId), // SEM filtro (usa days=7)
+        getUpaWaitTimes(upaId, dateParams), // COM filtro
+        AnalyticsService.getBairroStats(upaId, dateParams), // COM filtro
+        getWaitTimeAnalytics(upaId, dateParams), // COM filtro
+        getDashboardAnalytics(upaId, dateParams) // COM filtro
       ]);
 
-      console.log('=== DEBUG AdminReports ===');
-      console.log('Statistics:', stats);
-      console.log('Distribution:', dist);
-      console.log('Percentages:', perc);
-      console.log('Evolution:', evol);
-      console.log('WaitTimes:', wait);
-      console.log('BairroStats:', bairros);
-      console.log('WaitTimeAnalytics:', waitAnalytics);
-      console.log('DashboardAnalytics:', dashboard);
+      console.log('✅ DADOS RECEBIDOS DOS ENDPOINTS:');
+      console.log('------------------------------------------');
+      console.log('📊 Statistics (SEM filtro):', stats);
+      console.log('📊 Distribution (COM filtro):', dist);
+      console.log('📊 Percentages (COM filtro):', perc);
+      console.log('📊 Evolution (SEM filtro):', evol);
+      console.log('📊 WaitTimes (COM filtro):', wait);
+      console.log('📊 BairroStats (COM filtro):', bairros);
+      console.log('📊 WaitTimeAnalytics (COM filtro):', waitAnalytics);
+      console.log('📊 DashboardAnalytics (COM filtro):', dashboard);
+      console.log('==========================================');
 
       // Transformar os dados dos objetos para arrays esperados pelos gráficos
       const distributionArray = dist?.distribution ? Object.entries(dist.distribution).map(([key, value]) => ({
@@ -145,6 +188,26 @@ function AdminReports() {
       console.log('percentagesArray:', percentagesArray);
       console.log('evolutionArray:', evolutionArray);
       console.log('waitTimesArray:', waitTimesArray);
+
+      // Verifica se há dados quando o filtro está ativo
+      if (useFilter) {
+        const hasData =
+          (distributionArray && distributionArray.length > 0) ||
+          (percentagesArray && percentagesArray.length > 0) ||
+          (waitTimesArray && waitTimesArray.length > 0) ||
+          (bairros && bairros.length > 0) ||
+          (waitAnalytics && Object.keys(waitAnalytics).length > 0) ||
+          (dashboard && Object.keys(dashboard).length > 0);
+
+        if (!hasData) {
+          console.log('⚠️ Nenhum dado encontrado para a data selecionada');
+          setNoDataForDate(true);
+        } else {
+          setNoDataForDate(false);
+        }
+      } else {
+        setNoDataForDate(false);
+      }
 
       setStatistics(stats);
       setDistribution(distributionArray);
@@ -179,9 +242,22 @@ function AdminReports() {
 
   return (
     <div className="admin-reports">
+      {/* Sidebar */}
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userProfile={userProfile}
+      />
+
       {/* Header */}
       <header className="admin-header">
         <div className="admin-header-content">
+          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+
           <div className="admin-logo">
             <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect width="60" height="60" rx="12" fill="#09AC96"/>
@@ -189,25 +265,6 @@ function AdminReports() {
               <path d="M18 42H42V45H18V42Z" fill="white"/>
             </svg>
             <h1>Relatórios e Análises</h1>
-          </div>
-
-          <div className="admin-user-menu">
-            <button onClick={() => navigate('/admin/dashboard')} className="admin-back-btn">
-              Voltar
-            </button>
-            <div className="admin-user-info" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
-              <div className="admin-user-avatar">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-              <span className="admin-user-name">{user?.username}</span>
-            </div>
-            <button onClick={handleLogout} className="admin-logout-btn">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 3H3V17H13V15H11V15H5V5H11V5H13V3Z" fill="currentColor"/>
-                <path d="M16.293 9.293L13.293 6.293L14.707 4.879L20 10.172L14.707 15.465L13.293 14.051L16.293 11.051H7V9.051H16.293V9.293Z" fill="currentColor"/>
-              </svg>
-              Sair
-            </button>
           </div>
         </div>
       </header>
@@ -242,10 +299,121 @@ function AdminReports() {
             )}
           </div>
 
+          {/* Filtro de Data */}
+          <div className="date-filter-card">
+            <div className="filter-header">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3 4.9 3 6V20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8Z" fill="#09AC96"/>
+              </svg>
+              <h2>Filtrar por Data</h2>
+              <label className="filter-toggle">
+                <input
+                  type="checkbox"
+                  checked={useFilter}
+                  onChange={(e) => {
+                    setUseFilter(e.target.checked);
+                    if (!e.target.checked) {
+                      setFilterYear('');
+                      setFilterMonth('');
+                      setFilterDay('');
+                    }
+                  }}
+                />
+                <span className="toggle-label">{useFilter ? 'Ativo' : 'Inativo'}</span>
+              </label>
+            </div>
+
+            {useFilter && (
+              <div className="filter-inputs">
+                <div className="filter-input-group">
+                  <label>Ano</label>
+                  <input
+                    type="number"
+                    placeholder="Ex: 2025"
+                    value={filterYear}
+                    onChange={(e) => setFilterYear(e.target.value)}
+                    min="2020"
+                    max="2030"
+                  />
+                </div>
+
+                <div className="filter-input-group">
+                  <label>Mês</label>
+                  <select
+                    value={filterMonth}
+                    onChange={(e) => setFilterMonth(e.target.value)}
+                  >
+                    <option value="">Todos</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                  </select>
+                </div>
+
+                <div className="filter-input-group">
+                  <label>Dia</label>
+                  <input
+                    type="number"
+                    placeholder="Ex: 15"
+                    value={filterDay}
+                    onChange={(e) => setFilterDay(e.target.value)}
+                    min="1"
+                    max="31"
+                  />
+                </div>
+
+                <div className="filter-info">
+                  <p className="filter-description">
+                    {!filterYear && !filterMonth && !filterDay && 'Configure os filtros acima'}
+                    {filterYear && !filterMonth && !filterDay && `Exibindo dados do ano de ${filterYear}`}
+                    {filterMonth && !filterDay && `Exibindo dados de ${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]}${filterYear ? ` de ${filterYear}` : ''}`}
+                    {filterDay && filterMonth && `Exibindo dados do dia ${filterDay}/${filterMonth}${filterYear ? `/${filterYear}` : ''}`}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
           {loadingData ? (
             <div className="loading-data">
               <div className="spinner-large"></div>
               <p>Carregando dados...</p>
+            </div>
+          ) : noDataForDate ? (
+            <div className="no-data-message">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M32 8C18.745 8 8 18.745 8 32C8 45.255 18.745 56 32 56C45.255 56 56 45.255 56 32C56 18.745 45.255 8 32 8ZM32 52C21.0185 52 12 42.9815 12 32C12 21.0185 21.0185 12 32 12C42.9815 12 52 21.0185 52 32C52 42.9815 42.9815 52 32 52Z" fill="#F59E0B"/>
+                <path d="M30 20H34V36H30V20Z" fill="#F59E0B"/>
+                <path d="M30 40H34V44H30V40Z" fill="#F59E0B"/>
+              </svg>
+              <h3>Nenhum Dado Encontrado</h3>
+              <p>Não há dados disponíveis para a data selecionada.</p>
+              <p className="date-info">
+                {filterDay && filterMonth && filterYear && `${filterDay}/${filterMonth}/${filterYear}`}
+                {filterMonth && !filterDay && filterYear && `${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]} de ${filterYear}`}
+                {filterMonth && !filterDay && !filterYear && `${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]}`}
+                {filterYear && !filterMonth && !filterDay && `Ano de ${filterYear}`}
+              </p>
+              <button
+                className="reset-filter-btn"
+                onClick={() => {
+                  setUseFilter(false);
+                  setFilterYear('');
+                  setFilterMonth('');
+                  setFilterDay('');
+                }}
+              >
+                Limpar Filtros
+              </button>
             </div>
           ) : selectedUpaId && (
             <>

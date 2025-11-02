@@ -227,7 +227,7 @@ export const getUpaStatistics = async (upaId) => {
   }
 };
 
-export const getUpaDistribution = async (upaId) => {
+export const getUpaDistribution = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
@@ -235,7 +235,7 @@ export const getUpaDistribution = async (upaId) => {
     });
   }
 
-  const queueData = await getUpaQueueData(upaId);
+  const queueData = await getUpaQueueData(upaId, dateParams);
 
   return {
     upaId: queueData.upaId,
@@ -250,7 +250,7 @@ export const getUpaDistribution = async (upaId) => {
   };
 };
 
-export const getUpaPercentages = async (upaId) => {
+export const getUpaPercentages = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
@@ -258,7 +258,7 @@ export const getUpaPercentages = async (upaId) => {
     });
   }
 
-  const queueData = await getUpaQueueData(upaId);
+  const queueData = await getUpaQueueData(upaId, dateParams);
   const total = queueData.totalPacientes || 1; // Evita divisão por zero
 
   return {
@@ -282,11 +282,19 @@ export const getUpaEvolution = async (upaId, days = 7) => {
     });
   }
 
-  const response = await api.get(`/api/v1/queue/${upaId}/evolution?days=${days}`);
+  const url = `/api/v1/queue/${upaId}/evolution?days=${days}`;
+  console.log('🌐 [getUpaEvolution] Chamando:', url);
+
+  const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar evolução da fila');
   }
+
+  console.log('✅ [getUpaEvolution] Resposta recebida:', {
+    dataLength: response.data.data?.length,
+    data: response.data.data
+  });
 
   return {
     upaId,
@@ -296,7 +304,7 @@ export const getUpaEvolution = async (upaId, days = 7) => {
   };
 };
 
-export const getUpaQueueData = async (upaId) => {
+export const getUpaQueueData = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
@@ -304,16 +312,30 @@ export const getUpaQueueData = async (upaId) => {
     });
   }
 
-  const response = await api.get(`/api/v1/upa-queue/${upaId}/queue`);
+  // Monta a query string com os parâmetros de data
+  const queryParams = new URLSearchParams();
+  if (dateParams.year) queryParams.append('year', dateParams.year);
+  if (dateParams.month) queryParams.append('month', dateParams.month);
+  if (dateParams.day) queryParams.append('day', dateParams.day);
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/upa-queue/${upaId}/queue${queryString ? `?${queryString}` : ''}`;
+
+  console.log('🌐 [getUpaQueueData] Chamando:', url);
+  console.log('   Params:', dateParams);
+
+  const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar dados da fila');
   }
 
+  console.log('✅ [getUpaQueueData] Resposta recebida');
+
   return response.data.data;
 };
 
-export const getUpaWaitTimes = async (upaId) => {
+export const getUpaWaitTimes = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
@@ -321,7 +343,7 @@ export const getUpaWaitTimes = async (upaId) => {
     });
   }
 
-  const queueData = await getUpaQueueData(upaId);
+  const queueData = await getUpaQueueData(upaId, dateParams);
 
   return {
     upaId: queueData.upaId,
@@ -517,23 +539,51 @@ export const getTotalTreatmentsLast24h = async () => {
 };
 
 // Busca análise de tempos de espera (para gráficos de relatórios)
-export const getWaitTimeAnalytics = async (upaId) => {
-  const response = await api.get(`/api/v1/analytics/wait-time/${upaId}`);
+export const getWaitTimeAnalytics = async (upaId, dateParams = {}) => {
+  // Monta a query string com os parâmetros de data
+  const queryParams = new URLSearchParams();
+  if (dateParams.year) queryParams.append('year', dateParams.year);
+  if (dateParams.month) queryParams.append('month', dateParams.month);
+  if (dateParams.day) queryParams.append('day', dateParams.day);
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/analytics/wait-time/${upaId}${queryString ? `?${queryString}` : ''}`;
+
+  console.log('🌐 [getWaitTimeAnalytics] Chamando:', url);
+  console.log('   Params:', dateParams);
+
+  const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar análise de tempos de espera');
   }
 
+  console.log('✅ [getWaitTimeAnalytics] Resposta recebida');
+
   return response.data.data;
 };
 
 // Busca dashboard analytics completo de uma UPA
-export const getDashboardAnalytics = async (upaId) => {
-  const response = await api.get(`/api/v1/analytics/dashboard/${upaId}`);
+export const getDashboardAnalytics = async (upaId, dateParams = {}) => {
+  // Monta a query string com os parâmetros de data
+  const queryParams = new URLSearchParams();
+  if (dateParams.year) queryParams.append('year', dateParams.year);
+  if (dateParams.month) queryParams.append('month', dateParams.month);
+  if (dateParams.day) queryParams.append('day', dateParams.day);
+
+  const queryString = queryParams.toString();
+  const url = `/api/v1/analytics/dashboard/${upaId}${queryString ? `?${queryString}` : ''}`;
+
+  console.log('🌐 [getDashboardAnalytics] Chamando:', url);
+  console.log('   Params:', dateParams);
+
+  const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar analytics do dashboard');
   }
+
+  console.log('✅ [getDashboardAnalytics] Resposta recebida');
 
   return response.data.data;
 };
@@ -573,4 +623,21 @@ export const changePassword = async (userId, passwordData) => {
   }
 
   return response.data;
+};
+
+// ===================================
+// FUNÇÕES DE BUSCA DE UPAS
+// ===================================
+
+// Busca UPAs por cidade e estado
+export const getUpasByCityAndState = async (city, state) => {
+  const response = await api.get(`/api/v1/upas/city/state`, {
+    params: { city, state }
+  });
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar UPAs');
+  }
+
+  return response.data.data;
 };

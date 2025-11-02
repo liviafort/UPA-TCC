@@ -98,6 +98,134 @@
   color: #dc2626;
 }
 
+/* Date Filter Card */
+.date-filter-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.filter-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.filter-toggle input[type="checkbox"] {
+  width: 44px;
+  height: 24px;
+  position: relative;
+  cursor: pointer;
+  appearance: none;
+  background: #d1d5db;
+  border-radius: 12px;
+  transition: background 0.3s;
+}
+
+.filter-toggle input[type="checkbox"]:checked {
+  background: #09AC96;
+}
+
+.filter-toggle input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s;
+}
+
+.filter-toggle input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.filter-inputs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.filter-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-input-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-input-group input,
+.filter-input-group select {
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #1f2937;
+  transition: all 0.2s;
+}
+
+.filter-input-group input:hover,
+.filter-input-group select:hover {
+  border-color: #09AC96;
+}
+
+.filter-input-group input:focus,
+.filter-input-group select:focus {
+  outline: none;
+  border-color: #09AC96;
+  box-shadow: 0 0 0 3px rgba(9, 172, 150, 0.1);
+}
+
+.filter-info {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border-left: 4px solid #09AC96;
+  border-radius: 4px;
+}
+
+.filter-description {
+  margin: 0;
+  color: #065f46;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
 /* Loading */
 .loading-data {
   display: flex;
@@ -106,6 +234,64 @@
   justify-content: center;
   padding: 80px 20px;
   gap: 16px;
+}
+
+/* No Data Message */
+.no-data-message {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 32px 0;
+}
+
+.no-data-message svg {
+  margin: 0 auto 24px;
+}
+
+.no-data-message h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.no-data-message p {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.no-data-message .date-info {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #09AC96;
+  margin: 16px 0 24px 0;
+}
+
+.reset-filter-btn {
+  margin-top: 16px;
+  padding: 12px 32px;
+  background: #09AC96;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-filter-btn:hover {
+  background: #0c8f7e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(9, 172, 150, 0.3);
+}
+
+.reset-filter-btn:active {
+  transform: translateY(0);
 }
 
 /* Quick Stats Cards */
@@ -611,6 +797,7 @@
   }
 
   .upa-selector-card,
+  .date-filter-card,
   .stats-quick-cards,
   .charts-grid,
   .chart-card {
@@ -619,6 +806,20 @@
     box-sizing: border-box;
     margin-left: 0;
     margin-right: 0;
+  }
+
+  .filter-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-toggle {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .admin-header-content {
