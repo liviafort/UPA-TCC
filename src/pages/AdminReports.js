@@ -1,10 +1,13 @@
 // src/pages/AdminReports.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AdminSidebar from '../components/AdminSidebar';
+import ReportPDF from '../components/ReportPDF';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import '../styles/AdminReports.css';
+import logo from '../assets/logo.png';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -27,7 +30,8 @@ import {
   getUpaWaitTimes,
   fetchUpasComStatus,
   getWaitTimeAnalytics,
-  getDashboardAnalytics
+  getDashboardAnalytics,
+  getUpasByCityAndState
 } from '../server/Api';
 import AnalyticsService from '../services/AnalyticsService';
 import RoutingService from '../services/RoutingService';
@@ -63,6 +67,7 @@ function AdminReports() {
   const [selectedUpaId, setSelectedUpaId] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
+  const [noUpasInState, setNoUpasInState] = useState(false);
 
   // Filtros de data
   const [useFilter, setUseFilter] = useState(false);
@@ -83,11 +88,17 @@ function AdminReports() {
   const [waitTimeAnalytics, setWaitTimeAnalytics] = useState(null);
   const [dashboardAnalytics, setDashboardAnalytics] = useState(null);
 
-  // Carregar lista de UPAs e perfil
+  // Carregar perfil primeiro
   useEffect(() => {
-    loadUpas();
     loadUserProfile();
   }, []);
+
+  // Carregar UPAs quando o perfil estiver disponível
+  useEffect(() => {
+    if (userProfile) {
+      loadUpas();
+    }
+  }, [userProfile]);
 
   const loadUserProfile = async () => {
     if (user?.id) {
@@ -96,7 +107,10 @@ function AdminReports() {
         setUserProfile(profile);
       } catch (error) {
         console.error('Erro ao carregar perfil:', error);
+        setLoading(false);
       }
+    } else {
+      setLoading(false);
     }
   };
 
@@ -109,13 +123,33 @@ function AdminReports() {
 
   const loadUpas = async () => {
     try {
-      const data = await fetchUpasComStatus();
-      setUpas(data);
-      if (data.length > 0) {
-        setSelectedUpaId(data[0].id);
+      // Se o perfil do usuário está carregado, buscar UPAs do estado do usuário
+      if (userProfile?.state && userProfile?.city) {
+        const data = await getUpasByCityAndState(userProfile.city, userProfile.state);
+
+        if (data.length === 0) {
+          setNoUpasInState(true);
+          setUpas([]);
+        } else {
+          setNoUpasInState(false);
+          setUpas(data);
+          if (data.length > 0) {
+            setSelectedUpaId(data[0].id);
+          }
+        }
+      } else {
+        // Fallback: buscar todas as UPAs
+        const data = await fetchUpasComStatus();
+        setUpas(data);
+        if (data.length > 0) {
+          setSelectedUpaId(data[0].id);
+        }
+        setNoUpasInState(data.length === 0);
       }
     } catch (error) {
       console.error('Erro ao carregar UPAs:', error);
+      setNoUpasInState(true);
+      setUpas([]);
     } finally {
       setLoading(false);
     }
@@ -132,14 +166,6 @@ function AdminReports() {
         if (filterDay) dateParams.day = filterDay;
       }
 
-      console.log('==========================================');
-      console.log('🔍 CARREGANDO DADOS DA UPA');
-      console.log('==========================================');
-      console.log('UPA ID:', upaId);
-      console.log('Filtro ativo:', useFilter);
-      console.log('Parâmetros de data:', dateParams);
-      console.log('------------------------------------------');
-
       // Endpoints que NÃO recebem filtro de data: getUpaStatistics, getUpaEvolution (usam days fixo)
       // Endpoints que RECEBEM filtro de data: getUpaDistribution, getUpaPercentages, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
       const [stats, dist, perc, evol, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
@@ -152,18 +178,6 @@ function AdminReports() {
         getWaitTimeAnalytics(upaId, dateParams), // COM filtro
         getDashboardAnalytics(upaId, dateParams) // COM filtro
       ]);
-
-      console.log('✅ DADOS RECEBIDOS DOS ENDPOINTS:');
-      console.log('------------------------------------------');
-      console.log('📊 Statistics (SEM filtro):', stats);
-      console.log('📊 Distribution (COM filtro):', dist);
-      console.log('📊 Percentages (COM filtro):', perc);
-      console.log('📊 Evolution (SEM filtro):', evol);
-      console.log('📊 WaitTimes (COM filtro):', wait);
-      console.log('📊 BairroStats (COM filtro):', bairros);
-      console.log('📊 WaitTimeAnalytics (COM filtro):', waitAnalytics);
-      console.log('📊 DashboardAnalytics (COM filtro):', dashboard);
-      console.log('==========================================');
 
       // Transformar os dados dos objetos para arrays esperados pelos gráficos
       const distributionArray = dist?.distribution ? Object.entries(dist.distribution).map(([key, value]) => ({
@@ -182,12 +196,6 @@ function AdminReports() {
         classificacao: w.classification,
         tempoMedio: w.average_wait_time_minutes
       })) || [];
-
-      console.log('=== TRANSFORMED DATA ===');
-      console.log('distributionArray:', distributionArray);
-      console.log('percentagesArray:', percentagesArray);
-      console.log('evolutionArray:', evolutionArray);
-      console.log('waitTimesArray:', waitTimesArray);
 
       // Verifica se há dados quando o filtro está ativo
       if (useFilter) {
@@ -252,27 +260,44 @@ function AdminReports() {
       {/* Header */}
       <header className="admin-header">
         <div className="admin-header-content">
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <button className="menu-button" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            &#9776;
           </button>
-
-          <div className="admin-logo">
-            <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="60" height="60" rx="12" fill="#09AC96"/>
-              <path d="M30 15L20 25H26V40H34V25H40L30 15Z" fill="white"/>
-              <path d="M18 42H42V45H18V42Z" fill="white"/>
-            </svg>
-            <h1>Relatórios e Análises</h1>
+          <Link to="/">
+            <div className="admin-logo">
+              <img src={logo} alt="Logo" width="106" height="40" viewBox="0 0 60 60"/>
           </div>
+          </Link>
         </div>
       </header>
+
+      {/* Page Title Banner */}
+      <div className="page-title-banner">
+        <div className="page-title-banner-content">
+          <h1>Relatórios</h1>
+          <p>Análise detalhada de dados e estatísticas das UPAs</p>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="admin-main">
         <div className="admin-container">
+          {/* Mensagem de UPAs indisponíveis */}
+          {noUpasInState && (
+            <div className="no-upas-message">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 4C12.96 4 4 12.96 4 24C4 35.04 12.96 44 24 44C35.04 44 44 35.04 44 24C44 12.96 35.04 4 24 4ZM24 40C15.16 40 8 32.84 8 24C8 15.16 15.16 8 24 8C32.84 8 40 15.16 40 24C40 32.84 32.84 40 24 40Z" fill="#F59E0B"/>
+                <path d="M22 22H26V34H22V22Z" fill="#F59E0B"/>
+                <path d="M22 14H26V18H22V14Z" fill="#F59E0B"/>
+              </svg>
+              <h3>UPAs Indisponíveis</h3>
+              <p>Não existem UPAs cadastradas na cidade de <strong>{userProfile?.city}</strong>, estado de <strong>{userProfile?.state}</strong>.</p>
+              <p>Entre em contato com o administrador do sistema para mais informações.</p>
+            </div>
+          )}
+
           {/* Seletor de UPA */}
+          {!noUpasInState && (
           <div className="upa-selector-card">
             <div className="selector-header">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -297,98 +322,161 @@ function AdminReports() {
                 <p><strong>Status:</strong> <span className={`status-badge ${selectedUpa.statusOcupacao}`}>{selectedUpa.statusOcupacao?.toUpperCase()}</span></p>
               </div>
             )}
-          </div>
 
-          {/* Filtro de Data */}
-          <div className="date-filter-card">
-            <div className="filter-header">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3 4.9 3 6V20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8Z" fill="#09AC96"/>
-              </svg>
-              <h2>Filtrar por Data</h2>
-              <label className="filter-toggle">
-                <input
-                  type="checkbox"
-                  checked={useFilter}
-                  onChange={(e) => {
-                    setUseFilter(e.target.checked);
-                    if (!e.target.checked) {
-                      setFilterYear('');
-                      setFilterMonth('');
-                      setFilterDay('');
-                    }
-                  }}
-                />
-                <span className="toggle-label">{useFilter ? 'Ativo' : 'Inativo'}</span>
-              </label>
-            </div>
-
-            {useFilter && (
-              <div className="filter-inputs">
-                <div className="filter-input-group">
-                  <label>Ano</label>
-                  <input
-                    type="number"
-                    placeholder="Ex: 2025"
-                    value={filterYear}
-                    onChange={(e) => setFilterYear(e.target.value)}
-                    min="2020"
-                    max="2030"
-                  />
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Mês</label>
-                  <select
-                    value={filterMonth}
-                    onChange={(e) => setFilterMonth(e.target.value)}
-                  >
-                    <option value="">Todos</option>
-                    <option value="1">Janeiro</option>
-                    <option value="2">Fevereiro</option>
-                    <option value="3">Março</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Maio</option>
-                    <option value="6">Junho</option>
-                    <option value="7">Julho</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Setembro</option>
-                    <option value="10">Outubro</option>
-                    <option value="11">Novembro</option>
-                    <option value="12">Dezembro</option>
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Dia</label>
-                  <input
-                    type="number"
-                    placeholder="Ex: 15"
-                    value={filterDay}
-                    onChange={(e) => setFilterDay(e.target.value)}
-                    min="1"
-                    max="31"
-                  />
-                </div>
-
-                <div className="filter-info">
-                  <p className="filter-description">
-                    {!filterYear && !filterMonth && !filterDay && 'Configure os filtros acima'}
-                    {filterYear && !filterMonth && !filterDay && `Exibindo dados do ano de ${filterYear}`}
-                    {filterMonth && !filterDay && `Exibindo dados de ${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]}${filterYear ? ` de ${filterYear}` : ''}`}
-                    {filterDay && filterMonth && `Exibindo dados do dia ${filterDay}/${filterMonth}${filterYear ? `/${filterYear}` : ''}`}
-                  </p>
-                </div>
+            {/* PDF Download Button */}
+            {selectedUpaId && selectedUpa && statistics && (
+              <div className="pdf-download-section">
+                <PDFDownloadLink
+                  document={
+                    <ReportPDF
+                      upaData={{
+                        nome: selectedUpa.name,
+                        endereco: selectedUpa.address,
+                        bairro: selectedUpa.neighborhood,
+                        telefone: selectedUpa.phone,
+                        horario: selectedUpa.hours
+                      }}
+                      analyticsData={{
+                        statistics: {
+                          total_visits: statistics.totalEventos || 0,
+                          daily_average: Math.round((statistics.totalEventos || 0) / 7),
+                          average_wait_time: waitTimeAnalytics?.tempoMedioEsperaGeral || 0,
+                          occupancy_rate: statistics.taxaConclusao || 0
+                        },
+                        distribution: distribution || [],
+                        waitTimes: waitTimes || [],
+                        bairros: bairroStats?.bairros || []
+                      }}
+                      dashboardAnalytics={dashboardAnalytics}
+                      filterDate={
+                        useFilter
+                          ? filterDay && filterMonth && filterYear
+                            ? `${filterDay}/${filterMonth}/${filterYear}`
+                            : filterMonth && filterYear
+                            ? `${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]} de ${filterYear}`
+                            : filterYear
+                            ? `Ano de ${filterYear}`
+                            : null
+                          : 'Últimos 7 dias'
+                      }
+                    />
+                  }
+                  fileName={`relatorio-upa-${selectedUpa.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`}
+                  className="btn-download-pdf"
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: 'spin 1s linear infinite' }}>
+                          <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Gerando PDF...
+                      </span>
+                    ) : (
+                      <span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Baixar Relatório PDF
+                      </span>
+                    )
+                  }
+                </PDFDownloadLink>
               </div>
             )}
-          </div>
 
-          {loadingData ? (
+            {/* Filtro de Data */}
+            <div className="filter-section">
+              <div className="filter-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3 4.9 3 6V20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V10H19V20ZM19 8H5V6H19V8Z" fill="#09AC96"/>
+                </svg>
+                <h3>Filtrar por Data</h3>
+                <label className="filter-toggle">
+                  <input
+                    type="checkbox"
+                    checked={useFilter}
+                    onChange={(e) => {
+                      setUseFilter(e.target.checked);
+                      if (!e.target.checked) {
+                        setFilterYear('');
+                        setFilterMonth('');
+                        setFilterDay('');
+                      }
+                    }}
+                  />
+                  <span className="toggle-label">{useFilter ? 'Ativo' : 'Inativo'}</span>
+                </label>
+              </div>
+
+              {useFilter && (
+                <div className="filter-inputs">
+                  <div className="filter-input-group">
+                    <label>Ano</label>
+                    <input
+                      type="number"
+                      placeholder="Ex: 2025"
+                      value={filterYear}
+                      onChange={(e) => setFilterYear(e.target.value)}
+                      min="2020"
+                      max="2030"
+                    />
+                  </div>
+
+                  <div className="filter-input-group">
+                    <label>Mês</label>
+                    <select
+                      value={filterMonth}
+                      onChange={(e) => setFilterMonth(e.target.value)}
+                    >
+                      <option value="">Todos</option>
+                      <option value="1">Janeiro</option>
+                      <option value="2">Fevereiro</option>
+                      <option value="3">Março</option>
+                      <option value="4">Abril</option>
+                      <option value="5">Maio</option>
+                      <option value="6">Junho</option>
+                      <option value="7">Julho</option>
+                      <option value="8">Agosto</option>
+                      <option value="9">Setembro</option>
+                      <option value="10">Outubro</option>
+                      <option value="11">Novembro</option>
+                      <option value="12">Dezembro</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-input-group">
+                    <label>Dia</label>
+                    <input
+                      type="number"
+                      placeholder="Ex: 15"
+                      value={filterDay}
+                      onChange={(e) => setFilterDay(e.target.value)}
+                      min="1"
+                      max="31"
+                    />
+                  </div>
+
+                  <div className="filter-info">
+                    <p className="filter-description">
+                      {!filterYear && !filterMonth && !filterDay && 'Configure os filtros acima'}
+                      {filterYear && !filterMonth && !filterDay && `Exibindo dados do ano de ${filterYear}`}
+                      {filterMonth && !filterDay && `Exibindo dados de ${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]}${filterYear ? ` de ${filterYear}` : ''}`}
+                      {filterDay && filterMonth && `Exibindo dados do dia ${filterDay}/${filterMonth}${filterYear ? `/${filterYear}` : ''}`}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          )}
+
+          {!noUpasInState && loadingData ? (
             <div className="loading-data">
               <div className="spinner-large"></div>
               <p>Carregando dados...</p>
             </div>
-          ) : noDataForDate ? (
+          ) : !noUpasInState && noDataForDate ? (
             <div className="no-data-message">
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M32 8C18.745 8 8 18.745 8 32C8 45.255 18.745 56 32 56C45.255 56 56 45.255 56 32C56 18.745 45.255 8 32 8ZM32 52C21.0185 52 12 42.9815 12 32C12 21.0185 21.0185 12 32 12C42.9815 12 52 21.0185 52 32C52 42.9815 42.9815 52 32 52Z" fill="#F59E0B"/>
@@ -415,7 +503,7 @@ function AdminReports() {
                 Limpar Filtros
               </button>
             </div>
-          ) : selectedUpaId && (
+          ) : !noUpasInState && selectedUpaId && (
             <>
               {/* Cards de Estatísticas Rápidas */}
               {statistics && (
@@ -607,7 +695,7 @@ function AdminReports() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Gráfico de Bairros Atendidos */}
                 {bairroStats && bairroStats.bairros && Array.isArray(bairroStats.bairros) && bairroStats.bairros.length > 0 && (
                   <div className="chart-card">
@@ -771,7 +859,7 @@ function AdminReports() {
           )}
 
           {/* Dashboard Analytics da UPA Selecionada */}
-          {dashboardAnalytics && (
+          {!noUpasInState && dashboardAnalytics && (
             <div className="dashboard-analytics-section">
               <h2>Estatísticas Gerais - {dashboardAnalytics.upaNome}</h2>
 

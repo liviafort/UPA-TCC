@@ -3,12 +3,12 @@
 /* Overlay para fechar o sidebar */
 .sidebar-overlay {
   position: fixed;
-  top: 0;
+  top: 73px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 73px);
   background: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  z-index: 98;
   animation: fadeIn 0.3s ease;
 }
 
@@ -24,13 +24,13 @@
 /* Sidebar */
 .admin-sidebar {
   position: fixed;
-  top: 0;
+  top: 73px;
   left: -320px;
   width: 320px;
-  height: 100vh;
+  height: calc(100vh - 73px);
   background: linear-gradient(180deg, #09AC96 0%, #0c8f7e 100%);
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-  z-index: 999;
+  z-index: 99;
   transition: left 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -185,9 +185,16 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
+  .sidebar-overlay {
+    top: 67px;
+    height: calc(100% - 67px);
+  }
+
   .admin-sidebar {
     width: 280px;
     left: -280px;
+    top: 67px;
+    height: calc(100vh - 67px);
   }
 
   .sidebar-profile {

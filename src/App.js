@@ -11,7 +11,9 @@ import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminReports from './pages/AdminReports';
 import UserProfile from './pages/UserProfile';
+import Users from './pages/Users';
 import PrivateRoute from './components/PrivateRoute';
+import AdminRoute from './components/AdminRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { fetchUpasComStatus } from './server/Api';
 import RoutingService from './services/RoutingService';
@@ -224,6 +226,13 @@ function App() {
             <PrivateRoute>
               <UserProfile />
             </PrivateRoute>
+          } />
+
+          {/* Gestão de Usuários - Rota Protegida apenas para ADMIN */}
+          <Route path="/admin/users" element={
+            <AdminRoute>
+              <Users />
+            </AdminRoute>
           } />
 
         {/* Páginas com Header e Layout padrão */}

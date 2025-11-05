@@ -199,9 +199,17 @@
 }
 
 .notification-banner::before {
-  content: '⚠️';
-  font-size: 1.3rem;
-  animation: pulse 2s ease-in-out infinite;
+  content: '';
+  width: 24px;
+  height: 24px;
+  background-image: url('./assets/atencao.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: inline-block;
+  animation: pulse 1s ease-in-out infinite;
+  filter: none;
+  mix-blend-mode: normal;
 }
 
 @keyframes pulse {
@@ -230,7 +238,8 @@
   }
 
   .notification-banner::before {
-    font-size: 1rem;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
   }
 

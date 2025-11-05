@@ -1,6 +1,6 @@
 // src/pages/UserProfile.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProfile, updateUserProfile, changePassword } from '../server/Api';
 import AdminSidebar from '../components/AdminSidebar';
@@ -238,27 +238,33 @@ const UserProfile = () => {
       {/* Header */}
       <header className="admin-header">
         <div className="admin-header-content">
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <button className="menu-button" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            &#9776;
           </button>
-
-          <div className="admin-logo">
-            <img src={logo} alt="Logo" width="106" height="40" />
+          <Link to="/">
+            <div className="admin-logo">
+              <img src={logo} alt="Logo" width="106" height="40" viewBox="0 0 60 60"/>
           </div>
+          </Link>
         </div>
       </header>
+
+      {/* Page Title Banner */}
+      <div className="page-title-banner">
+        <div className="page-title-banner-content">
+          <h1>Configurações</h1>
+          <p>Gerencie suas informações pessoais e segurança</p>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="admin-main">
         <div className="admin-container">
 
           {/* Page Title */}
-          <div className="page-title-section">
+          {/* <div className="page-title-section">
             <h2>Meu Perfil</h2>
-            <p>Gerencie suas informações pessoais e configurações de segurança</p>
-          </div>
+          </div> */}
 
           {error && (
             <div className="alert alert-error">

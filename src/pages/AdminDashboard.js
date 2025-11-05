@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.js
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AnalyticsService from '../services/AnalyticsService';
@@ -167,11 +167,6 @@ function AdminDashboard() {
         getTotalTreatmentsLast24h()
       ]);
 
-      console.log('=== 24h Analytics ===');
-      console.log('Entries:', entries);
-      console.log('Screenings:', screenings);
-      console.log('Treatments:', treatments);
-
       setAnalytics24h({
         entries,
         screenings,
@@ -208,41 +203,36 @@ function AdminDashboard() {
       {/* Header */}
       <header className="admin-header">
         <div className="admin-header-content">
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)}>
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <button className="menu-button" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            &#9776;
           </button>
-
-          <div className="admin-logo">
-            <img src={logo} alt="Logo" width="106" height="40" viewBox="0 0 60 60"/>
+          <Link to="/">
+            <div className="admin-logo">
+              <img src={logo} alt="Logo" width="106" height="40" viewBox="0 0 60 60"/>
           </div>
+          </Link>
         </div>
       </header>
+
+      {/* Page Title Banner */}
+      <div className="page-title-banner">
+        <div className="page-title-banner-content">
+          <h1>Dashboard Veja +Saúde</h1>
+          <p>Painel de controle e estatísticas das UPAs</p>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="admin-main">
         <div className="admin-container">
           <div className="admin-welcome">
-            <h2>Bem-vindo(a), {user?.username}!</h2>
+            <h2>Bem-vindo(a), {user?.name}!</h2>
             <p>Painel de controle do sistema Veja+Saúde</p>
           </div>
 
           {/* Cards de estatísticas */}
           <div className="admin-stats-grid">
-            <div className="admin-stat-card">
-              <div className="stat-icon blue">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2ZM16 6C18.206 6 20 7.794 20 10C20 12.206 18.206 14 16 14C13.794 14 12 12.206 12 10C12 7.794 13.794 6 16 6ZM16 26C12.666 26 9.69 24.361 7.862 21.849C8.495 19.426 12.537 18 16 18C19.463 18 23.505 19.426 24.138 21.849C22.31 24.361 19.334 26 16 26Z" fill="currentColor"/>
-                </svg>
-              </div>
-              <div className="stat-content">
-                <h3>Perfil</h3>
-                <p className="stat-value">{userProfile?.username || user?.username}</p>
-                <p className="stat-label">Usuário autenticado</p>
-              </div>
-            </div>
-
+            
             <div className="admin-stat-card">
               <div className="stat-icon green">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -356,8 +346,8 @@ function AdminDashboard() {
           {/* Evolução das UPAs - Últimos 7 Dias */}
           {!noUpasInState && evolutionData.length > 0 && (
             <div className="evolution-section">
-              <h3>Evolução das UPAs - Últimos 7 Dias</h3>
               <div className="evolution-chart-card">
+                <h3>Evolução das UPAs - Últimos 7 Dias</h3>
                 <Line
                   data={{
                     labels: evolutionData[0]?.data.map(item => {
@@ -570,26 +560,6 @@ function AdminDashboard() {
             </div>
           )}
 
-          {/* Ações rápidas */}
-          <div className="admin-actions" style={{ marginTop: '32px' }}>
-            <h3>Ações Rápidas</h3>
-            <div className="action-buttons">
-              <button className="action-btn" onClick={() => navigate('/')}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
-                </svg>
-                Ver Mapa
-              </button>
-
-              <button className="action-btn" onClick={() => navigate('/admin/reports')}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V13H17V17Z" fill="currentColor"/>
-                </svg>
-                Relatórios
-              </button>
-
-            </div>
-          </div>
         </div>
       </main>
     </div>
