@@ -137,6 +137,12 @@
     height: 16px;
   }
 
+  /* Botão "Voltar ao Mapa" responsivo - mesmo tamanho do botão Gestão */
+  .back-link {
+    padding: 6px 12px !important;
+    font-size: 0.85rem !important;
+  }
+
   .header-right {
     gap: 10px;
   }

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AdminSidebar from '../components/AdminSidebar';
-import { getAllUsers, inactivateUser, activateUser, updateUserProfile, createUser } from '../server/Api';
+import { getAllUsers, inactivateUser, activateUser, createUser } from '../server/Api';
 import logo from '../assets/logo.png';
 import '../styles/Users.css';
 
@@ -20,9 +20,8 @@ function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
 
-  // Lista de estados brasileiros
+  // Lista de estados brasileiros (para o formulário de criação)
   const brazilianStates = [
     { uf: 'AC', name: 'Acre' },
     { uf: 'AL', name: 'Alagoas' },
@@ -52,14 +51,7 @@ function Users() {
     { uf: 'SE', name: 'Sergipe' },
     { uf: 'TO', name: 'Tocantins' }
   ];
-  const [formData, setFormData] = useState({
-    name: '',
-    username: '',
-    email: '',
-    phone: '',
-    city: '',
-    state: ''
-  });
+
   const [createFormData, setCreateFormData] = useState({
     name: '',
     username: '',
@@ -136,55 +128,9 @@ function Users() {
     }
   };
 
-  const handleEditUser = (userToEdit) => {
-    setSelectedUser(userToEdit);
-    setFormData({
-      name: userToEdit.name || '',
-      username: userToEdit.username || '',
-      email: userToEdit.email || '',
-      phone: userToEdit.phone || '',
-      city: userToEdit.city || '',
-      state: userToEdit.state || ''
-    });
-    setEditMode(false);
+  const handleViewUser = (userToView) => {
+    setSelectedUser(userToView);
     setShowEditModal(true);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSaveUser = async () => {
-    try {
-      setSaving(true);
-      await updateUserProfile(selectedUser.id, formData);
-      alert('Usuário atualizado com sucesso!');
-      setShowEditModal(false);
-      setEditMode(false);
-      loadUsers(); // Recarrega a lista
-    } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
-      alert('Erro ao atualizar usuário: ' + error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditMode(false);
-    // Restaura os dados originais
-    setFormData({
-      name: selectedUser.name || '',
-      username: selectedUser.username || '',
-      email: selectedUser.email || '',
-      phone: selectedUser.phone || '',
-      city: selectedUser.city || '',
-      state: selectedUser.state || ''
-    });
   };
 
   const handleCreateUser = () => {
@@ -320,13 +266,13 @@ function Users() {
                   <tr key={userItem.id}>
                     <td>
                       <button
-                        className="edit-btn"
-                        onClick={() => handleEditUser(userItem)}
-                        title="Editar usuário"
+                        className="view-btn"
+                        onClick={() => handleViewUser(userItem)}
+                        title="Visualizar usuário"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
                         </svg>
                       </button>
                     </td>
@@ -382,178 +328,61 @@ function Users() {
         </div>
       </main>
 
-      {/* Edit Modal */}
+      {/* View User Modal */}
       {showEditModal && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal-content edit-user-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editMode ? 'Editar Usuário' : 'Detalhes do Usuário'}</h3>
+              <h3>Detalhes do Usuário</h3>
               <button
                 className="modal-close"
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditMode(false);
-                }}
+                onClick={() => setShowEditModal(false)}
               >
                 ×
               </button>
             </div>
 
             <div className="modal-body">
-              {!editMode ? (
-                // Modo de visualização
-                <div className="user-info-display">
-                  <div className="info-row">
-                    <span className="info-label">Nome:</span>
-                    <span className="info-value">{selectedUser.name || 'N/A'}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Username:</span>
-                    <span className="info-value">@{selectedUser.username}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Email:</span>
-                    <span className="info-value">{selectedUser.email || 'N/A'}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Telefone:</span>
-                    <span className="info-value">{selectedUser.phone || 'N/A'}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Cidade:</span>
-                    <span className="info-value">{selectedUser.city || 'N/A'}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Estado:</span>
-                    <span className="info-value">{selectedUser.state || 'N/A'}</span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Tipo:</span>
-                    <span className={`type-badge ${selectedUser.role?.toLowerCase()}`}>
-                      {selectedUser.role}
-                    </span>
-                  </div>
-                  <div className="info-row">
-                    <span className="info-label">Status:</span>
-                    <span className={`status-badge-inline ${selectedUser.status?.toLowerCase()}`}>
-                      {selectedUser.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </div>
+              <div className="user-info-display">
+                <div className="info-row">
+                  <span className="info-label">Nome:</span>
+                  <span className="info-value">{selectedUser.name || 'N/A'}</span>
                 </div>
-              ) : (
-                // Modo de edição
-                <div className="user-edit-form">
-                  <div className="form-group">
-                    <label htmlFor="name">Nome Completo</label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Digite o nome completo"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="username">Username</label>
-                    <input
-                      type="text"
-                      id="username"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      placeholder="Digite o username"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Digite o email"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="phone">Telefone</label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="Digite o telefone"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="city">Cidade</label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="Digite a cidade"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="state">Estado</label>
-                    <select
-                      id="state"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Selecione um estado</option>
-                      {brazilianStates.map(state => (
-                        <option key={state.uf} value={state.uf}>
-                          {state.name} - {state.uf}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="info-row">
+                  <span className="info-label">Username:</span>
+                  <span className="info-value">@{selectedUser.username}</span>
                 </div>
-              )}
+                <div className="info-row">
+                  <span className="info-label">Email:</span>
+                  <span className="info-value">{selectedUser.email || 'N/A'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Telefone:</span>
+                  <span className="info-value">{selectedUser.phone || 'N/A'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Cidade:</span>
+                  <span className="info-value">{selectedUser.city || 'N/A'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Estado:</span>
+                  <span className="info-value">{selectedUser.state || 'N/A'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Tipo:</span>
+                  <span className={`type-badge ${selectedUser.role?.toLowerCase()}`}>
+                    {selectedUser.role === 'ADMIN' ? 'ADMINISTRADOR' : 'PADRÃO'}
+                  </span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Status:</span>
+                  <span className={`status-badge-inline ${selectedUser.status?.toLowerCase()}`}>
+                    {selectedUser.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="modal-footer">
-              {!editMode ? (
-                <button
-                  className="btn-edit"
-                  onClick={() => setEditMode(true)}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Editar Informações
-                </button>
-              ) : (
-                <>
-                  <button
-                    className="btn-cancel"
-                    onClick={handleCancelEdit}
-                    disabled={saving}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    className="btn-save"
-                    onClick={handleSaveUser}
-                    disabled={saving}
-                  >
-                    {saving ? 'Salvando...' : 'Salvar Alterações'}
-                  </button>
-                </>
-              )}
-            </div>
           </div>
         </div>
       )}
