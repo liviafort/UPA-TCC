@@ -70,6 +70,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.admin-logo:hover {
+  transform: translateY(-2px);
 }
 
 .admin-logo h1 {

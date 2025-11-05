@@ -128,7 +128,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
     return (
       <div className="upa-stats-container">
         <h2>{error}</h2>
-        <Link to="/" className="back-link">← Voltar ao Mapa</Link>
+        <Link to="/" className="back-link">Voltar ao Mapa</Link>
       </div>
     );
   }
@@ -137,7 +137,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
     return (
       <div className="upa-stats-container">
         <h2>UPA não encontrada.</h2>
-        <Link to="/" className="back-link">← Voltar ao Mapa</Link>
+        <Link to="/" className="back-link">Voltar ao Mapa</Link>
       </div>
     );
   }
@@ -212,9 +212,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
         </div>
       </div>
 
-      <footer className="stats-footer">
-        <Link to="/" className="back-link desktop-only">← Voltar ao Mapa</Link>
-      </footer>
+  
     </div>
   );
 }

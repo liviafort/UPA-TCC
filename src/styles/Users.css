@@ -210,7 +210,7 @@
   flex-shrink: 0;
 }
 
-.edit-btn {
+.view-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,7 +224,7 @@
   transition: all 0.2s;
 }
 
-.edit-btn:hover {
+.view-btn:hover {
   background: #09AC96;
   color: white;
   transform: scale(1.05);
@@ -432,13 +432,6 @@
   color: #dc2626;
 }
 
-.modal-footer {
-  padding: 20px 28px;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
 
 /* Edit Form */
 .user-edit-form {
@@ -553,6 +546,8 @@
   cursor: not-allowed;
   transform: none;
 }
+
+
 
 /* Responsive */
 @media (max-width: 768px) {
