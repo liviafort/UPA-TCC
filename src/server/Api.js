@@ -625,6 +625,61 @@ export const changePassword = async (userId, passwordData) => {
   return response.data;
 };
 
+// Busca todos os usuários do sistema
+export const getAllUsers = async () => {
+  const response = await api.get('/api/v1/users');
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao buscar usuários');
+  }
+
+  return response.data.data;
+};
+
+// Inativa usuário
+export const inactivateUser = async (userId) => {
+  const response = await api.put(`/api/v1/users/${userId}/inactivate`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao inativar usuário');
+  }
+
+  return response.data.data;
+};
+
+// Ativa usuário
+export const activateUser = async (userId) => {
+  const response = await api.put(`/api/v1/users/${userId}/activate`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Erro ao ativar usuário');
+  }
+
+  return response.data.data;
+};
+
+// Mantém compatibilidade com código antigo
+export const toggleUserStatus = inactivateUser;
+
+// Cria novo usuário
+export const createUser = async (userData) => {
+  console.log('API createUser - Enviando dados:', userData);
+
+  try {
+    const response = await api.post('/api/v1/auth/signup', userData);
+    console.log('API createUser - Resposta recebida:', response.data);
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Erro ao criar usuário');
+    }
+
+    return response.data.data;
+  } catch (error) {
+    console.error('API createUser - Erro:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 // ===================================
 // FUNÇÕES DE BUSCA DE UPAS
 // ===================================

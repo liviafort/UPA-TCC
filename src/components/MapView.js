@@ -246,18 +246,25 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
         center={center}
         zoom={zoom}
         className="leaflet-map"
-        zoomAnimation={false}
-        fadeAnimation={false}
+        zoomAnimation={true}
+        fadeAnimation={true}
+        markerZoomAnimation={true}
+        preferCanvas={false}
       >
         <ChangeView center={center} zoom={zoom} />
         <TileLayer
           attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          
           url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZ2lzbGFueSIsImEiOiJjbWRuazBsMHkwMm9yMndxNGkxNjY1MWlvIn0.ZGrQwbfe8DXTxIQIFdvc6Q`}
           tileSize={512}
           zoomOffset={-1}
           maxZoom={19}
           minZoom={1}
+          keepBuffer={8}
+          updateWhenIdle={false}
+          updateWhenZooming={true}
+          updateInterval={100}
+          bounds={[[-90, -180], [90, 180]]}
+          noWrap={false}
         /> 
 
         {userLocation && (

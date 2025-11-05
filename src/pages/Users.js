@@ -1,0 +1,704 @@
+// src/pages/Users.js
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import AuthService from '../services/AuthService';
+import AdminSidebar from '../components/AdminSidebar';
+import { getAllUsers, inactivateUser, activateUser, updateUserProfile, createUser } from '../server/Api';
+import logo from '../assets/logo.png';
+import '../styles/Users.css';
+
+function Users() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+  // Lista de estados brasileiros
+  const brazilianStates = [
+    { uf: 'AC', name: 'Acre' },
+    { uf: 'AL', name: 'Alagoas' },
+    { uf: 'AP', name: 'Amapá' },
+    { uf: 'AM', name: 'Amazonas' },
+    { uf: 'BA', name: 'Bahia' },
+    { uf: 'CE', name: 'Ceará' },
+    { uf: 'DF', name: 'Distrito Federal' },
+    { uf: 'ES', name: 'Espírito Santo' },
+    { uf: 'GO', name: 'Goiás' },
+    { uf: 'MA', name: 'Maranhão' },
+    { uf: 'MT', name: 'Mato Grosso' },
+    { uf: 'MS', name: 'Mato Grosso do Sul' },
+    { uf: 'MG', name: 'Minas Gerais' },
+    { uf: 'PA', name: 'Pará' },
+    { uf: 'PB', name: 'Paraíba' },
+    { uf: 'PR', name: 'Paraná' },
+    { uf: 'PE', name: 'Pernambuco' },
+    { uf: 'PI', name: 'Piauí' },
+    { uf: 'RJ', name: 'Rio de Janeiro' },
+    { uf: 'RN', name: 'Rio Grande do Norte' },
+    { uf: 'RS', name: 'Rio Grande do Sul' },
+    { uf: 'RO', name: 'Rondônia' },
+    { uf: 'RR', name: 'Roraima' },
+    { uf: 'SC', name: 'Santa Catarina' },
+    { uf: 'SP', name: 'São Paulo' },
+    { uf: 'SE', name: 'Sergipe' },
+    { uf: 'TO', name: 'Tocantins' }
+  ];
+  const [formData, setFormData] = useState({
+    name: '',
+    username: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: ''
+  });
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    username: '',
+    password: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: '',
+    role: 'PADRAO'
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadUserProfile();
+    loadUsers();
+  }, []);
+
+  useEffect(() => {
+    // Filtrar usuários quando o termo de busca mudar
+    if (searchTerm.trim() === '') {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(u =>
+        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchTerm, users]);
+
+  const loadUserProfile = async () => {
+    if (user?.id) {
+      try {
+        const profile = await AuthService.getUserProfile(user.id);
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const usersData = await getAllUsers();
+      setUsers(usersData);
+      setFilteredUsers(usersData);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleUserStatus = async (userId, currentStatus) => {
+    const isActive = currentStatus === 'ACTIVE';
+    const action = isActive ? 'inativar' : 'ativar';
+    const actionPast = isActive ? 'inativado' : 'ativado';
+
+    if (window.confirm(`Tem certeza que deseja ${action} este usuário?`)) {
+      try {
+        if (isActive) {
+          await inactivateUser(userId);
+        } else {
+          await activateUser(userId);
+        }
+        alert(`Usuário ${actionPast} com sucesso!`);
+        loadUsers();
+      } catch (error) {
+        console.error(`Erro ao ${action} usuário:`, error);
+        alert(`Erro ao ${action} usuário: ` + error.message);
+      }
+    }
+  };
+
+  const handleEditUser = (userToEdit) => {
+    setSelectedUser(userToEdit);
+    setFormData({
+      name: userToEdit.name || '',
+      username: userToEdit.username || '',
+      email: userToEdit.email || '',
+      phone: userToEdit.phone || '',
+      city: userToEdit.city || '',
+      state: userToEdit.state || ''
+    });
+    setEditMode(false);
+    setShowEditModal(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveUser = async () => {
+    try {
+      setSaving(true);
+      await updateUserProfile(selectedUser.id, formData);
+      alert('Usuário atualizado com sucesso!');
+      setShowEditModal(false);
+      setEditMode(false);
+      loadUsers(); // Recarrega a lista
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      alert('Erro ao atualizar usuário: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    // Restaura os dados originais
+    setFormData({
+      name: selectedUser.name || '',
+      username: selectedUser.username || '',
+      email: selectedUser.email || '',
+      phone: selectedUser.phone || '',
+      city: selectedUser.city || '',
+      state: selectedUser.state || ''
+    });
+  };
+
+  const handleCreateUser = () => {
+    setCreateFormData({
+      name: '',
+      username: '',
+      password: '',
+      email: '',
+      phone: '',
+      city: '',
+      state: '',
+      role: 'PADRAO'
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleCreateInputChange = (e) => {
+    const { name, value } = e.target;
+    setCreateFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveNewUser = async () => {
+    // Validação dos campos obrigatórios
+    if (!createFormData.username || !createFormData.password || !createFormData.name) {
+      alert('Por favor, preencha os campos obrigatórios: Nome, Username e Senha');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      console.log('Dados enviados para criar usuário:', createFormData);
+      await createUser(createFormData);
+      alert('Usuário criado com sucesso!');
+      setShowCreateModal(false);
+      loadUsers(); // Recarrega a lista
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      console.error('Response data:', error.response?.data);
+      alert('Erro ao criar usuário: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="admin-loading">
+        <div className="spinner-large"></div>
+        <p>Carregando usuários...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="users-page">
+      {/* Sidebar */}
+      <AdminSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userProfile={userProfile}
+      />
+
+      {/* Header */}
+      <header className="admin-header">
+        <div className="admin-header-content">
+          <button className="menu-button" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            &#9776;
+          </button>
+          <Link to="/">
+            <div className="admin-logo">
+              <img src={logo} alt="Logo" width="106" height="40" viewBox="0 0 60 60"/>
+            </div>
+          </Link>
+        </div>
+      </header>
+
+      {/* Page Title Banner */}
+      <div className="page-title-banner">
+        <div className="page-title-banner-content">
+          <h1>Usuários</h1>
+          <p>Gerencie os usuários do sistema</p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="admin-main">
+        <div className="admin-container">
+
+          {/* Search Bar and Create Button */}
+          <div className="users-controls">
+            <div className="search-bar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="Procurar usuário..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button className="btn-create-user" onClick={handleCreateUser}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              Criar Novo Usuário
+            </button>
+          </div>
+
+          {/* Users Table */}
+          <div className="users-table-card">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Ativo</th>
+                  <th>Criado Em</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((userItem) => (
+                  <tr key={userItem.id}>
+                    <td>
+                      <button
+                        className="edit-btn"
+                        onClick={() => handleEditUser(userItem)}
+                        title="Editar usuário"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                    </td>
+                    <td className="user-name-cell">{userItem.name || userItem.username}</td>
+                    <td>
+                      <span className={`type-badge ${userItem.role?.toLowerCase()}`}>
+                        {userItem.role === 'ADMIN' ? 'ADMINISTRADOR' :
+                         userItem.role === 'PADRAO' ? 'PADRÃO' :
+                         userItem.role || 'N/A'}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className={`status-toggle ${userItem.status === 'ACTIVE' ? 'active' : 'inactive'}`}
+                        onClick={() => handleToggleUserStatus(userItem.id, userItem.status)}
+                        title={userItem.status === 'ACTIVE' ? 'Inativar usuário' : 'Ativar usuário'}
+                      >
+                        {userItem.status === 'ACTIVE' ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                          </svg>
+                        ) : (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                          </svg>
+                        )}
+                      </button>
+                    </td>
+                    <td className="date-cell">
+                      {userItem.createdAt ? new Date(userItem.createdAt).toLocaleString('pt-BR') : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {filteredUsers.length === 0 && (
+              <div className="no-results">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <p>Nenhum usuário encontrado</p>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination Info */}
+          <div className="table-footer">
+            <p>Página 1 de 1 página(s)</p>
+          </div>
+
+        </div>
+      </main>
+
+      {/* Edit Modal */}
+      {showEditModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content edit-user-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editMode ? 'Editar Usuário' : 'Detalhes do Usuário'}</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditMode(false);
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {!editMode ? (
+                // Modo de visualização
+                <div className="user-info-display">
+                  <div className="info-row">
+                    <span className="info-label">Nome:</span>
+                    <span className="info-value">{selectedUser.name || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Username:</span>
+                    <span className="info-value">@{selectedUser.username}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Email:</span>
+                    <span className="info-value">{selectedUser.email || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Telefone:</span>
+                    <span className="info-value">{selectedUser.phone || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Cidade:</span>
+                    <span className="info-value">{selectedUser.city || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Estado:</span>
+                    <span className="info-value">{selectedUser.state || 'N/A'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Tipo:</span>
+                    <span className={`type-badge ${selectedUser.role?.toLowerCase()}`}>
+                      {selectedUser.role}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Status:</span>
+                    <span className={`status-badge-inline ${selectedUser.status?.toLowerCase()}`}>
+                      {selectedUser.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                // Modo de edição
+                <div className="user-edit-form">
+                  <div className="form-group">
+                    <label htmlFor="name">Nome Completo</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Digite o nome completo"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="username">Username</label>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      placeholder="Digite o username"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Digite o email"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="phone">Telefone</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Digite o telefone"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="city">Cidade</label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder="Digite a cidade"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="state">Estado</label>
+                    <select
+                      id="state"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Selecione um estado</option>
+                      {brazilianStates.map(state => (
+                        <option key={state.uf} value={state.uf}>
+                          {state.name} - {state.uf}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              {!editMode ? (
+                <button
+                  className="btn-edit"
+                  onClick={() => setEditMode(true)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Editar Informações
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="btn-cancel"
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="btn-save"
+                    onClick={handleSaveUser}
+                    disabled={saving}
+                  >
+                    {saving ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="modal-content create-user-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Criar Novo Usuário</h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowCreateModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="user-edit-form">
+                <div className="form-group">
+                  <label htmlFor="create-name">Nome Completo</label>
+                  <input
+                    type="text"
+                    id="create-name"
+                    name="name"
+                    value={createFormData.name}
+                    onChange={handleCreateInputChange}
+                    placeholder="Digite o nome completo"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-username">Username</label>
+                  <input
+                    type="text"
+                    id="create-username"
+                    name="username"
+                    value={createFormData.username}
+                    onChange={handleCreateInputChange}
+                    placeholder="Digite o username"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-password">Senha</label>
+                  <input
+                    type="password"
+                    id="create-password"
+                    name="password"
+                    value={createFormData.password}
+                    onChange={handleCreateInputChange}
+                    placeholder="Digite a senha"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-email">Email</label>
+                  <input
+                    type="email"
+                    id="create-email"
+                    name="email"
+                    value={createFormData.email}
+                    onChange={handleCreateInputChange}
+                    placeholder="Digite o email"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-phone">Telefone</label>
+                  <input
+                    type="tel"
+                    id="create-phone"
+                    name="phone"
+                    value={createFormData.phone}
+                    onChange={handleCreateInputChange}
+                    placeholder="Digite o telefone"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-city">Cidade</label>
+                  <input
+                    type="text"
+                    id="create-city"
+                    name="city"
+                    value={createFormData.city}
+                    onChange={handleCreateInputChange}
+                    placeholder="Digite a cidade"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-state">Estado</label>
+                  <select
+                    id="create-state"
+                    name="state"
+                    value={createFormData.state}
+                    onChange={handleCreateInputChange}
+                  >
+                    <option value="">Selecione um estado</option>
+                    {brazilianStates.map(state => (
+                      <option key={state.uf} value={state.uf}>
+                        {state.name} - {state.uf}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="create-role">Role</label>
+                  <select
+                    id="create-role"
+                    name="role"
+                    value={createFormData.role}
+                    onChange={handleCreateInputChange}
+                  >
+                    <option value="PADRAO">Colaborador</option>
+                    <option value="ADMIN">Administrador</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn-cancel"
+                onClick={() => setShowCreateModal(false)}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn-save"
+                onClick={handleSaveNewUser}
+                disabled={saving}
+              >
+                {saving ? 'Criando...' : 'Criar Usuário'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Users;
