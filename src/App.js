@@ -235,9 +235,9 @@ function App() {
             </AdminRoute>
           } />
 
-        {/* Páginas com Header e Layout padrão */}
-        <Route path="/*" element={
-          <div className="app-wrapper">
+        {/* Página Principal com Mapa */}
+        <Route path="/" element={
+          <div className="app-wrapper" key="map-page">
             <Header
               onToggleSidebar={toggleSidebar}
               isSidebarOpen={sidebarOpen}
@@ -248,46 +248,54 @@ function App() {
               Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
             </div>
 
-            <Routes>
-              {/* Página Principal */}
-              <Route path="/" element={
-                <div className="main-content" {...swipeHandlers}>
-                  <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
-                    <SidePanel
-                      upas={upas}
-                      onSelectUpa={handleSelectUpa}
-                      bestUpaId={bestUpaId}
-                    />
-                  </div>
-                  <div className="map-container">
-                    <MapView
-                      upas={upas}
-                      selectedUpa={selectedUpa}
-                      userLocation={userLocation}
-                      routesData={routesData}
-                      bestUpaId={bestUpaId}
-                      isSidebarOpen={sidebarOpen}
-                    />
-                  </div>
-                </div>
-              }/>
+            <div className="main-content" {...swipeHandlers}>
+              <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+                <SidePanel
+                  upas={upas}
+                  onSelectUpa={handleSelectUpa}
+                  bestUpaId={bestUpaId}
+                />
+              </div>
+              <div className="map-container">
+                <MapView
+                  key="main-map"
+                  upas={upas}
+                  selectedUpa={selectedUpa}
+                  userLocation={userLocation}
+                  routesData={routesData}
+                  bestUpaId={bestUpaId}
+                  isSidebarOpen={sidebarOpen}
+                />
+              </div>
+            </div>
+          </div>
+        } />
 
-              {/* Página de Estatísticas da UPA */}
-              <Route path="/upa/:id" element={
-                <div className="main-content" {...swipeHandlers}>
-                  <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
-                    <SidePanel
-                      upas={upas}
-                      onSelectUpa={handleSelectUpa}
-                      bestUpaId={bestUpaId}
-                    />
-                  </div>
-                  <div className="map-container">
-                    <UpaStatsPage upas={upas} />
-                  </div>
-                </div>
-              }/>
-            </Routes>
+        {/* Página de Estatísticas da UPA */}
+        <Route path="/upa/:id" element={
+          <div className="app-wrapper" key="stats-page">
+            <Header
+              onToggleSidebar={toggleSidebar}
+              isSidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+            />
+
+            <div className="notification-banner">
+              Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
+            </div>
+
+            <div className="main-content" {...swipeHandlers}>
+              <div className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+                <SidePanel
+                  upas={upas}
+                  onSelectUpa={handleSelectUpa}
+                  bestUpaId={bestUpaId}
+                />
+              </div>
+              <div className="map-container">
+                <UpaStatsPage upas={upas} />
+              </div>
+            </div>
           </div>
         } />
       </Routes>

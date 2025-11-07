@@ -1,5 +1,6 @@
 // src/server/Api.js
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import RoutingService from '../services/RoutingService';
 import {
   mockStatistics,
@@ -27,8 +28,9 @@ const api = axios.create({
 // Interceptor para adicionar o token JWT em todas as requisições
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     if (token) {
+      // Adiciona o token no header Authorization
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -45,8 +47,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token inválido ou expirado
       console.warn('⚠️ Token expirado ou inválido. Redirecionando para login...');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      Cookies.remove('token');
+      Cookies.remove('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

@@ -840,9 +840,18 @@
 
   .chart-card {
     width: 100%;
-    margin: 0 auto;
+    margin: 0;
     padding: 16px;
     box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .chart-card h3 {
+    font-size: 1.05rem;
+  }
+
+  .chart-card .chart-container {
+    width: 100%;
   }
 
   .analytics-summary {
@@ -883,6 +892,12 @@
     padding: 0;
     margin: 0 auto;
     box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .chart-container canvas {
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .comparison-table-container {
@@ -1001,17 +1016,24 @@
 
   .chart-card {
     padding: 12px;
-    margin: 0 auto;
+    margin: 0;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    overflow-x: hidden;
   }
 
-  .chart-container {
+  .chart-card h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .chart-card .chart-container {
     height: 250px;
     width: 100%;
     max-width: 100%;
     padding: 0;
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1019,8 +1041,9 @@
     overflow: hidden;
   }
 
-  .chart-container canvas {
+  .chart-card .chart-container canvas {
     max-width: 100% !important;
+    width: 100% !important;
     height: auto !important;
   }
 }

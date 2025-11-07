@@ -1,11 +1,10 @@
 // src/pages/AdminReports.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AdminSidebar from '../components/AdminSidebar';
-import ReportPDF from '../components/ReportPDF';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { generateReportPDF } from '../utils/pdfGenerator';
 import '../styles/AdminReports.css';
 import logo from '../assets/logo.png';
 import {
@@ -114,13 +113,6 @@ function AdminReports() {
     }
   };
 
-  // Carregar dados quando UPA for selecionada ou filtros mudarem
-  useEffect(() => {
-    if (selectedUpaId) {
-      loadUpaData(selectedUpaId);
-    }
-  }, [selectedUpaId, useFilter, filterYear, filterMonth, filterDay]);
-
   const loadUpas = async () => {
     try {
       // Se o perfil do usuário está carregado, buscar UPAs do estado do usuário
@@ -155,7 +147,7 @@ function AdminReports() {
     }
   };
 
-  const loadUpaData = async (upaId) => {
+  const loadUpaData = useCallback(async (upaId) => {
     setLoadingData(true);
     try {
       // Monta os parâmetros de filtro de data
@@ -230,11 +222,77 @@ function AdminReports() {
     } finally {
       setLoadingData(false);
     }
-  };
+  }, [useFilter, filterYear, filterMonth, filterDay]);
+
+  // Carregar dados quando UPA for selecionada ou filtros mudarem
+  useEffect(() => {
+    if (selectedUpaId) {
+      loadUpaData(selectedUpaId);
+    }
+  }, [selectedUpaId, loadUpaData]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleDownloadPDF = () => {
+    try {
+      let filterDateText = 'Últimos 7 dias';
+
+      if (useFilter) {
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const anoAtual = new Date().getFullYear();
+
+        if (filterDay && filterMonth && filterYear) {
+          // Dia completo: DD/MM/YYYY
+          filterDateText = `${filterDay.padStart(2, '0')}/${filterMonth.padStart(2, '0')}/${filterYear}`;
+        } else if (filterMonth && filterYear) {
+          // Mês e ano: "Janeiro de 2025"
+          filterDateText = `${meses[parseInt(filterMonth) - 1]} de ${filterYear}`;
+        } else if (filterYear && !filterMonth) {
+          // Apenas ano: "Ano de 2025"
+          filterDateText = `Ano de ${filterYear}`;
+        } else if (filterMonth && !filterYear && !filterDay) {
+          // Apenas mês (considera ano atual): "Janeiro de 2025"
+          filterDateText = `${meses[parseInt(filterMonth) - 1]} de ${anoAtual}`;
+        } else {
+          // Caso tenha filtro ativo mas sem data específica
+          filterDateText = 'Período filtrado';
+        }
+      }
+
+      const doc = generateReportPDF({
+        upaData: {
+          nome: selectedUpa.name,
+          endereco: selectedUpa.address,
+          bairro: selectedUpa.neighborhood,
+          telefone: selectedUpa.phone,
+          horario: selectedUpa.hours
+        },
+        analyticsData: {
+          statistics: {
+            total_visits: statistics?.totalEventos || 0,
+            daily_average: Math.round((statistics?.totalEventos || 0) / 7),
+            average_wait_time: waitTimeAnalytics?.tempoMedioEsperaGeral || 0,
+            occupancy_rate: statistics?.taxaConclusao || 0
+          },
+          distribution: distribution || [],
+          waitTimes: waitTimes || [],
+          bairros: bairroStats?.bairros || []
+        },
+        dashboardAnalytics: dashboardAnalytics,
+        filterDate: filterDateText
+      });
+
+      const fileName = `relatorio-upa-${selectedUpa.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      console.error('Stack trace:', error.stack);
+      console.error('Message:', error.message);
+      alert('Erro ao gerar o PDF: ' + error.message);
+    }
   };
 
   const selectedUpa = upas.find(u => u.id === selectedUpaId);
@@ -326,62 +384,12 @@ function AdminReports() {
             {/* PDF Download Button */}
             {selectedUpaId && selectedUpa && statistics && (
               <div className="pdf-download-section">
-                <PDFDownloadLink
-                  document={
-                    <ReportPDF
-                      upaData={{
-                        nome: selectedUpa.name,
-                        endereco: selectedUpa.address,
-                        bairro: selectedUpa.neighborhood,
-                        telefone: selectedUpa.phone,
-                        horario: selectedUpa.hours
-                      }}
-                      analyticsData={{
-                        statistics: {
-                          total_visits: statistics.totalEventos || 0,
-                          daily_average: Math.round((statistics.totalEventos || 0) / 7),
-                          average_wait_time: waitTimeAnalytics?.tempoMedioEsperaGeral || 0,
-                          occupancy_rate: statistics.taxaConclusao || 0
-                        },
-                        distribution: distribution || [],
-                        waitTimes: waitTimes || [],
-                        bairros: bairroStats?.bairros || []
-                      }}
-                      dashboardAnalytics={dashboardAnalytics}
-                      filterDate={
-                        useFilter
-                          ? filterDay && filterMonth && filterYear
-                            ? `${filterDay}/${filterMonth}/${filterYear}`
-                            : filterMonth && filterYear
-                            ? `${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][parseInt(filterMonth) - 1]} de ${filterYear}`
-                            : filterYear
-                            ? `Ano de ${filterYear}`
-                            : null
-                          : 'Últimos 7 dias'
-                      }
-                    />
-                  }
-                  fileName={`relatorio-upa-${selectedUpa.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`}
-                  className="btn-download-pdf"
-                >
-                  {({ loading }) =>
-                    loading ? (
-                      <span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: 'spin 1s linear infinite' }}>
-                          <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        Gerando PDF...
-                      </span>
-                    ) : (
-                      <span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        Baixar Relatório PDF
-                      </span>
-                    )
-                  }
-                </PDFDownloadLink>
+                <button className="btn-download-pdf" onClick={handleDownloadPDF}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Baixar Relatório PDF
+                </button>
               </div>
             )}
 
@@ -397,8 +405,9 @@ function AdminReports() {
                     type="checkbox"
                     checked={useFilter}
                     onChange={(e) => {
-                      setUseFilter(e.target.checked);
-                      if (!e.target.checked) {
+                      const isChecked = e.target.checked;
+                      setUseFilter(isChecked);
+                      if (!isChecked) {
                         setFilterYear('');
                         setFilterMonth('');
                         setFilterDay('');
