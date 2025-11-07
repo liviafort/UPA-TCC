@@ -257,8 +257,7 @@ function Users() {
                   <th></th>
                   <th>Nome</th>
                   <th>Tipo</th>
-                  <th>Ativo</th>
-                  <th>Criado Em</th>
+                  <th>Ativo</th>       
                 </tr>
               </thead>
               <tbody>
@@ -301,9 +300,7 @@ function Users() {
                         )}
                       </button>
                     </td>
-                    <td className="date-cell">
-                      {userItem.createdAt ? new Date(userItem.createdAt).toLocaleString('pt-BR') : 'N/A'}
-                    </td>
+                   
                   </tr>
                 ))}
               </tbody>

@@ -5,27 +5,42 @@ import AuthService from '../services/AuthService';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Verifica se há um usuário logado ao carregar a aplicação
+  // useEffect executa quando a aplicação inicia
   useEffect(() => {
-    const currentUser = AuthService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
+  
+      // Verifica se tem token nos cookies
+    const authenticated = AuthService.isAuthenticated();
+    
+     // Se tiver, recupera os dados do usuári
+    if (authenticated) {
+      const currentUser = AuthService.getCurrentUser();
+
+      if (currentUser) {
+        setUser(currentUser);
+      }
+    } else {
+      console.log('ℹ️ useEffect - Nenhuma sessão ativa nos cookies');
     }
+
     setLoading(false);
-  }, []);
+  }, []); 
 
   /**
    * Faz login do usuário
    */
   const login = async (username, password) => {
     try {
+      
       const data = await AuthService.login(username, password);
+      
       setUser(data.user);
       return data;
     } catch (error) {
+      console.error('❌ AuthContext - Erro no login:', error);
       throw error;
     }
   };
@@ -66,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     loading
   };
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

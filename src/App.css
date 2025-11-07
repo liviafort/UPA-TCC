@@ -32,6 +32,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-direction: row;
 }
 
 /* Botão de Login para Gestores */
@@ -57,7 +58,7 @@
 
 .login-button-header svg {
   width: 18px;
-  height: 18px;
+  height: 20px;
   flex-shrink: 0;
 }
 
@@ -134,16 +135,19 @@
 
   .login-button-header svg {
     width: 16px;
-    height: 16px;
+    height: 22px;
   }
 
-  /* Botão "Voltar ao Mapa" responsivo - mesmo tamanho do botão Gestão */
+  /* Botão "Voltar ao Mapa"  */
   .back-link {
     padding: 6px 12px !important;
     font-size: 0.85rem !important;
   }
 
   .header-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 10px;
   }
 }

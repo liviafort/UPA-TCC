@@ -1,7 +1,15 @@
 // src/services/AuthService.js
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const API_URL = 'https://api.vejamaisaude.com/upa';
+
+// Configuração dos cookies (1 dia de expiração)
+const COOKIE_OPTIONS = {
+  expires: 1, // 1 dia
+  secure: false, // true em produção com HTTPS
+  sameSite: 'lax'
+};
 
 class AuthService {
   /**
@@ -20,13 +28,13 @@ class AuthService {
       });
 
       if (response.data.success && response.data.data.token) {
-        // Salva o token e dados do usuário no localStorage
+        // Salva o token e dados do usuário nos cookies
         const { token, user } = response.data.data;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        Cookies.set('token', token, COOKIE_OPTIONS);
+        Cookies.set('user', JSON.stringify(user), COOKIE_OPTIONS);
 
-        console.log('✅ Login realizado com sucesso!');
+        console.log('✅ Login realizado com sucesso! Token salvo em cookie');
 
         return response.data.data;
       } else {
@@ -48,8 +56,8 @@ class AuthService {
    */
   logout() {
     console.log('👋 Fazendo logout...');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    Cookies.remove('token');
+    Cookies.remove('user');
   }
 
   /**
@@ -66,10 +74,10 @@ class AuthService {
       if (response.data.success && response.data.data.token) {
         const { token, user } = response.data.data;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        Cookies.set('token', token, COOKIE_OPTIONS);
+        Cookies.set('user', JSON.stringify(user), COOKIE_OPTIONS);
 
-        console.log('✅ Registro realizado com sucesso!');
+        console.log('✅ Registro realizado com sucesso! Token salvo em cookie');
 
         return response.data.data;
       } else {
@@ -87,11 +95,63 @@ class AuthService {
   }
 
   /**
-   * Retorna o token armazenado
+   * Retorna o token armazenado nos cookies
    * @returns {string|null} Token JWT
    */
   getToken() {
-    return localStorage.getItem('token');
+    const token = Cookies.get('token');
+    console.log('🔍 getToken - Token length:', token ? token.length : 0);
+    return token;
+  }
+
+  /**
+   * Decodifica um token JWT sem verificação de assinatura
+   * @param {string} token - Token JWT
+   * @returns {Object|null} Payload do token decodificado
+   */
+  decodeToken(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Erro ao decodificar token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica se o token está expirado
+   * @param {string} token - Token JWT
+   * @returns {boolean} True se o token estiver expirado
+   */
+  isTokenExpired(token) {
+    if (!token) return true;
+
+    const decoded = this.decodeToken(token);
+    if (!decoded || !decoded.exp) {
+      console.log('⚠️ isTokenExpired - Failed to decode token or no exp field');
+      return true;
+    }
+
+    // exp está em segundos, Date.now() em milissegundos
+    const currentTime = Date.now() / 1000;
+    const isExpired = decoded.exp < currentTime;
+
+    console.log('🔍 Token expiration check:', {
+      exp: decoded.exp,
+      currentTime: currentTime,
+      isExpired: isExpired,
+      expiresIn: Math.round((decoded.exp - currentTime) / 3600) + ' hours'
+    });
+
+    return isExpired;
   }
 
   /**
@@ -99,18 +159,35 @@ class AuthService {
    * @returns {Object|null} Dados do usuário
    */
   getCurrentUser() {
-    const userStr = localStorage.getItem('user');
+    const token = this.getToken();
+
+    // Verifica se o token existe
+    if (!token) {
+      console.log('⚠️ getCurrentUser - Token ausente');
+      return null;
+    }
+
+    // Verifica se o token está expirado
+    if (this.isTokenExpired(token)) {
+      console.log('⚠️ getCurrentUser - Token expirado');
+      return null;
+    }
+
+    const userStr = Cookies.get('user');
+    console.log('🔍 getCurrentUser - User string from cookie:', userStr ? userStr.substring(0, 50) + '...' : 'NULL');
+
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
-        console.log('👤 Dados do usuário retornados:', userData);
+        console.log('👤 getCurrentUser - Dados do usuário retornados dos cookies:', userData);
         return userData;
       } catch (error) {
-        console.error('Erro ao parsear dados do usuário:', error);
+        console.error('❌ getCurrentUser - Erro ao parsear dados do usuário:', error);
         return null;
       }
     }
-    console.log('⚠️ Nenhum usuário encontrado no localStorage');
+    console.log('⚠️ getCurrentUser - Nenhum usuário encontrado nos cookies');
+    console.log('🔍 getCurrentUser - Todos os cookies:', document.cookie);
     return null;
   }
 
@@ -120,7 +197,18 @@ class AuthService {
    */
   isAuthenticated() {
     const token = this.getToken();
-    return !!token;
+    console.log('🔍 isAuthenticated - Token exists:', !!token);
+
+    if (!token) {
+      console.log('❌ isAuthenticated - No token found');
+      return false;
+    }
+
+    const isExpired = this.isTokenExpired(token);
+    console.log('🔍 isAuthenticated - Token expired:', isExpired);
+
+    // Verifica se o token não está expirado
+    return !isExpired;
   }
 
   /**
