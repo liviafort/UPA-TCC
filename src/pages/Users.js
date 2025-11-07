@@ -20,6 +20,8 @@ function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [userToToggle, setUserToToggle] = useState(null);
 
   // Lista de estados brasileiros (para o formulário de criação)
   const brazilianStates = [
@@ -107,25 +109,44 @@ function Users() {
     }
   };
 
-  const handleToggleUserStatus = async (userId, currentStatus) => {
-    const isActive = currentStatus === 'ACTIVE';
+  const handleToggleUserStatus = (userId, currentStatus) => {
+    const user = users.find(u => u.id === userId);
+    setUserToToggle({ ...user, currentStatus });
+    setShowConfirmModal(true);
+  };
+
+  const confirmToggleStatus = async () => {
+    if (!userToToggle) return;
+
+    const isActive = userToToggle.currentStatus === 'ACTIVE';
     const action = isActive ? 'inativar' : 'ativar';
     const actionPast = isActive ? 'inativado' : 'ativado';
 
-    if (window.confirm(`Tem certeza que deseja ${action} este usuário?`)) {
-      try {
-        if (isActive) {
-          await inactivateUser(userId);
-        } else {
-          await activateUser(userId);
-        }
-        alert(`Usuário ${actionPast} com sucesso!`);
-        loadUsers();
-      } catch (error) {
-        console.error(`Erro ao ${action} usuário:`, error);
-        alert(`Erro ao ${action} usuário: ` + error.message);
+    try {
+      setSaving(true);
+      if (isActive) {
+        await inactivateUser(userToToggle.id);
+      } else {
+        await activateUser(userToToggle.id);
       }
+      setShowConfirmModal(false);
+      setUserToToggle(null);
+      loadUsers();
+      // Mostra mensagem de sucesso
+      setTimeout(() => {
+        alert(`Usuário ${actionPast} com sucesso!`);
+      }, 300);
+    } catch (error) {
+      console.error(`Erro ao ${action} usuário:`, error);
+      alert(`Erro ao ${action} usuário: ` + error.message);
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const cancelToggleStatus = () => {
+    setShowConfirmModal(false);
+    setUserToToggle(null);
   };
 
   const handleViewUser = (userToView) => {
@@ -519,6 +540,65 @@ function Users() {
               >
                 {saving ? 'Criando...' : 'Criar Usuário'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && userToToggle && (
+        <div className="modal-overlay" onClick={cancelToggleStatus}>
+          <div className="modal-content confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Confirmar Ação</h3>
+              <button
+                className="modal-close"
+                onClick={cancelToggleStatus}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="confirm-message">
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{ margin: '0 auto 20px', display: 'block', color: '#09AC96' }}
+                >
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <p style={{ fontSize: '1.1rem', textAlign: 'center', marginBottom: '8px', fontWeight: '600', color: '#1f2937' }}>
+                  Tem certeza que deseja {userToToggle.currentStatus === 'ACTIVE' ? 'inativar' : 'ativar'} este usuário?
+                </p>
+                <p style={{ fontSize: '0.95rem', textAlign: 'center', color: '#6b7280' }}>
+                  Usuário: <strong>{userToToggle.name}</strong>
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                <button
+                  className="btn-cancel"
+                  onClick={cancelToggleStatus}
+                  disabled={saving}
+                  style={{ flex: 1 }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="btn-save"
+                  onClick={confirmToggleStatus}
+                  disabled={saving}
+                  style={{ flex: 1 }}
+                >
+                  {saving ? 'Processando...' : 'Confirmar'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

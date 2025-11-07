@@ -552,12 +552,37 @@
 /* Responsive */
 @media (max-width: 768px) {
   .users-table {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 
   .users-table th,
   .users-table td {
-    padding: 12px 12px;
+    padding: 8px 6px;
+    font-size: 0.75rem;
+  }
+
+  .users-table th {
+    font-size: 0.7rem;
+  }
+
+  .user-name-cell {
+    font-size: 0.8rem;
+  }
+
+  .date-cell {
+    font-size: 0.7rem;
+  }
+
+  .view-btn,
+  .status-toggle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .view-btn svg,
+  .status-toggle svg {
+    width: 14px;
+    height: 14px;
   }
 
   .search-bar {
@@ -565,8 +590,8 @@
   }
 
   .type-badge {
-    font-size: 0.7rem;
-    padding: 3px 8px;
+    font-size: 0.65rem;
+    padding: 2px 6px;
   }
 
   .form-row {
@@ -576,4 +601,32 @@
   .modal-content {
     width: 95%;
   }
+
+  .users-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-create-user {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Confirmation Modal */
+.confirm-modal {
+  max-width: 450px;
+}
+
+.confirm-message {
+  padding: 20px 0;
+}
+
+.confirm-message p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.confirm-message strong {
+  color: #09AC96;
 }
