@@ -1,6 +1,6 @@
 // src/pages/AdminReports.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AdminSidebar from '../components/AdminSidebar';
@@ -58,8 +58,7 @@ const COLOR_MAP = {
 };
 
 function AdminReports() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Estados
   const [upas, setUpas] = useState([]);
@@ -87,19 +86,7 @@ function AdminReports() {
   const [waitTimeAnalytics, setWaitTimeAnalytics] = useState(null);
   const [dashboardAnalytics, setDashboardAnalytics] = useState(null);
 
-  // Carregar perfil primeiro
-  useEffect(() => {
-    loadUserProfile();
-  }, []);
-
-  // Carregar UPAs quando o perfil estiver disponível
-  useEffect(() => {
-    if (userProfile) {
-      loadUpas();
-    }
-  }, [userProfile]);
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     if (user?.id) {
       try {
         const profile = await AuthService.getUserProfile(user.id);
@@ -111,9 +98,9 @@ function AdminReports() {
     } else {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const loadUpas = async () => {
+  const loadUpas = useCallback(async () => {
     try {
       // Se o perfil do usuário está carregado, buscar UPAs do estado do usuário
       if (userProfile?.state && userProfile?.city) {
@@ -145,7 +132,19 @@ function AdminReports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userProfile]);
+
+  // Carregar perfil primeiro
+  useEffect(() => {
+    loadUserProfile();
+  }, [loadUserProfile]);
+
+  // Carregar UPAs quando o perfil estiver disponível
+  useEffect(() => {
+    if (userProfile) {
+      loadUpas();
+    }
+  }, [userProfile, loadUpas]);
 
   const loadUpaData = useCallback(async (upaId) => {
     setLoadingData(true);
@@ -200,7 +199,6 @@ function AdminReports() {
           (dashboard && Object.keys(dashboard).length > 0);
 
         if (!hasData) {
-          console.log('⚠️ Nenhum dado encontrado para a data selecionada');
           setNoDataForDate(true);
         } else {
           setNoDataForDate(false);
@@ -230,11 +228,6 @@ function AdminReports() {
       loadUpaData(selectedUpaId);
     }
   }, [selectedUpaId, loadUpaData]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const handleDownloadPDF = () => {
     try {
@@ -349,7 +342,7 @@ function AdminReports() {
                 <path d="M22 14H26V18H22V14Z" fill="#F59E0B"/>
               </svg>
               <h3>UPAs Indisponíveis</h3>
-              <p>Não existem UPAs cadastradas na cidade de <strong>{userProfile?.city}</strong>, estado de <strong>{userProfile?.state}</strong>.</p>
+              <p>Não existem UPAs cadastradas no estado de <strong>{userProfile?.state}</strong>.</p>
               <p>Entre em contato com o administrador do sistema para mais informações.</p>
             </div>
           )}
@@ -637,7 +630,10 @@ function AdminReports() {
                     <div className="chart-container">
                       <Line
                         data={{
-                          labels: evolution.map(e => new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })),
+                          labels: evolution.map(e => {
+                            const [year, month, day] = e.date.split('-');
+                            return `${day}/${month}`;
+                          }),
                           datasets: [{
                             label: 'Pacientes',
                             data: evolution.map(e => (e.entradas || 0) + (e.triagens || 0) + (e.atendimentos || 0)),

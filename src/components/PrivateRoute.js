@@ -8,13 +8,10 @@ import { useAuth } from '../contexts/AuthContext';
  * Redireciona para o login se o usuário não estiver autenticado
  */
 function PrivateRoute({ children }) {
-  const { isAuthenticated, loading, user } = useAuth();
-
-  console.log('🔍 PrivateRoute - Estado:', { loading, isAuth: isAuthenticated(), hasUser: !!user });
+  const { isAuthenticated, loading } = useAuth();
 
   // Mostra loading enquanto verifica autenticação
   if (loading) {
-    console.log('⏳ PrivateRoute - Aguardando verificação de autenticação...');
     return (
       <div style={{
         display: 'flex',
@@ -31,11 +28,9 @@ function PrivateRoute({ children }) {
 
   // Redireciona para login se não estiver autenticado
   if (!isAuthenticated()) {
-    console.log('❌ PrivateRoute - Não autenticado, redirecionando para login');
     return <Navigate to="/login" replace />;
   }
 
-  console.log('✅ PrivateRoute - Autenticado, renderizando conteúdo protegido');
   // Renderiza o componente filho se estiver autenticado
   return children;
 }

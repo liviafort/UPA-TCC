@@ -7,8 +7,8 @@ const API_URL = 'https://api.vejamaisaude.com/upa';
 // Configuração dos cookies (1 dia de expiração)
 const COOKIE_OPTIONS = {
   expires: 1, // 1 dia
-  secure: false, // true em produção com HTTPS
-  sameSite: 'lax'
+  // secure: false, // true em produção com HTTPS
+  // sameSite: 'lax'
 };
 
 class AuthService {
@@ -20,8 +20,6 @@ class AuthService {
    */
   async login(username, password) {
     try {
-      console.log('🔐 Tentando fazer login...');
-
       const response = await axios.post(`${API_URL}/api/v1/auth/login`, {
         username,
         password
@@ -34,15 +32,11 @@ class AuthService {
         Cookies.set('token', token, COOKIE_OPTIONS);
         Cookies.set('user', JSON.stringify(user), COOKIE_OPTIONS);
 
-        console.log('✅ Login realizado com sucesso! Token salvo em cookie');
-
         return response.data.data;
       } else {
         throw new Error(response.data.message || 'Erro ao fazer login');
       }
     } catch (error) {
-      console.error('❌ Erro no login:', error);
-
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -55,7 +49,6 @@ class AuthService {
    * Faz logout do usuário
    */
   logout() {
-    console.log('👋 Fazendo logout...');
     Cookies.remove('token');
     Cookies.remove('user');
   }
@@ -67,8 +60,6 @@ class AuthService {
    */
   async signup(userData) {
     try {
-      console.log('📝 Tentando registrar novo usuário...');
-
       const response = await axios.post(`${API_URL}/api/v1/auth/signup`, userData);
 
       if (response.data.success && response.data.data.token) {
@@ -77,15 +68,11 @@ class AuthService {
         Cookies.set('token', token, COOKIE_OPTIONS);
         Cookies.set('user', JSON.stringify(user), COOKIE_OPTIONS);
 
-        console.log('✅ Registro realizado com sucesso! Token salvo em cookie');
-
         return response.data.data;
       } else {
         throw new Error(response.data.message || 'Erro ao registrar usuário');
       }
     } catch (error) {
-      console.error('❌ Erro no registro:', error);
-
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
       }
@@ -100,7 +87,6 @@ class AuthService {
    */
   getToken() {
     const token = Cookies.get('token');
-    console.log('🔍 getToken - Token length:', token ? token.length : 0);
     return token;
   }
 
@@ -121,7 +107,6 @@ class AuthService {
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
-      console.error('Erro ao decodificar token:', error);
       return null;
     }
   }
@@ -136,20 +121,12 @@ class AuthService {
 
     const decoded = this.decodeToken(token);
     if (!decoded || !decoded.exp) {
-      console.log('⚠️ isTokenExpired - Failed to decode token or no exp field');
       return true;
     }
 
     // exp está em segundos, Date.now() em milissegundos
     const currentTime = Date.now() / 1000;
     const isExpired = decoded.exp < currentTime;
-
-    console.log('🔍 Token expiration check:', {
-      exp: decoded.exp,
-      currentTime: currentTime,
-      isExpired: isExpired,
-      expiresIn: Math.round((decoded.exp - currentTime) / 3600) + ' hours'
-    });
 
     return isExpired;
   }
@@ -163,31 +140,24 @@ class AuthService {
 
     // Verifica se o token existe
     if (!token) {
-      console.log('⚠️ getCurrentUser - Token ausente');
       return null;
     }
 
     // Verifica se o token está expirado
     if (this.isTokenExpired(token)) {
-      console.log('⚠️ getCurrentUser - Token expirado');
       return null;
     }
 
     const userStr = Cookies.get('user');
-    console.log('🔍 getCurrentUser - User string from cookie:', userStr ? userStr.substring(0, 50) + '...' : 'NULL');
 
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
-        console.log('👤 getCurrentUser - Dados do usuário retornados dos cookies:', userData);
         return userData;
       } catch (error) {
-        console.error('❌ getCurrentUser - Erro ao parsear dados do usuário:', error);
         return null;
       }
     }
-    console.log('⚠️ getCurrentUser - Nenhum usuário encontrado nos cookies');
-    console.log('🔍 getCurrentUser - Todos os cookies:', document.cookie);
     return null;
   }
 
@@ -197,15 +167,12 @@ class AuthService {
    */
   isAuthenticated() {
     const token = this.getToken();
-    console.log('🔍 isAuthenticated - Token exists:', !!token);
 
     if (!token) {
-      console.log('❌ isAuthenticated - No token found');
       return false;
     }
 
     const isExpired = this.isTokenExpired(token);
-    console.log('🔍 isAuthenticated - Token expired:', isExpired);
 
     // Verifica se o token não está expirado
     return !isExpired;
@@ -236,8 +203,6 @@ class AuthService {
         throw new Error(response.data.message || 'Erro ao buscar perfil');
       }
     } catch (error) {
-      console.error('❌ Erro ao buscar perfil:', error);
-
       if (error.response?.status === 401) {
         // Token inválido ou expirado
         this.logout();
@@ -249,4 +214,5 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

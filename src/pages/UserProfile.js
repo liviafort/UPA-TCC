@@ -1,6 +1,6 @@
 // src/pages/UserProfile.js
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProfile, updateUserProfile, changePassword } from '../server/Api';
 import AdminSidebar from '../components/AdminSidebar';
@@ -8,8 +8,7 @@ import logo from '../assets/logo.png';
 import '../styles/UserProfile.css';
 
 const UserProfile = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -35,11 +34,7 @@ const UserProfile = () => {
   const [success, setSuccess] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -61,7 +56,11 @@ const UserProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -210,11 +209,6 @@ const UserProfile = () => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
   };
 
   if (loading) {

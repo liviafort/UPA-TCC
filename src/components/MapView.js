@@ -163,26 +163,16 @@ function getCircleOptions(statusOcupacao) {
 /** Define a cor da rota com base no status da UPA */
 function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
   if (!upaId || !upas) {
-    console.log('⚠️ getRouteColor: upaId ou upas não fornecido', { upaId, upas });
     return '#EA4335';
   }
 
   const upa = upas.find(u => u.id === upaId);
   if (!upa) {
-    console.log('⚠️ getRouteColor: UPA não encontrada', { upaId, upasDisponiveis: upas.map(u => u.id) });
     return '#EA4335';
   }
 
   // SEMPRE usa a cor baseada no statusOcupacao (igual ao ícone)
   const color = getColorByStatus(upa.statusOcupacao);
-
-  console.log('🗺️ getRouteColor para UPA:', {
-    nome: upa.name,
-    statusOcupacao: upa.statusOcupacao,
-    corDaRota: color,
-    isBest: upaId === bestUpaId,
-    isWorst: upaId === worstUpaId
-  });
 
   return color;
 }
@@ -196,13 +186,6 @@ function DoublePolyline({ coords, color }) {
       <Polyline positions={coords} color={color} weight={5} opacity={1} />
     </>
   );
-}
-
-/** Ponto médio das coordenadas para exibir o marker de tempo */
-function getMidpoint(coords) {
-  if (!coords || coords.length === 0) return null;
-  const midIndex = Math.floor(coords.length / 2);
-  return coords[midIndex];
 }
 
 /** Calcula posição adjacente ao ícone da UPA (próxima ao destino) */
@@ -219,26 +202,6 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
   const center = selectedUpa ? [selectedUpa.lat, selectedUpa.lng] : defaultCenter;
   const zoom = selectedUpa ? 15 : 13;
 
-  // Console logs para debug
-  console.log('📍 MapView - Dados recebidos:', {
-    totalUpas: upas?.length || 0,
-    bestUpaId,
-    worstUpaId,
-    upasComStatus: upas?.map(u => ({
-      id: u.id,
-      nome: u.name,
-      statusOcupacao: u.statusOcupacao
-    }))
-  });
-
-  console.log('🚗 MapView - Rotas:', {
-    totalRotas: Object.keys(routesData || {}).length,
-    rotasDetalhadas: Object.entries(routesData || {}).map(([upaId, route]) => ({
-      upaId,
-      temCoords: !!route?.coords,
-      numPontos: route?.coords?.length || 0
-    }))
-  });
 
   return (
     <div className="map-wrapper">
@@ -278,12 +241,7 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
           const markerIcon = getMarkerIcon(upa.statusOcupacao);
           const circleOptions = getCircleOptions(upa.statusOcupacao);
 
-          console.log(`📍 Renderizando marcador para ${upa.name}:`, {
-            upaId: upa.id,
-            statusOcupacao: upa.statusOcupacao,
-            corDoCirculo: circleOptions.color,
-            icone: markerIcon === redIcon ? 'VERMELHO' : markerIcon === yellowIcon ? 'AMARELO' : 'VERDE'
-          });
+  
 
           return (
             <React.Fragment key={`marker-${upa.id}-${upa.statusOcupacao}`}>
@@ -340,13 +298,6 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
           if (!route || !route.coords) return null;
           const color = getRouteColor(upa.id, bestUpaId, worstUpaId, upas);
           const adjacentPosition = getAdjacentPosition(route.coords, upa.lat, upa.lng);
-
-          console.log(`🎨 Renderizando rota para ${upa.name}:`, {
-            upaId: upa.id,
-            statusOcupacao: upa.statusOcupacao,
-            corDaRota: color,
-            numPontos: route.coords.length
-          });
 
           return (
             <React.Fragment key={`route-${upa.id}-${upa.statusOcupacao}`}>
