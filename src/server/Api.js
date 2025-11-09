@@ -46,7 +46,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token inválido ou expirado
-      console.warn('⚠️ Token expirado ou inválido. Redirecionando para login...');
       Cookies.remove('token');
       Cookies.remove('user');
       window.location.href = '/login';
@@ -68,15 +67,10 @@ export async function fetchUpasComStatus() {
   }
 
   try {
-    console.log('🔄 Buscando lista de UPAs da API...');
-
     // Usa o endpoint /api/v1/upa-queue/sidebar/data que já retorna os dados formatados
     const response = await api.get('/api/v1/upa-queue/sidebar/data');
 
-    console.log('✅ Resposta da API recebida:', response.status);
-
     if (!response.data.success) {
-      console.error("❌ Erro na resposta da API:", response.data.message);
       return [];
     }
 
@@ -127,7 +121,6 @@ export async function fetchUpasComStatus() {
 
         return upaFormatada;
       } catch (err) {
-        console.error(`Erro ao buscar dados da UPA ${upa.id}:`, err);
         // Fallback para dados básicos do sidebar
         return {
           id: upa.id,
@@ -153,23 +146,6 @@ export async function fetchUpasComStatus() {
 
     return upasFormatadas;
   } catch (err) {
-    console.error("❌ Erro ao buscar UPAs:", err);
-    console.error("Detalhes do erro:", {
-      message: err.message,
-      status: err.response?.status,
-      statusText: err.response?.statusText,
-      data: err.response?.data
-    });
-
-    // Se for erro 403, pode ser problema de CORS ou autenticação
-    if (err.response?.status === 403) {
-      console.error("⚠️ Erro 403 (Forbidden) - Possíveis causas:");
-      console.error("  1. Problema de CORS (Cross-Origin Resource Sharing)");
-      console.error("  2. API requer autenticação");
-      console.error("  3. IP bloqueado ou rate limit");
-      console.error("  4. Verifique se está rodando em desenvolvimento (npm run dev)");
-    }
-
     return [];
   }
 }
@@ -215,7 +191,6 @@ export const getUpaStatistics = async (upaId) => {
       periodo: `${evolutionData.length} dias`,
     };
   } catch (error) {
-    console.error('Erro ao calcular estatísticas:', error);
     // Retorna dados vazios em caso de erro
     return {
       upaId,
@@ -285,18 +260,12 @@ export const getUpaEvolution = async (upaId, days = 7) => {
   }
 
   const url = `/api/v1/queue/${upaId}/evolution?days=${days}`;
-  console.log('🌐 [getUpaEvolution] Chamando:', url);
 
   const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar evolução da fila');
   }
-
-  console.log('✅ [getUpaEvolution] Resposta recebida:', {
-    dataLength: response.data.data?.length,
-    data: response.data.data
-  });
 
   return {
     upaId,
@@ -323,16 +292,11 @@ export const getUpaQueueData = async (upaId, dateParams = {}) => {
   const queryString = queryParams.toString();
   const url = `/api/v1/upa-queue/${upaId}/queue${queryString ? `?${queryString}` : ''}`;
 
-  console.log('🌐 [getUpaQueueData] Chamando:', url);
-  console.log('   Params:', dateParams);
-
   const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar dados da fila');
   }
-
-  console.log('✅ [getUpaQueueData] Resposta recebida');
 
   return response.data.data;
 };
@@ -443,7 +407,6 @@ export async function fetchUpaDataFormatted(upaId) {
     };
 
   } catch (error) {
-    console.error("Erro ao buscar e formatar dados da UPA:", error);
     return null;
   }
 }
@@ -551,16 +514,11 @@ export const getWaitTimeAnalytics = async (upaId, dateParams = {}) => {
   const queryString = queryParams.toString();
   const url = `/api/v1/analytics/wait-time/${upaId}${queryString ? `?${queryString}` : ''}`;
 
-  console.log('🌐 [getWaitTimeAnalytics] Chamando:', url);
-  console.log('   Params:', dateParams);
-
   const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar análise de tempos de espera');
   }
-
-  console.log('✅ [getWaitTimeAnalytics] Resposta recebida');
 
   return response.data.data;
 };
@@ -576,16 +534,11 @@ export const getDashboardAnalytics = async (upaId, dateParams = {}) => {
   const queryString = queryParams.toString();
   const url = `/api/v1/analytics/dashboard/${upaId}${queryString ? `?${queryString}` : ''}`;
 
-  console.log('🌐 [getDashboardAnalytics] Chamando:', url);
-  console.log('   Params:', dateParams);
-
   const response = await api.get(url);
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Erro ao buscar analytics do dashboard');
   }
-
-  console.log('✅ [getDashboardAnalytics] Resposta recebida');
 
   return response.data.data;
 };
@@ -665,11 +618,8 @@ export const toggleUserStatus = inactivateUser;
 
 // Cria novo usuário
 export const createUser = async (userData) => {
-  console.log('API createUser - Enviando dados:', userData);
-
   try {
     const response = await api.post('/api/v1/auth/signup', userData);
-    console.log('API createUser - Resposta recebida:', response.data);
 
     if (!response.data.success) {
       throw new Error(response.data.message || 'Erro ao criar usuário');
@@ -677,7 +627,6 @@ export const createUser = async (userData) => {
 
     return response.data.data;
   } catch (error) {
-    console.error('API createUser - Erro:', error.response?.data || error.message);
     throw error;
   }
 };

@@ -880,11 +880,34 @@
   .comparison-chart-card {
     min-height: 260px;
     padding: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .comparison-chart-card h3 {
     font-size: 1rem;
     margin-bottom: 16px;
+  }
+
+  .comparison-chart-card canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .comparison-chart-card .chart-container {
+    width: 100%;
+    padding: 0;
+    margin: 0 auto;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .comparison-chart-card .chart-container canvas {
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .chart-container {
@@ -1026,6 +1049,40 @@
   .chart-card h3 {
     font-size: 1rem;
     margin-bottom: 12px;
+  }
+
+  .comparison-chart-card {
+    padding: 12px;
+    min-height: 240px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .comparison-chart-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+
+  .comparison-chart-card canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .comparison-chart-card .chart-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .comparison-chart-card .chart-container canvas {
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .chart-card .chart-container {

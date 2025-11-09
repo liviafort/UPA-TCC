@@ -1,6 +1,6 @@
 // src/pages/Users.js
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AdminSidebar from '../components/AdminSidebar';
@@ -9,8 +9,7 @@ import logo from '../assets/logo.png';
 import '../styles/Users.css';
 
 function Users() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,10 +65,21 @@ function Users() {
   });
   const [saving, setSaving] = useState(false);
 
+  const loadUserProfile = useCallback(async () => {
+    if (user?.id) {
+      try {
+        const profile = await AuthService.getUserProfile(user.id);
+        setUserProfile(profile);
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     loadUserProfile();
     loadUsers();
-  }, []);
+  }, [loadUserProfile]);
 
   useEffect(() => {
     // Filtrar usuários quando o termo de busca mudar
@@ -84,17 +94,6 @@ function Users() {
       setFilteredUsers(filtered);
     }
   }, [searchTerm, users]);
-
-  const loadUserProfile = async () => {
-    if (user?.id) {
-      try {
-        const profile = await AuthService.getUserProfile(user.id);
-        setUserProfile(profile);
-      } catch (error) {
-        console.error('Erro ao carregar perfil:', error);
-      }
-    }
-  };
 
   const loadUsers = async () => {
     try {
@@ -185,7 +184,6 @@ function Users() {
 
     try {
       setSaving(true);
-      console.log('Dados enviados para criar usuário:', createFormData);
       await createUser(createFormData);
       alert('Usuário criado com sucesso!');
       setShowCreateModal(false);
@@ -197,11 +195,6 @@ function Users() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
   };
 
   if (loading) {

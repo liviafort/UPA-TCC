@@ -21,13 +21,13 @@ const CLASSIFICATION_LABELS = {
 
 function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
   const { id } = useParams();
-  const [stats, setStats] = useState({});
   const [distribution, setDistribution] = useState({});
-  const [percentages, setPercentages] = useState({});
-  const [evolution, setEvolution] = useState({});
   const [waitTimes, setWaitTimes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // eslint-disable-next-line no-unused-vars
+  const [percentages, setPercentages] = useState({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,7 +35,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
         setLoading(true);
         setError(null);
 
-        const [statsData, distData, percData, evolData, waitData] = await Promise.all([
+        const [, distData, , , waitData] = await Promise.all([
           getUpaStatistics(id).catch(() => ({})),
           getUpaDistribution(id).catch(() => ({ distribution: {} })),
           getUpaPercentages(id).catch(() => ({ percentages: {} })),
@@ -43,10 +43,7 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
           getUpaWaitTimes(id).catch(() => ({ wait_times: {} }))
         ]);
 
-        setStats(statsData || {});
         setDistribution(distData || { distribution: {} });
-        setPercentages(percData || { percentages: {} });
-        setEvolution(evolData || { data: [] });
         setWaitTimes(waitData || { wait_times: {} });
 
       } catch (err) {

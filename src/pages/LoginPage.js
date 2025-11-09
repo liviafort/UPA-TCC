@@ -28,8 +28,6 @@ function LoginPage() {
       // Faz login usando o AuthContext
       await login(username, password);
 
-      console.log('✅ Login realizado com sucesso!');
-
       // Redireciona para o dashboard administrativo
       navigate('/admin/dashboard');
     } catch (err) {

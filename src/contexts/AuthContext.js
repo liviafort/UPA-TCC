@@ -22,8 +22,6 @@ export const AuthProvider = ({ children }) => {
       if (currentUser) {
         setUser(currentUser);
       }
-    } else {
-      console.log('ℹ️ useEffect - Nenhuma sessão ativa nos cookies');
     }
 
     setLoading(false);

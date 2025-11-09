@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.js
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AnalyticsService from '../services/AnalyticsService';
@@ -44,14 +44,12 @@ ChartJS.register(
 );
 
 function AdminDashboard() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [totalUpas, setTotalUpas] = useState(0);
   const [comparison, setComparison] = useState([]);
   const [upas, setUpas] = useState([]);
-  const [upasByState, setUpasByState] = useState([]);
   const [noUpasInState, setNoUpasInState] = useState(false);
   const [analytics24h, setAnalytics24h] = useState({
     entries: null,
@@ -61,18 +59,7 @@ function AdminDashboard() {
   const [evolutionData, setEvolutionData] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    loadUserProfile();
-    load24hAnalytics();
-  }, []);
-
-  useEffect(() => {
-    if (userProfile?.state && userProfile?.city) {
-      loadUpasByUserState();
-    }
-  }, [userProfile]);
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     if (user?.id) {
       try {
         const profile = await AuthService.getUserProfile(user.id);
@@ -85,23 +72,18 @@ function AdminDashboard() {
     } else {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const loadUpasByUserState = async () => {
+  const loadUpasByUserState = useCallback(async () => {
     try {
-      console.log('Buscando UPAs para cidade:', userProfile.city, 'estado:', userProfile.state);
 
       const upasData = await getUpasByCityAndState(userProfile.city, userProfile.state);
-
-      console.log('UPAs encontradas:', upasData);
 
       if (upasData.length === 0) {
         setNoUpasInState(true);
         setTotalUpas(0);
-        setUpasByState([]);
       } else {
         setNoUpasInState(false);
-        setUpasByState(upasData);
         setTotalUpas(upasData.length);
 
         // Busca todas as UPAs para os gráficos de comparação
@@ -118,32 +100,29 @@ function AdminDashboard() {
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar UPAs do estado:', error);
       setNoUpasInState(true);
       setTotalUpas(0);
-      setUpasByState([]);
     }
-  };
+  }, [userProfile]);
+
+  useEffect(() => {
+    loadUserProfile();
+    load24hAnalytics();
+  }, [loadUserProfile]);
+
+  useEffect(() => {
+    if (userProfile?.state && userProfile?.city) {
+      loadUpasByUserState();
+    }
+  }, [userProfile, loadUpasByUserState]);
 
   const loadEvolutionData = async (upasData) => {
     try {
-      console.log('📊 Carregando evolução para UPAs:', upasData.map(u => ({ id: u.id, name: u.name })));
-
       // Busca evolução de cada UPA (7 dias)
       const evolutionPromises = upasData.map(upa => {
-        console.log(`  🔄 Buscando evolução para ${upa.name} (${upa.id})`);
         return getUpaEvolution(upa.id, 7); // Garante que passa days=7
       });
       const evolutionResults = await Promise.all(evolutionPromises);
-
-      console.log('📈 Resultados de evolução recebidos:');
-      evolutionResults.forEach((result, index) => {
-        console.log(`  ${upasData[index].name}:`, {
-          period: result.period,
-          dataLength: result.data?.length,
-          data: result.data
-        });
-      });
 
       // Organiza os dados por UPA
       const organizedData = evolutionResults.map((result, index) => ({
@@ -152,8 +131,8 @@ function AdminDashboard() {
         data: result.data || []
       }));
 
+
       setEvolutionData(organizedData);
-      console.log('✅ Dados de evolução organizados:', organizedData);
     } catch (error) {
       console.error('❌ Erro ao carregar evolução das UPAs:', error);
     }
@@ -175,11 +154,6 @@ function AdminDashboard() {
     } catch (error) {
       console.error('Erro ao carregar analytics das últimas 24h:', error);
     }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
   };
 
   if (loading) {
@@ -351,8 +325,9 @@ function AdminDashboard() {
                 <Line
                   data={{
                     labels: evolutionData[0]?.data.map(item => {
-                      const date = new Date(item.date);
-                      return `${date.getDate()}/${date.getMonth() + 1}`;
+                      // Parse da data no formato YYYY-MM-DD sem conversão de fuso horário
+                      const [year, month, day] = item.date.split('-');
+                      return `${parseInt(day)}/${parseInt(month)}`;
                     }) || [],
                     datasets: evolutionData.map((upaEvolution, index) => {
                       const colors = [

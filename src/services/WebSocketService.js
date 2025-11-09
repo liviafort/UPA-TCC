@@ -20,8 +20,6 @@ class WebSocketService {
       return this.socket;
     }
 
-    console.log('🔌 Conectando ao WebSocket...');
-
     this.socket = io(WEBSOCKET_URL, {
       path: '/upa-ws/socket.io', // Path completo incluindo o proxy nginx (/upa-ws/)
       transports: ['polling', 'websocket'], // Tenta polling primeiro, depois websocket
@@ -34,7 +32,7 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket conectado! SessionId:', this.socket.id);
+      console.log('✅ WebSocket conectado!');
       // Reinscreve nas UPAs após reconexão
       this.subscribedUpas.forEach(upaId => {
         this.subscribeToUpa(upaId);
@@ -42,15 +40,15 @@ class WebSocketService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.warn('⚠️ WebSocket desconectado:', reason);
+      console.log('❌ WebSocket desconectado');
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Erro de conexão WebSocket:', error.message);
+      // Silencioso - não mostra erro
     });
 
     this.socket.on('connected', (data) => {
-      console.log('📡 Resposta do servidor:', data);
+      // Silencioso - não mostra resposta do servidor
     });
 
     return this.socket;

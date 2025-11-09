@@ -33,8 +33,6 @@ class AnalyticsService {
    */
   async getBairroStats(upaId, dateParams = {}) {
     try {
-      console.log(`📊 Buscando estatísticas de bairros para UPA ${upaId}...`);
-
       // Monta a query string com os parâmetros de data
       const queryParams = new URLSearchParams();
       if (dateParams.year) queryParams.append('year', dateParams.year);
@@ -47,13 +45,11 @@ class AnalyticsService {
       const response = await api.get(url);
 
       if (response.data.success) {
-        console.log('✅ Estatísticas de bairros carregadas:', response.data.data);
         return response.data.data;
       } else {
         throw new Error(response.data.message || 'Erro ao buscar estatísticas de bairros');
       }
     } catch (error) {
-      console.error('❌ Erro ao buscar estatísticas de bairros:', error);
       throw error;
     }
   }
@@ -64,21 +60,18 @@ class AnalyticsService {
    */
   async getUpaComparison() {
     try {
-      console.log('📊 Buscando comparação entre UPAs...');
-
       const response = await api.get('/api/v1/analytics/comparison');
 
       if (response.data.success) {
-        console.log('✅ Comparação de UPAs carregada:', response.data.data);
         return response.data.data;
       } else {
         throw new Error(response.data.message || 'Erro ao buscar comparação de UPAs');
       }
     } catch (error) {
-      console.error('❌ Erro ao buscar comparação de UPAs:', error);
       throw error;
     }
   }
 }
 
-export default new AnalyticsService();
+const analyticsService = new AnalyticsService();
+export default analyticsService;
