@@ -326,7 +326,7 @@ function AdminDashboard() {
                   data={{
                     labels: evolutionData[0]?.data.map(item => {
                       // Parse da data no formato YYYY-MM-DD sem conversão de fuso horário
-                      const [year, month, day] = item.date.split('-');
+                      const [, month, day] = item.date.split('-');
                       return `${parseInt(day)}/${parseInt(month)}`;
                     }) || [],
                     datasets: evolutionData.map((upaEvolution, index) => {

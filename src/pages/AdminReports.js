@@ -631,7 +631,7 @@ function AdminReports() {
                       <Line
                         data={{
                           labels: evolution.map(e => {
-                            const [year, month, day] = e.date.split('-');
+                            const [, month, day] = e.date.split('-');
                             return `${day}/${month}`;
                           }),
                           datasets: [{
