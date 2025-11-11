@@ -526,6 +526,9 @@
 /* Tables */
 .table-container {
   overflow-x: auto;
+  max-height: 320px;
+  overflow-y: auto;
+  position: relative;
 }
 
 .bairros-table {
@@ -536,6 +539,9 @@
 
 .bairros-table thead {
   background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .bairros-table th {
