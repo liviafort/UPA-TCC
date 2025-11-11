@@ -20,7 +20,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   getUpaStatistics,
   getUpaDistribution,
@@ -35,7 +35,7 @@ import {
 import AnalyticsService from '../services/AnalyticsService';
 import RoutingService from '../services/RoutingService';
 
-// Registrar componentes do Chart.js
+// Registrar 
 ChartJS.register(
   CategoryScale,
   LinearScale,
