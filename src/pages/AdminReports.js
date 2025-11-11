@@ -630,13 +630,13 @@ function AdminReports() {
                     <div className="chart-container">
                       <Line
                         data={{
-                          labels: evolution.map(e => {
+                          labels: evolution.slice().reverse().map(e => {
                             const [, month, day] = e.date.split('-');
                             return `${day}/${month}`;
                           }),
                           datasets: [{
                             label: 'Pacientes',
-                            data: evolution.map(e => (e.entradas || 0) + (e.triagens || 0) + (e.atendimentos || 0)),
+                            data: evolution.slice().reverse().map(e => (e.entradas || 0) + (e.triagens || 0) + (e.atendimentos || 0)),
                             borderColor: '#09AC96',
                             backgroundColor: 'rgba(9, 172, 150, 0.1)',
                             fill: true,
@@ -706,40 +706,50 @@ function AdminReports() {
                   <div className="chart-card">
                     <h3>Bairros Atendidos</h3>
                     <div className="chart-container">
-                      <Pie
+                      <Bar
                         data={{
-                          labels: bairroStats.bairros.map(b => b.bairro),
+                          labels: [...bairroStats.bairros]
+                            .sort((a, b) => b.total - a.total)
+                            .map(b => b.bairro),
                           datasets: [{
-                            data: bairroStats.bairros.map(b => b.total),
-                            backgroundColor: [
-                              '#3b82f6',
-                              '#10b981',
-                              '#f59e0b',
-                              '#ef4444',
-                              '#8b5cf6',
-                              '#ec4899',
-                              '#06b6d4'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#fff'
+                            label: 'Pacientes',
+                            data: [...bairroStats.bairros]
+                              .sort((a, b) => b.total - a.total)
+                              .map(b => b.total),
+                            backgroundColor: '#09AC96',
+                            borderColor: '#09AC96',
+                            borderWidth: 1
                           }]
                         }}
                         options={{
+                          indexAxis: 'y',
                           responsive: true,
                           maintainAspectRatio: false,
                           plugins: {
                             legend: {
-                              position: 'bottom',
-                              labels: {
-                                padding: 10,
-                                font: { size: 11 }
-                              }
+                              display: false
                             },
                             tooltip: {
                               callbacks: {
                                 label: (context) => {
-                                  const bairro = bairroStats.bairros[context.dataIndex];
-                                  return `${bairro.bairro}: ${bairro.total} (${bairro.percentual.toFixed(1)}%)`;
+                                  const sortedBairros = [...bairroStats.bairros].sort((a, b) => b.total - a.total);
+                                  const bairro = sortedBairros[context.dataIndex];
+                                  return `${bairro.total} pacientes (${bairro.percentual.toFixed(1)}%)`;
+                                }
+                              }
+                            }
+                          },
+                          scales: {
+                            x: {
+                              beginAtZero: true,
+                              ticks: {
+                                precision: 0
+                              }
+                            },
+                            y: {
+                              ticks: {
+                                font: {
+                                  size: 11
                                 }
                               }
                             }

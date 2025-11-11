@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthService from '../services/AuthService';
 import AnalyticsService from '../services/AnalyticsService';
 import RoutingService from '../services/RoutingService';
+import WebSocketService from '../services/WebSocketService';
 import AdminSidebar from '../components/AdminSidebar';
 import {
   fetchUpasComStatus,
@@ -74,6 +75,15 @@ function AdminDashboard() {
     }
   }, [user?.id]);
 
+  const loadComparisonData = useCallback(async () => {
+    try {
+      const comparisonData = await AnalyticsService.getUpaComparison();
+      setComparison(comparisonData);
+    } catch (error) {
+      console.error('Erro ao carregar comparação de UPAs:', error);
+    }
+  }, []);
+
   const loadUpasByUserState = useCallback(async () => {
     try {
 
@@ -91,8 +101,7 @@ function AdminDashboard() {
         setUpas(allUpasData);
 
         // Busca dados de comparação
-        const comparisonData = await AnalyticsService.getUpaComparison();
-        setComparison(comparisonData);
+        loadComparisonData();
 
         // Busca dados de evolução das UPAs (últimos 7 dias)
         if (upasData.length > 0) {
@@ -103,7 +112,7 @@ function AdminDashboard() {
       setNoUpasInState(true);
       setTotalUpas(0);
     }
-  }, [userProfile]);
+  }, [userProfile, loadComparisonData]);
 
   useEffect(() => {
     loadUserProfile();
@@ -155,6 +164,32 @@ function AdminDashboard() {
       console.error('Erro ao carregar analytics das últimas 24h:', error);
     }
   };
+
+  // WebSocket - Atualiza comparação em tempo real
+  useEffect(() => {
+    if (!userProfile?.state || !userProfile?.city || noUpasInState) {
+      return;
+    }
+
+    // Conecta ao WebSocket
+    WebSocketService.connect();
+
+    // Atualiza comparação quando houver mudanças nas filas
+    const unsubscribeQueue = WebSocketService.onQueueUpdate(() => {
+      loadComparisonData();
+    });
+
+    // Atualiza comparação quando houver mudanças em todas as UPAs
+    const unsubscribeAllUpas = WebSocketService.onAllUpasUpdate(() => {
+      loadComparisonData();
+    });
+
+    // Cleanup ao desmontar
+    return () => {
+      unsubscribeQueue();
+      unsubscribeAllUpas();
+    };
+  }, [userProfile, noUpasInState, loadComparisonData]);
 
   if (loading) {
     return (
@@ -324,7 +359,7 @@ function AdminDashboard() {
                 <h3>Evolução das UPAs - Últimos 7 Dias</h3>
                 <Line
                   data={{
-                    labels: evolutionData[0]?.data.map(item => {
+                    labels: evolutionData[0]?.data.slice().reverse().map(item => {
                       // Parse da data no formato YYYY-MM-DD sem conversão de fuso horário
                       const [, month, day] = item.date.split('-');
                       return `${parseInt(day)}/${parseInt(month)}`;
@@ -339,7 +374,7 @@ function AdminDashboard() {
 
                       return {
                         label: upaEvolution.upaName,
-                        data: upaEvolution.data.map(item => item.entradas),
+                        data: upaEvolution.data.slice().reverse().map(item => item.entradas),
                         borderColor: color.border,
                         backgroundColor: color.bg,
                         fill: true,
