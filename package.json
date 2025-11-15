@@ -27,10 +27,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set PORT=3000 && react-scripts start",
     "build": "react-scripts build",
-    "dev": "react-scripts start",
-    "serve": "serve -s build -l 8080"
+    "dev": "set PORT=3000 && react-scripts start",
+    "serve": "serve build -l 8080 --single"
   },
   "eslintConfig": {
     "extends": [

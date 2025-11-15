@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dashboard.css';
+import Header from '../components/Header';
 import {
   getUpaStatistics,
   getUpaDistribution,
   getUpaPercentages,
   getUpaEvolution,
-  getUpaWaitTimes
+  getUpaWaitTimes,
+  fetchUpasComStatus
 } from '../server/Api';
 import webSocketService from '../services/WebSocketService';
 import RoutingService from '../services/RoutingService';
@@ -19,8 +21,9 @@ const CLASSIFICATION_LABELS = {
   'VERMELHO': 'Emergência'
 };
 
-function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
+function UpaStatsPage() {
   const { id } = useParams();
+  const [upas, setUpas] = useState([]);
   const [distribution, setDistribution] = useState({});
   const [waitTimes, setWaitTimes] = useState({});
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,15 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
 
   // eslint-disable-next-line no-unused-vars
   const [percentages, setPercentages] = useState({});
+
+  // Carrega a lista de UPAs
+  useEffect(() => {
+    async function loadUpas() {
+      const data = await fetchUpasComStatus();
+      setUpas(data);
+    }
+    loadUpas();
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -164,14 +176,21 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
 
 
   return (
-    <div className="upa-stats-container">
-      <header className="stats-header">
-        <h1>{upa.name || 'UPA'}</h1>
-        <p>{upa.address || 'Endereço não disponível'}</p>
-        {distribution?.last_updated && (
-          <p>Última atualização: {new Date(distribution.last_updated).toLocaleString()}</p>
-        )}
-      </header>
+    <>
+      <Header />
+
+      <div className="notification-banner">
+        Se você estiver em emergência, procure a unidade mais próxima. Você é prioridade!
+      </div>
+
+      <div className="upa-stats-container">
+        <header className="stats-header">
+          <h1>{upa.name || 'UPA'}</h1>
+          <p>{upa.address || 'Endereço não disponível'}</p>
+          {distribution?.last_updated && (
+            <p>Última atualização: {new Date(distribution.last_updated).toLocaleString()}</p>
+          )}
+        </header>
 
       <div className="stats-main">
         <div className="stats-card stats-card-triagem">
@@ -208,9 +227,8 @@ function UpaStatsPage({ upas = [] }) {  // Valor padrão para upas
           <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(redData.waitTime)}</p>
         </div>
       </div>
-
-  
     </div>
+    </>
   );
 }
 
