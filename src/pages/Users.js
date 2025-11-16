@@ -189,9 +189,17 @@ function Users() {
       setShowCreateModal(false);
       loadUsers(); // Recarrega a lista
     } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      console.error('Response data:', error.response?.data);
-      alert('Erro ao criar usuário: ' + (error.response?.data?.message || error.message));
+      // Mostra mensagem mais específica
+      let errorMessage = 'Erro desconhecido';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Erro na criação do usuário. Possíveis causas:\n- Username já existe no sistema\n- Email já cadastrado\n- Senha não atende aos requisitos mínimos';
+      } else {
+        errorMessage = error.message;
+      }
+
+      alert('Erro ao criar usuário:\n\n' + errorMessage);
     } finally {
       setSaving(false);
     }

@@ -23,8 +23,8 @@ import {
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   getUpaStatistics,
-  getUpaDistribution,
-  getUpaPercentages,
+  getUpaDistributionHistorical,
+  getUpaPercentagesHistorical,
   getUpaEvolution,
   getUpaWaitTimes,
   fetchUpasComStatus,
@@ -158,11 +158,11 @@ function AdminReports() {
       }
 
       // Endpoints que NÃO recebem filtro de data: getUpaStatistics, getUpaEvolution (usam days fixo)
-      // Endpoints que RECEBEM filtro de data: getUpaDistribution, getUpaPercentages, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
+      // Endpoints que RECEBEM filtro de data: getUpaDistributionHistorical, getUpaPercentagesHistorical, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
       const [stats, dist, perc, evol, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
         getUpaStatistics(upaId), // SEM filtro (usa days=7)
-        getUpaDistribution(upaId, dateParams), // COM filtro
-        getUpaPercentages(upaId, dateParams), // COM filtro
+        getUpaDistributionHistorical(upaId, dateParams), // COM filtro - DADOS HISTÓRICOS
+        getUpaPercentagesHistorical(upaId, dateParams), // COM filtro - DADOS HISTÓRICOS
         getUpaEvolution(upaId), // SEM filtro (usa days=7)
         getUpaWaitTimes(upaId, dateParams), // COM filtro
         AnalyticsService.getBairroStats(upaId, dateParams), // COM filtro

@@ -204,6 +204,7 @@ export const getUpaStatistics = async (upaId) => {
   }
 };
 
+// Função para dados em TEMPO REAL (usada em UpaStatsPage)
 export const getUpaDistribution = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
@@ -227,6 +228,74 @@ export const getUpaDistribution = async (upaId, dateParams = {}) => {
   };
 };
 
+// Função para dados HISTÓRICOS (usada em AdminReports com filtros de data)
+export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
+  // Retorna dados mockados se a flag estiver ativa
+  if (USE_MOCK_DATA) {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve({ ...mockDistribution, upaId }), 300);
+    });
+  }
+
+  try {
+    // Monta a query string com os parâmetros de data
+    const queryParams = new URLSearchParams();
+
+    // Se não tiver parâmetros de data, usa a data atual
+    if (!dateParams.year && !dateParams.month && !dateParams.day) {
+      const hoje = new Date();
+      queryParams.append('year', hoje.getFullYear());
+      queryParams.append('month', hoje.getMonth() + 1); // getMonth() retorna 0-11
+      queryParams.append('day', hoje.getDate());
+    } else {
+      if (dateParams.year) queryParams.append('year', dateParams.year);
+      if (dateParams.month) queryParams.append('month', dateParams.month);
+      if (dateParams.day) queryParams.append('day', dateParams.day);
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/api/v1/analytics/classification/${upaId}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get(url);
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Erro ao buscar distribuição');
+    }
+
+    // Agrega os dados de todos os dias
+    const distribution = response.data.data.distribution || [];
+    const totals = {
+      VERMELHO: 0,
+      AMARELO: 0,
+      VERDE: 0,
+      AZUL: 0,
+    };
+
+    distribution.forEach(day => {
+      totals.VERMELHO += day.vermelho || 0;
+      totals.AMARELO += day.amarelo || 0;
+      totals.VERDE += day.verde || 0;
+      totals.AZUL += day.azul || 0;
+    });
+
+    return {
+      upaId: response.data.data.upaId,
+      upaNome: response.data.data.upaNome,
+      distribution: {
+        VERMELHO: { count: totals.VERMELHO },
+        AMARELO: { count: totals.AMARELO },
+        VERDE: { count: totals.VERDE },
+        AZUL: { count: totals.AZUL },
+      },
+      lastUpdated: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error('Erro em getUpaDistributionHistorical:', error);
+    throw error;
+  }
+};
+
+// Função para dados em TEMPO REAL (usada em UpaStatsPage)
 export const getUpaPercentages = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
@@ -249,6 +318,76 @@ export const getUpaPercentages = async (upaId, dateParams = {}) => {
     totalPatients: queueData.totalPacientes,
     lastUpdated: queueData.ultimaAtualizacao,
   };
+};
+
+// Função para dados HISTÓRICOS (usada em AdminReports com filtros de data)
+export const getUpaPercentagesHistorical = async (upaId, dateParams = {}) => {
+  // Retorna dados mockados se a flag estiver ativa
+  if (USE_MOCK_DATA) {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve({ ...mockPercentages, upaId }), 300);
+    });
+  }
+
+  try {
+    // Monta a query string com os parâmetros de data
+    const queryParams = new URLSearchParams();
+
+    // Se não tiver parâmetros de data, usa a data atual
+    if (!dateParams.year && !dateParams.month && !dateParams.day) {
+      const hoje = new Date();
+      queryParams.append('year', hoje.getFullYear());
+      queryParams.append('month', hoje.getMonth() + 1); // getMonth() retorna 0-11
+      queryParams.append('day', hoje.getDate());
+    } else {
+      if (dateParams.year) queryParams.append('year', dateParams.year);
+      if (dateParams.month) queryParams.append('month', dateParams.month);
+      if (dateParams.day) queryParams.append('day', dateParams.day);
+    }
+
+    const queryString = queryParams.toString();
+    const url = `/api/v1/analytics/classification/${upaId}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get(url);
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Erro ao buscar percentuais');
+    }
+
+    // Agrega os dados de todos os dias
+    const distribution = response.data.data.distribution || [];
+    const totals = {
+      VERMELHO: 0,
+      AMARELO: 0,
+      VERDE: 0,
+      AZUL: 0,
+    };
+
+    distribution.forEach(day => {
+      totals.VERMELHO += day.vermelho || 0;
+      totals.AMARELO += day.amarelo || 0;
+      totals.VERDE += day.verde || 0;
+      totals.AZUL += day.azul || 0;
+    });
+
+    const total = totals.VERMELHO + totals.AMARELO + totals.VERDE + totals.AZUL || 1; // Evita divisão por zero
+
+    return {
+      upaId: response.data.data.upaId,
+      upaNome: response.data.data.upaNome,
+      percentages: {
+        VERMELHO: (totals.VERMELHO / total) * 100,
+        AMARELO: (totals.AMARELO / total) * 100,
+        VERDE: (totals.VERDE / total) * 100,
+        AZUL: (totals.AZUL / total) * 100,
+      },
+      totalPatients: total,
+      lastUpdated: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error('Erro em getUpaPercentagesHistorical:', error);
+    throw error;
+  }
 };
 
 export const getUpaEvolution = async (upaId, days = 7) => {
