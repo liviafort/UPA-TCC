@@ -50,11 +50,12 @@ ChartJS.register(
 );
 
 const COLOR_MAP = {
-  'NAO_TRIADO': '#94a3b8',
-  'AZUL': '#3b82f6',
-  'VERDE': '#10b981',
-  'AMARELO': '#f59e0b',
-  'VERMELHO': '#ef4444'
+  'NAO_TRIADO': '#6c757d',
+  'AZUL': '#217BC0',
+  'VERDE': '#1BB232',
+  'AMARELO': '#E1AF18',
+  'LARANJA': '#FF8C00',
+  'VERMELHO': '#B21B1B'
 };
 
 function AdminReports() {
@@ -626,7 +627,7 @@ function AdminReports() {
                 {/* Evolução */}
                 {evolution && Array.isArray(evolution) && evolution.length > 0 && (
                   <div className="chart-card full-width">
-                    <h3>Evolução de Pacientes (Últimos 7 Dias)</h3>
+                    <h3>Evolução de Pacientes </h3>
                     <div className="chart-container">
                       <Line
                         data={{
@@ -818,21 +819,23 @@ function AdminReports() {
                                 data: Object.values(waitTimeAnalytics.porClassificacao).map(v => Math.max(0, v)),
                                 backgroundColor: Object.keys(waitTimeAnalytics.porClassificacao).map(k => {
                                   const colorMap = {
-                                    'VERMELHO': '#ef4444',
-                                    'AMARELO': '#f59e0b',
-                                    'VERDE': '#10b981',
-                                    'AZUL': '#3b82f6'
+                                    'VERMELHO': '#B21B1B',
+                                    'LARANJA': '#FF8C00',
+                                    'AMARELO': '#E1AF18',
+                                    'VERDE': '#1BB232',
+                                    'AZUL': '#217BC0'
                                   };
-                                  return colorMap[k.toUpperCase()] || '#94a3b8';
+                                  return colorMap[k.toUpperCase()] || '#6c757d';
                                 }),
                                 borderColor: Object.keys(waitTimeAnalytics.porClassificacao).map(k => {
                                   const colorMap = {
-                                    'VERMELHO': '#dc2626',
-                                    'AMARELO': '#d97706',
-                                    'VERDE': '#059669',
-                                    'AZUL': '#2563eb'
+                                    'VERMELHO': '#8a1515',
+                                    'LARANJA': '#cc7000',
+                                    'AMARELO': '#b88c13',
+                                    'VERDE': '#148a25',
+                                    'AZUL': '#1a5f94'
                                   };
-                                  return colorMap[k.toUpperCase()] || '#64748b';
+                                  return colorMap[k.toUpperCase()] || '#495057';
                                 }),
                                 borderWidth: 2
                               }]

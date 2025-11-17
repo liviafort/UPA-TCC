@@ -421,6 +421,9 @@
 .badge.yellow {
   background: linear-gradient(135deg, #E1AF18, #b88c13);
 }
+.badge.orange {
+  background: linear-gradient(135deg, #FF8C00, #cc7000);
+}
 .badge.red {
   background: linear-gradient(135deg, #B21B1B, #8a1515);
 }

@@ -67,6 +67,7 @@ function createCombinedInfoIcon(routes, upaName, waitTimesByClassification) {
 
   const classifications = [
     { key: 'vermelho', label: 'Emergência', color: '#B21B1B' },
+    { key: 'laranja', label: 'Muito Urgente', color: '#FF8C00' },
     { key: 'amarelo', label: 'Urgente', color: '#E1AF18' },
     { key: 'verde', label: 'Pouco Urgente', color: '#1BB232' },
     { key: 'azul', label: 'Não Urgente', color: '#217BC0' }
@@ -332,6 +333,10 @@ function MapView({ upas, selectedUpa, userLocation, routesData, bestUpaId, worst
             <div className="legend-item">
               <span className="badge yellow" />
               <span>Urgente</span>
+            </div>
+            <div className="legend-item">
+              <span className="badge orange" />
+              <span>Muito Urgente</span>
             </div>
             <div className="legend-item">
               <span className="badge red" />

@@ -57,6 +57,7 @@ function UpaItem({ upa, onSelectUpa, bestUpaId }) {
             <span className="badge blue" title="Não Urgente">{queueDetail.blue}</span>
             <span className="badge green" title="Pouco Urgente">{queueDetail.green}</span>
             <span className="badge yellow" title="Urgente">{queueDetail.yellow}</span>
+            <span className="badge orange" title="Muito Urgente">{queueDetail.orange}</span>
             <span className="badge red" title="Emergência">{queueDetail.red}</span>
           </div>
         </div>
