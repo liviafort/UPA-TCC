@@ -3,10 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import '../styles/Dashboard.css';
 import Header from '../components/Header';
 import {
-  getUpaStatistics,
   getUpaDistribution,
-  getUpaPercentages,
-  getUpaEvolution,
   getUpaWaitTimes,
   fetchUpasComStatus
 } from '../server/Api';
@@ -18,6 +15,7 @@ const CLASSIFICATION_LABELS = {
   'AZUL': 'Não Urgente',
   'VERDE': 'Pouco Urgente',
   'AMARELO': 'Urgente',
+  'LARANJA': 'Muito Urgente',
   'VERMELHO': 'Emergência'
 };
 
@@ -47,11 +45,8 @@ function UpaStatsPage() {
         setLoading(true);
         setError(null);
 
-        const [, distData, , , waitData] = await Promise.all([
-          getUpaStatistics(id).catch(() => ({})),
+        const [distData, waitData] = await Promise.all([
           getUpaDistribution(id).catch(() => ({ distribution: {} })),
-          getUpaPercentages(id).catch(() => ({ percentages: {} })),
-          getUpaEvolution(id).catch(() => ({ data: [] })),
           getUpaWaitTimes(id).catch(() => ({ wait_times: {} }))
         ]);
 
@@ -79,6 +74,7 @@ function UpaStatsPage() {
           upaId: id,
           distribution: {
             VERMELHO: { count: data.data.porClassificacao.vermelho || 0 },
+            LARANJA: { count: data.data.porClassificacao.laranja || 0 },
             AMARELO: { count: data.data.porClassificacao.amarelo || 0 },
             VERDE: { count: data.data.porClassificacao.verde || 0 },
             AZUL: { count: data.data.porClassificacao.azul || 0 },
@@ -93,6 +89,7 @@ function UpaStatsPage() {
           upaId: id,
           percentages: {
             VERMELHO: (data.data.porClassificacao.vermelho / total) * 100,
+            LARANJA: (data.data.porClassificacao.laranja / total) * 100,
             AMARELO: (data.data.porClassificacao.amarelo / total) * 100,
             VERDE: (data.data.porClassificacao.verde / total) * 100,
             AZUL: (data.data.porClassificacao.azul / total) * 100,
@@ -171,6 +168,7 @@ function UpaStatsPage() {
   const blueData = getCardData('Não Urgente');
   const greenData = getCardData('Pouco Urgente');
   const yellowData = getCardData('Urgente');
+  const orangeData = getCardData('Muito Urgente');
   const redData = getCardData('Emergência');
   const triaData = getCardData('Não Triado');
 
@@ -200,28 +198,35 @@ function UpaStatsPage() {
           <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(triaData.waitTime)}</p>
         </div>
         <div className="stats-card stats-card-blue">
-          <h2>Não Urgente</h2>
+          <h2>Azul</h2>
           <p className="stats-value">{blueData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(blueData.waitTime)}</p>
         </div>
 
         <div className="stats-card stats-card-green">
-          <h2>Pouco Urgente</h2>
+          <h2>Verde</h2>
           <p className="stats-value">{greenData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(greenData.waitTime)}</p>
         </div>
 
         <div className="stats-card stats-card-yellow">
-          <h2>Urgente</h2>
+          <h2>Amarelo</h2>
           <p className="stats-value">{yellowData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(yellowData.waitTime)}</p>
         </div>
 
+        <div className="stats-card stats-card-orange">
+          <h2>Laranja</h2>
+          <p className="stats-value">{orangeData.count}</p>
+          <p className="stats-label">Pacientes aguardando</p>
+          <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(orangeData.waitTime)}</p>
+        </div>
+
         <div className="stats-card stats-card-red">
-          <h2>Emergência</h2>
+          <h2>Vermelho</h2>
           <p className="stats-value">{redData.count}</p>
           <p className="stats-label">Pacientes aguardando</p>
           <p className="stats-wait">Tempo Médio: {RoutingService.formatMinutes(redData.waitTime)}</p>

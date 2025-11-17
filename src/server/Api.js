@@ -104,11 +104,13 @@ export async function fetchUpasComStatus() {
             blue: queueData.porClassificacao.azul || 0,
             green: queueData.porClassificacao.verde || 0,
             yellow: queueData.porClassificacao.amarelo || 0,
+            orange: queueData.porClassificacao.laranja || 0,
             red: queueData.porClassificacao.vermelho || 0,
           } : {
             blue: 0,
             green: 0,
             yellow: 0,
+            orange: 0,
             red: 0,
           },
           averageWaitTime: RoutingService.formatMinutes(tempoMedio),
@@ -132,6 +134,7 @@ export async function fetchUpasComStatus() {
             blue: 0,
             green: 0,
             yellow: 0,
+            orange: 0,
             red: 0,
           },
           averageWaitTime: `0 min`,
@@ -219,6 +222,7 @@ export const getUpaDistribution = async (upaId, dateParams = {}) => {
     upaId: queueData.upaId,
     distribution: {
       VERMELHO: { count: queueData.porClassificacao.vermelho },
+      LARANJA: { count: queueData.porClassificacao.laranja || 0 },
       AMARELO: { count: queueData.porClassificacao.amarelo },
       VERDE: { count: queueData.porClassificacao.verde },
       AZUL: { count: queueData.porClassificacao.azul },
@@ -266,6 +270,7 @@ export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
     const distribution = response.data.data.distribution || [];
     const totals = {
       VERMELHO: 0,
+      LARANJA: 0,
       AMARELO: 0,
       VERDE: 0,
       AZUL: 0,
@@ -273,6 +278,7 @@ export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
 
     distribution.forEach(day => {
       totals.VERMELHO += day.vermelho || 0;
+      totals.LARANJA += day.laranja || 0;
       totals.AMARELO += day.amarelo || 0;
       totals.VERDE += day.verde || 0;
       totals.AZUL += day.azul || 0;
@@ -283,6 +289,7 @@ export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
       upaNome: response.data.data.upaNome,
       distribution: {
         VERMELHO: { count: totals.VERMELHO },
+        LARANJA: { count: totals.LARANJA },
         AMARELO: { count: totals.AMARELO },
         VERDE: { count: totals.VERDE },
         AZUL: { count: totals.AZUL },
@@ -311,6 +318,7 @@ export const getUpaPercentages = async (upaId, dateParams = {}) => {
     upaId: queueData.upaId,
     percentages: {
       VERMELHO: (queueData.porClassificacao.vermelho / total) * 100,
+      LARANJA: (queueData.porClassificacao.laranja / total) * 100 || 0,
       AMARELO: (queueData.porClassificacao.amarelo / total) * 100,
       VERDE: (queueData.porClassificacao.verde / total) * 100,
       AZUL: (queueData.porClassificacao.azul / total) * 100,
@@ -358,6 +366,7 @@ export const getUpaPercentagesHistorical = async (upaId, dateParams = {}) => {
     const distribution = response.data.data.distribution || [];
     const totals = {
       VERMELHO: 0,
+      LARANJA: 0,
       AMARELO: 0,
       VERDE: 0,
       AZUL: 0,
@@ -365,18 +374,20 @@ export const getUpaPercentagesHistorical = async (upaId, dateParams = {}) => {
 
     distribution.forEach(day => {
       totals.VERMELHO += day.vermelho || 0;
+      totals.LARANJA += day.laranja || 0;
       totals.AMARELO += day.amarelo || 0;
       totals.VERDE += day.verde || 0;
       totals.AZUL += day.azul || 0;
     });
 
-    const total = totals.VERMELHO + totals.AMARELO + totals.VERDE + totals.AZUL || 1; // Evita divisão por zero
+    const total = totals.VERMELHO + totals.LARANJA + totals.AMARELO + totals.VERDE + totals.AZUL || 1; // Evita divisão por zero
 
     return {
       upaId: response.data.data.upaId,
       upaNome: response.data.data.upaNome,
       percentages: {
         VERMELHO: (totals.VERMELHO / total) * 100,
+        LARANJA: (totals.LARANJA / total) * 100,
         AMARELO: (totals.AMARELO / total) * 100,
         VERDE: (totals.VERDE / total) * 100,
         AZUL: (totals.AZUL / total) * 100,

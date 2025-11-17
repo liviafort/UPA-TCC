@@ -56,6 +56,7 @@ function MapPage() {
                 blue: data.data.porClassificacao.azul || 0,
                 green: data.data.porClassificacao.verde || 0,
                 yellow: data.data.porClassificacao.amarelo || 0,
+                orange: data.data.porClassificacao.laranja || 0,
                 red: data.data.porClassificacao.vermelho || 0,
               },
               waitTimesByClassification: waitTimesByClassification,

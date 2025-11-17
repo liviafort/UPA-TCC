@@ -38,7 +38,7 @@
 
 .stats-main {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 32px;
 }
@@ -132,6 +132,7 @@
 .stats-card-blue::before { background: linear-gradient(90deg, #217BC0, #1a5f94); }
 .stats-card-green::before { background: linear-gradient(90deg, #1BB232, #148a25); }
 .stats-card-yellow::before { background: linear-gradient(90deg, #E1AF18, #b88c13); }
+.stats-card-orange::before { background: linear-gradient(90deg, #FF8C00, #cc7000); }
 .stats-card-red::before { background: linear-gradient(90deg, #B21B1B, #8a1515); }
 .stats-card-triagem::before { background: linear-gradient(90deg, #6c757d, #495057); }
 
