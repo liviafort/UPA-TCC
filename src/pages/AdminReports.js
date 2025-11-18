@@ -11,21 +11,17 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
   BarElement,
   ArcElement,
   Title,
   Tooltip,
-  Legend,
-  Filler
+  Legend
 } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   getUpaStatistics,
   getUpaDistributionHistorical,
   getUpaPercentagesHistorical,
-  getUpaEvolution,
   getUpaWaitTimes,
   fetchUpasComStatus,
   getWaitTimeAnalytics,
@@ -35,18 +31,15 @@ import {
 import AnalyticsService from '../services/AnalyticsService';
 import RoutingService from '../services/RoutingService';
 
-// Registrar 
+// Registrar
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
   BarElement,
   ArcElement,
   Title,
   Tooltip,
-  Legend,
-  Filler
+  Legend
 );
 
 const COLOR_MAP = {
@@ -81,7 +74,6 @@ function AdminReports() {
   const [statistics, setStatistics] = useState(null);
   const [distribution, setDistribution] = useState(null);
   const [percentages, setPercentages] = useState(null);
-  const [evolution, setEvolution] = useState(null);
   const [waitTimes, setWaitTimes] = useState(null);
   const [bairroStats, setBairroStats] = useState(null);
   const [waitTimeAnalytics, setWaitTimeAnalytics] = useState(null);
@@ -158,13 +150,12 @@ function AdminReports() {
         if (filterDay) dateParams.day = filterDay;
       }
 
-      // Endpoints que NÃO recebem filtro de data: getUpaStatistics, getUpaEvolution (usam days fixo)
+      // Endpoints que NÃO recebem filtro de data: getUpaStatistics
       // Endpoints que RECEBEM filtro de data: getUpaDistributionHistorical, getUpaPercentagesHistorical, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
-      const [stats, dist, perc, evol, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
+      const [stats, dist, perc, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
         getUpaStatistics(upaId), // SEM filtro (usa days=7)
         getUpaDistributionHistorical(upaId, dateParams), // COM filtro - DADOS HISTÓRICOS
         getUpaPercentagesHistorical(upaId, dateParams), // COM filtro - DADOS HISTÓRICOS
-        getUpaEvolution(upaId), // SEM filtro (usa days=7)
         getUpaWaitTimes(upaId, dateParams), // COM filtro
         AnalyticsService.getBairroStats(upaId, dateParams), // COM filtro
         getWaitTimeAnalytics(upaId, dateParams), // COM filtro
@@ -181,8 +172,6 @@ function AdminReports() {
         classificacao: key,
         percentual: value || 0
       })) : [];
-
-      const evolutionArray = evol?.data || [];
 
       const waitTimesArray = wait?.wait_times?.map(w => ({
         classificacao: w.classification,
@@ -211,7 +200,6 @@ function AdminReports() {
       setStatistics(stats);
       setDistribution(distributionArray);
       setPercentages(percentagesArray);
-      setEvolution(evolutionArray);
       setWaitTimes(waitTimesArray);
       setBairroStats(bairros);
       setWaitTimeAnalytics(waitAnalytics);
@@ -617,41 +605,6 @@ function AdminReports() {
                                 callback: (value) => value + '%'
                               }
                             }
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Evolução */}
-                {evolution && Array.isArray(evolution) && evolution.length > 0 && (
-                  <div className="chart-card full-width">
-                    <h3>Evolução de Pacientes </h3>
-                    <div className="chart-container">
-                      <Line
-                        data={{
-                          labels: evolution.slice().reverse().map(e => {
-                            const [, month, day] = e.date.split('-');
-                            return `${day}/${month}`;
-                          }),
-                          datasets: [{
-                            label: 'Pacientes',
-                            data: evolution.slice().reverse().map(e => (e.entradas || 0) + (e.triagens || 0) + (e.atendimentos || 0)),
-                            borderColor: '#09AC96',
-                            backgroundColor: 'rgba(9, 172, 150, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                          }]
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: { display: false }
-                          },
-                          scales: {
-                            y: { beginAtZero: true }
                           }
                         }}
                       />
