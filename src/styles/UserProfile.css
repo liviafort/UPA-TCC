@@ -554,6 +554,15 @@
     width: 100%;
     justify-content: center;
   }
+
+  /* Espaçamento entre cards no mobile */
+  .chart-card {
+    margin-bottom: 24px;
+  }
+
+  .chart-card:last-child {
+    margin-bottom: 0;
+  }
 }
 
 @media (max-width: 480px) {
