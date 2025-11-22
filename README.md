@@ -51,35 +51,6 @@ npm run test:coverage
 npm run build
 ```
 
-## ⚙️ Variáveis de Ambiente
-
-O projeto utiliza variáveis de ambiente para configuração. Crie um arquivo `.env` na raiz do projeto (use `.env.example` como base):
-
-```env
-# Servidor
-PORT=3000
-HOST=0.0.0.0
-
-# API Backend
-REACT_APP_API_URL=https://api.vejamaisaude.com/upa
-
-# WebSocket
-REACT_APP_WEBSOCKET_URL=https://api.vejamaisaude.com
-
-# Mapbox Token (obtenha em: https://account.mapbox.com/)
-REACT_APP_MAPBOX_TOKEN=seu_token_aqui
-
-# OSRM (Rotas)
-REACT_APP_OSRM_URL=https://router.project-osrm.org
-
-# Ambiente
-NODE_ENV=development
-
-# Timeout
-REACT_APP_API_TIMEOUT=10000
-```
-
-**⚠️ Importante:** O arquivo `.env` contém informações sensíveis e **não deve ser commitado** no Git.
 
 ## 📁 Estrutura de Diretórios
 

@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 
 // URL do WebSocket - usa variável de ambiente
 // nginx redireciona /upa-ws/ para o servidor socket.io na porta 8094
-const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL || 'https://api.vejamaisaude.com';
+const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL;
 
 class WebSocketService {
   constructor() {

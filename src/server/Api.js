@@ -17,7 +17,7 @@ const USE_MOCK_DATA = false;
 // Instância do Axios com a URL base da API.
 // Usa variáveis de ambiente para configuração
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://api.vejamaisaude.com/upa',
+  baseURL: process.env.REACT_APP_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
