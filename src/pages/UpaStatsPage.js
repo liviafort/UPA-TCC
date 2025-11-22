@@ -27,9 +27,6 @@ function UpaStatsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // eslint-disable-next-line no-unused-vars
-  const [percentages, setPercentages] = useState({});
-
   // Carrega a lista de UPAs
   useEffect(() => {
     async function loadUpas() {
@@ -80,21 +77,6 @@ function UpaStatsPage() {
             AZUL: { count: data.data.porClassificacao.azul || 0 },
             NAO_TRIADO: { count: data.data.porClassificacao.semTriagem || 0 },
           },
-          lastUpdated: data.data.ultimaAtualizacao,
-        });
-
-        // Atualiza percentagens
-        const total = data.data.totalPacientes || 1;
-        setPercentages({
-          upaId: id,
-          percentages: {
-            VERMELHO: (data.data.porClassificacao.vermelho / total) * 100,
-            LARANJA: (data.data.porClassificacao.laranja / total) * 100,
-            AMARELO: (data.data.porClassificacao.amarelo / total) * 100,
-            VERDE: (data.data.porClassificacao.verde / total) * 100,
-            AZUL: (data.data.porClassificacao.azul / total) * 100,
-          },
-          totalPatients: data.data.totalPacientes,
           lastUpdated: data.data.ultimaAtualizacao,
         });
 

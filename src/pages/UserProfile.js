@@ -109,8 +109,7 @@ const UserProfile = () => {
         return;
       }
 
-      // Prepara os dados para atualização seguindo EXATAMENTE a estrutura do exemplo
-      // Remove username e role, enviar apenas os 5 campos editáveis
+      
       const updateData = {
         name: formData.name.trim(),
         email: formData.email.trim(),
@@ -126,7 +125,7 @@ const UserProfile = () => {
         return;
       }
 
-      // Verifica se state tem exatamente 2 caracteres (sigla)
+      // Verifica se state tem exatamente 2 caracteres 
       if (updateData.state.length !== 2) {
         setError('Estado deve ser uma sigla válida (ex: PB, SP, RJ)');
         setSaving(false);
@@ -254,11 +253,6 @@ const UserProfile = () => {
       {/* Main Content */}
       <main className="admin-main">
         <div className="admin-container">
-
-          {/* Page Title */}
-          {/* <div className="page-title-section">
-            <h2>Meu Perfil</h2>
-          </div> */}
 
           {error && (
             <div className="alert alert-error">

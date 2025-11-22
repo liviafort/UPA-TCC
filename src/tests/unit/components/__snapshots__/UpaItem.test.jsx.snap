@@ -1,0 +1,120 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`UpaItem > Snapshot > deve corresponder ao snapshot 1`] = `
+<div
+  class="upa-item"
+>
+  <img
+    alt="Ícone Hospital"
+    class="icon-painel"
+    src="data:image/svg+xml,%3csvg%20width='90'%20height='90'%20viewBox='0%200%2090%2090'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M11.175%2035.3874L44.7%2014.8999L78.225%2035.3874M70.775%2048.4249V72.2649C70.775%2072.8577%2070.5395%2073.4261%2070.1204%2073.8453C69.7012%2074.2644%2069.1328%2074.4999%2068.54%2074.4999H20.86C20.2672%2074.4999%2019.6988%2074.2644%2019.2796%2073.8453C18.8605%2073.4261%2018.625%2072.8577%2018.625%2072.2649V48.4249'%20stroke='%2309AC96'%20stroke-width='5.5875'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M50.9096%2063.3249H38.4904V54.6345H29.8V42.2153H38.4904V33.5249H50.9096V42.2153H59.6V54.6345H50.9096V63.3249Z'%20stroke='%2309AC96'%20stroke-width='5.5875'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e"
+  />
+  <h3
+    class="text-upa-item"
+  >
+    UPA Central
+  </h3>
+  <p
+    style="font-size: 0.9rem; color: rgb(108, 117, 125); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"
+  >
+    <span
+      style="font-size: 1rem;"
+    />
+     
+    Rua Teste, 123
+  </p>
+  <div
+    style="margin-bottom: 12px;"
+  >
+    <p
+      style="margin: 0px; font-weight: 600; font-size: 0.85rem; color: rgb(108, 117, 125);"
+    >
+      Tempo médio de espera
+    </p>
+    <div
+      style="display: flex; align-items: center; gap: 8px; margin-top: 4px; margin-left: 23px; font-size: 1.3rem; font-weight: 700; color: rgb(9, 172, 150);"
+    >
+      <img
+        alt="Tempo"
+        src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20height='24px'%20viewBox='0%20-960%20960%20960'%20width='24px'%20fill='%231f1f1f'%3e%3cpath%20d='m612-292%2056-56-148-148v-184h-80v216l172%20172ZM480-80q-83%200-156-31.5T197-197q-54-54-85.5-127T80-480q0-83%2031.5-156T197-763q54-54%20127-85.5T480-880q83%200%20156%2031.5T763-763q54%2054%2085.5%20127T880-480q0%2083-31.5%20156T763-197q-54%2054-127%2085.5T480-80Zm0-400Zm0%20320q133%200%20226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133%200-226.5%2093.5T160-480q0%20133%2093.5%20226.5T480-160Z'/%3e%3c/svg%3e"
+        style="width: 24px; height: 24px;"
+      />
+      <span>
+        45 min
+      </span>
+    </div>
+  </div>
+  <div
+    style="margin-bottom: 8px;"
+  >
+    <p
+      style="font-size: 0.85rem; color: rgb(108, 117, 125); margin-bottom: 8px; font-weight: 600;"
+    >
+      Classificação de Risco
+    </p>
+    <div
+      class="faixas-grid"
+    >
+      <span
+        class="badge blue"
+        title="Não Urgente"
+      >
+        5
+      </span>
+      <span
+        class="badge green"
+        title="Pouco Urgente"
+      >
+        10
+      </span>
+      <span
+        class="badge yellow"
+        title="Urgente"
+      >
+        3
+      </span>
+      <span
+        class="badge orange"
+        title="Muito Urgente"
+      >
+        2
+      </span>
+      <span
+        class="badge red"
+        title="Emergência"
+      >
+        1
+      </span>
+    </div>
+  </div>
+  <p
+    style="margin-top: 8px; font-size: 0.95rem; font-weight: 500; color: rgb(108, 117, 125);"
+  >
+    Pacientes aguardando triagem: 
+    <span
+      style="color: rgb(44, 62, 80); font-weight: 600;"
+    >
+      0
+    </span>
+  </p>
+  <p
+    style="margin-top: 13px; font-size: 0.95rem; font-weight: 600; color: rgb(44, 62, 80);"
+  >
+    Total: 
+    <span
+      style="color: rgb(9, 172, 150); font-size: 1.1rem;"
+    >
+      21
+    </span>
+     paciente
+    s
+  </p>
+  <a
+    class="dash-link"
+    data-discover="true"
+    href="/upa/1"
+  >
+    Ver Detalhes
+  </a>
+</div>
+`;

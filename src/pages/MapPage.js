@@ -93,7 +93,7 @@ function MapPage() {
     }
   }, []);
 
-  // Calcula rotas com todos os modos de transporte (carro, bicicleta, a pé)
+  // Calcula rotas com todos os modos de transporte
   useEffect(() => {
     if (userLocation && upas.length > 0) {
       Promise.all(
@@ -107,8 +107,9 @@ function MapPage() {
               upa.lng
             );
 
-            // Busca a geometria da rota (usando car para visualização da rota principal)
-            const url = `https://router.project-osrm.org/route/v1/car/${userLocation.lng},${userLocation.lat};${upa.lng},${upa.lat}?overview=full&geometries=geojson`;
+            // Busca a geometria da rota 
+            const osrmUrl = process.env.REACT_APP_OSRM_URL || 'https://router.project-osrm.org';
+            const url = `${osrmUrl}/route/v1/car/${userLocation.lng},${userLocation.lat};${upa.lng},${upa.lat}?overview=full&geometries=geojson`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -164,7 +165,7 @@ function MapPage() {
     return { bestUpaId: bestId };
   }, [routesData, upas]);
 
-  // Se nenhuma UPA estiver selecionada, define automaticamente a melhor
+  
   useEffect(() => {
     if (!selectedUpa && bestUpaId) {
       const best = upas.find(upa => upa.id === bestUpaId);
@@ -174,13 +175,13 @@ function MapPage() {
 
   const handleSelectUpa = (upa) => {
     setSelectedUpa(upa);
-    setSidebarOpen(false);    // fecha a sidebar
+    setSidebarOpen(false);   
   };
 
   // Configura os handlers de swipe para a sidebar
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => setSidebarOpen(false),
-    delta: 80, // Distância mínima em pixels para acionar o swipe
+    delta: 80, 
     preventDefaultTouchmoveEvent: true,
     trackMouse: false
   });
@@ -202,7 +203,6 @@ function MapPage() {
           <SidePanel
             upas={upas}
             onSelectUpa={handleSelectUpa}
-            bestUpaId={bestUpaId}
           />
         </div>
         <div className="map-container">

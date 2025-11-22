@@ -2,7 +2,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = 'https://api.vejamaisaude.com/upa';
+const API_URL = process.env.REACT_APP_API_URL || 'https://api.vejamaisaude.com/upa';
 
 // Configuração dos cookies (1 dia de expiração)
 const COOKIE_OPTIONS = {

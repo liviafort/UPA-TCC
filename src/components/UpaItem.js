@@ -5,7 +5,7 @@ import '../styles/UpaItem.css';
 import icon from '../assets/hospital-icon.svg';
 import clockIcon from '../assets/clock.svg'
 
-function UpaItem({ upa, onSelectUpa, bestUpaId }) {
+function UpaItem({ upa, onSelectUpa }) {
   const { name, address, queueDetail, averageWaitTime, totalPacientes, aguardandoTriagem } = upa;
   const totalQueue = totalPacientes || 0;
   const waitingTriage = aguardandoTriagem || 0;

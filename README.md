@@ -1,70 +1,144 @@
-# Getting Started with Create React App
+# Veja+Saúde - Sistema de Monitoramento de UPAs
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistema web para visualização em tempo real da situação das Unidades de Pronto Atendimento (UPAs), permitindo que cidadãos consultem filas, tempos de espera e rotas até as unidades mais próximas.
 
-## Available Scripts
+## 🚀 Como Iniciar o Projeto
 
-In the project directory, you can run:
+### Pré-requisitos
+- Node.js (versão 20 ou superior)
+- npm ou yarn
+- React 19
 
-### `npm start`
+### Instalação
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+# Clone o repositório
+git clone <url-do-repositorio>
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# Entre na pasta do projeto
+cd UPA-TCC
 
-### `npm test`
+# Instale as dependências
+npm install
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o arquivo .env e preencha com suas credenciais
+```
 
-### `npm run build`
+### Executar o Projeto
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# Inicia o servidor de desenvolvimento
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+O projeto será aberto automaticamente em [http://localhost:3000](http://localhost:3000)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Outros Comandos
 
-### `npm run eject`
+```bash
+# Executar testes
+npm test
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Executar testes com interface gráfica
+npm run test:ui
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Executar testes com cobertura
+npm run test:coverage
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Build para produção
+npm run build
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## ⚙️ Variáveis de Ambiente
 
-## Learn More
+O projeto utiliza variáveis de ambiente para configuração. Crie um arquivo `.env` na raiz do projeto (use `.env.example` como base):
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```env
+# Servidor
+PORT=3000
+HOST=0.0.0.0
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+# API Backend
+REACT_APP_API_URL=https://api.vejamaisaude.com/upa
 
-### Code Splitting
+# WebSocket
+REACT_APP_WEBSOCKET_URL=https://api.vejamaisaude.com
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# Mapbox Token (obtenha em: https://account.mapbox.com/)
+REACT_APP_MAPBOX_TOKEN=seu_token_aqui
 
-### Analyzing the Bundle Size
+# OSRM (Rotas)
+REACT_APP_OSRM_URL=https://router.project-osrm.org
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Ambiente
+NODE_ENV=development
 
-### Making a Progressive Web App
+# Timeout
+REACT_APP_API_TIMEOUT=10000
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+**⚠️ Importante:** O arquivo `.env` contém informações sensíveis e **não deve ser commitado** no Git.
 
-### Advanced Configuration
+## 📁 Estrutura de Diretórios
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+src/
+├── assets/              # Imagens, ícones e arquivos estáticos
+├── components/          # Componentes React reutilizáveis
+│   ├── Header.js
+│   ├── MapView.js
+│   ├── UpaItem.js
+│   ├── AdminSidebar.js
+│   └── ...
+├── contexts/            # Context API (gerenciamento de estado global)
+│   └── AuthContext.js   # Autenticação e usuário
+├── pages/               # Páginas da aplicação
+│   ├── MapPage.js       
+│   ├── UpaStatsPage.js  
+│   ├── LoginPage.js     
+│   ├── AdminDashboard.js
+│   ├── AdminReports.js
+│   └── ...
+├── services/            # Serviços e lógica de negócio
+│   ├── RoutingService.js      # Cálculo de rotas
+│   ├── WebSocketService.js    # Comunicação em tempo real
+│   ├── AnalyticsService.js    # Estatísticas e analytics
+│   └── AuthService.js         # Autenticação
+├── server/              # Comunicação com API
+│   ├── Api.js           # Endpoints da API
+│   └── MockData.js      # Dados de exemplo
+├── styles/              # Arquivos CSS
+├── tests/               # Testes automatizados
+│   ├── unit/            # Testes unitários (87 testes)
+│   └── integration/     # Testes de integração (58 testes)
+├── utils/               # Utilitários gerais
+│   └── pdfGenerator.js  # Geração de relatórios PDF
+├── App.js               # Componente raiz
+└── index.js             # Ponto de entrada da aplicação
+```
 
-### Deployment
+## 🧪 Testes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+O projeto possui **145 testes automatizados**:
+- **87 testes unitários** - Testam componentes e funções isoladamente
+- **58 testes de integração** - Testam fluxos completos da aplicação
 
-### `npm run build` fails to minify
+Para mais detalhes sobre os testes, consulte:
+- [Testes Unitários](src/tests/unit/README.md)
+- [Testes de Integração](src/tests/integration/README.md)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🛠️ Tecnologias Utilizadas
+
+- **React 19** - Biblioteca para interfaces
+- **React Router** - Navegação entre páginas
+- **Leaflet** - Mapas interativos
+- **Chart.js** - Gráficos e visualizações
+- **Socket.io** - Comunicação em tempo real
+- **Vitest** - Framework de testes
+- **Axios** - Requisições HTTP
+
+## 📄 Licença
+
+Este projeto é um Trabalho de Conclusão de Curso (TCC).
