@@ -22,7 +22,7 @@ function Users() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [userToToggle, setUserToToggle] = useState(null);
 
-  // Lista de estados brasileiros (para o formulário de criação)
+  // Lista de estados brasileiros 
   const brazilianStates = [
     { uf: 'AC', name: 'Acre' },
     { uf: 'AL', name: 'Alagoas' },

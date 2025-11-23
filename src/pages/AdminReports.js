@@ -127,7 +127,7 @@ function AdminReports() {
     }
   }, [userProfile]);
 
-  // Carregar perfil primeiro
+  // Carregar perfil
   useEffect(() => {
     loadUserProfile();
   }, [loadUserProfile]);
@@ -153,13 +153,13 @@ function AdminReports() {
       // Endpoints que NÃO recebem filtro de data: getUpaStatistics
       // Endpoints que RECEBEM filtro de data: getUpaDistributionHistorical, getUpaPercentagesHistorical, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
       const [stats, dist, perc, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
-        getUpaStatistics(upaId), // SEM filtro (usa days=7)
-        getUpaDistributionHistorical(upaId, dateParams), // COM filtro - DADOS HISTÓRICOS
-        getUpaPercentagesHistorical(upaId, dateParams), // COM filtro - DADOS HISTÓRICOS
-        getUpaWaitTimes(upaId, dateParams), // COM filtro
-        AnalyticsService.getBairroStats(upaId, dateParams), // COM filtro
-        getWaitTimeAnalytics(upaId, dateParams), // COM filtro
-        getDashboardAnalytics(upaId, dateParams) // COM filtro
+        getUpaStatistics(upaId),
+        getUpaDistributionHistorical(upaId, dateParams), 
+        getUpaPercentagesHistorical(upaId, dateParams),  
+        getUpaWaitTimes(upaId, dateParams), 
+        AnalyticsService.getBairroStats(upaId, dateParams), 
+        getWaitTimeAnalytics(upaId, dateParams), 
+        getDashboardAnalytics(upaId, dateParams) 
       ]);
 
       // Transformar os dados dos objetos para arrays esperados pelos gráficos

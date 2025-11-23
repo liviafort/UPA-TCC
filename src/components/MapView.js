@@ -61,7 +61,7 @@ function createCombinedInfoIcon(routes, upaName, waitTimesByClassification) {
     html += `<div class="time-upa-name">${upaName}</div>`;
   }
 
-  // Seção de Tempo de Espera (PRIMEIRO)
+  // Seção de Tempo de Espera 
   html += '<div class="info-section">';
   html += '<div class="section-title">Tempo de Espera</div>';
 
@@ -91,7 +91,7 @@ function createCombinedInfoIcon(routes, upaName, waitTimesByClassification) {
   }
   html += '</div>';
 
-  // Seção de Deslocamento (DEPOIS)
+  // Seção de Deslocamento
   html += '<div class="info-section">';
   html += '<div class="section-title">Deslocamento</div>';
 
@@ -122,18 +122,18 @@ function createCombinedInfoIcon(routes, upaName, waitTimesByClassification) {
     className: 'time-marker-div',
     html: html,
     iconSize: [180, 220],
-    iconAnchor: [-20, 110], // Posiciona à esquerda do ícone da UPA
+    iconAnchor: [-20, 110], 
   });
 }
 
 /** Converte statusOcupacao em cor */
 function getColorByStatus(statusOcupacao) {
-  if (!statusOcupacao) return '#34A853'; // Verde padrão
+  if (!statusOcupacao) return '#34A853'; 
 
   const status = statusOcupacao.toUpperCase();
-  if (status === 'ALTA') return '#EA4335'; // Vermelho
-  if (status === 'MEDIA' || status === 'MÉDIA') return '#FBBC05'; // Amarelo
-  return '#34A853'; // Verde (BAIXA)
+  if (status === 'ALTA') return '#EA4335'; 
+  if (status === 'MEDIA' || status === 'MÉDIA') return '#FBBC05'; 
+  return '#34A853'; 
 }
 
 /** Retorna o ícone da UPA conforme o statusOcupacao */
@@ -143,7 +143,7 @@ function getMarkerIcon(statusOcupacao) {
   const status = statusOcupacao.toUpperCase();
   if (status === 'ALTA') return redIcon;
   if (status === 'MEDIA' || status === 'MÉDIA') return yellowIcon;
-  return greenIcon; // BAIXA
+  return greenIcon;
 }
 
 /** Opções do círculo em volta da UPA */
@@ -172,13 +172,13 @@ function getRouteColor(upaId, bestUpaId, worstUpaId, upas) {
     return '#EA4335';
   }
 
-  // SEMPRE usa a cor baseada no statusOcupacao (igual ao ícone)
+  // Cor derivada no status de ocupação
   const color = getColorByStatus(upa.statusOcupacao);
 
   return color;
 }
 
-/** Duas polylines: uma trilha branca e uma colorida por cima */
+
 function DoublePolyline({ coords, color }) {
   if (!coords) return null;
   return (
@@ -189,12 +189,11 @@ function DoublePolyline({ coords, color }) {
   );
 }
 
-/** Calcula posição adjacente ao ícone da UPA (próxima ao destino) */
+/** Calcula posição adjacente ao ícone da UPA */
 function getAdjacentPosition(coords, upaLat, upaLng) {
   if (!coords || coords.length === 0) return null;
 
-  // Simplesmente retorna a posição da UPA
-  // O iconAnchor da bolha vai posicionar ela ao lado
+ 
   return [upaLat, upaLng];
 }
 

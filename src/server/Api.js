@@ -11,18 +11,17 @@ import {
   mockUpasComStatus
 } from './MockData';
 
-// FLAG DE CONTROLE: Ative para usar dados mockados durante desenvolvimento
+// FLAG DE CONTROLE- ativar para usar dados mockados
 const USE_MOCK_DATA = false;
 
 // Instância do Axios com a URL base da API.
-// Conecta diretamente no servidor em todos os ambientes
+// Usa variáveis de ambiente para configuração
 const api = axios.create({
-  baseURL: 'https://api.vejamaisaude.com/upa',
+  baseURL: process.env.REACT_APP_API_URL || 'https://api.vejamaisaude.com/upa',
   headers: {
     'Content-Type': 'application/json',
   },
-  // Timeout de 10 segundos
-  timeout: 10000,
+  timeout: parseInt(process.env.REACT_APP_API_TIMEOUT) || 10000,
 });
 
 // Interceptor para adicionar o token JWT em todas as requisições
@@ -67,7 +66,7 @@ export async function fetchUpasComStatus() {
   }
 
   try {
-    // Usa o endpoint /api/v1/upa-queue/sidebar/data que já retorna os dados formatados
+   
     const response = await api.get('/api/v1/upa-queue/sidebar/data');
 
     if (!response.data.success) {
@@ -76,16 +75,13 @@ export async function fetchUpasComStatus() {
 
     const upas = response.data.data;
 
-    // Mapeia os dados da API para o formato esperado pelo frontend
     const upasFormatadas = await Promise.all(upas.map(async (upa) => {
       try {
-        // Busca dados da fila para pegar o tempo médio de espera
         const queueResponse = await api.get(`/api/v1/upa-queue/${upa.id}/queue`);
         const queueData = queueResponse.data.success ? queueResponse.data.data : null;
 
         const tempoMedio = queueData?.tempoMedioEsperaMinutos || 0;
 
-        // Extrai os tempos de espera por classificação
         const waitTimesByClassification = {};
         if (queueData?.metricasPorClassificacao) {
           queueData.metricasPorClassificacao.forEach(metrica => {
@@ -123,7 +119,6 @@ export async function fetchUpasComStatus() {
 
         return upaFormatada;
       } catch (err) {
-        // Fallback para dados básicos do sidebar
         return {
           id: upa.id,
           name: upa.nome,
@@ -153,7 +148,6 @@ export async function fetchUpasComStatus() {
   }
 }
 
-// Funções de API para buscar dados específicos de uma UPA
 export const getUpaStatistics = async (upaId) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
@@ -162,7 +156,6 @@ export const getUpaStatistics = async (upaId) => {
     });
   }
 
-  // calcular as estatísticas a partir dos dados de evolution
   try {
     const evolutionResponse = await api.get(`/api/v1/queue/${upaId}/evolution?days=7`);
 
@@ -207,9 +200,8 @@ export const getUpaStatistics = async (upaId) => {
   }
 };
 
-// Função para dados em TEMPO REAL (usada em UpaStatsPage)
+// Função para dados  UpaStatsPage
 export const getUpaDistribution = async (upaId, dateParams = {}) => {
-  // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
       setTimeout(() => resolve({ ...mockDistribution, upaId }), 300);
@@ -232,9 +224,7 @@ export const getUpaDistribution = async (upaId, dateParams = {}) => {
   };
 };
 
-// Função para dados HISTÓRICOS (usada em AdminReports com filtros de data)
 export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
-  // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
       setTimeout(() => resolve({ ...mockDistribution, upaId }), 300);
@@ -249,7 +239,7 @@ export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
     if (!dateParams.year && !dateParams.month && !dateParams.day) {
       const hoje = new Date();
       queryParams.append('year', hoje.getFullYear());
-      queryParams.append('month', hoje.getMonth() + 1); // getMonth() retorna 0-11
+      queryParams.append('month', hoje.getMonth() + 1); 
       queryParams.append('day', hoje.getDate());
     } else {
       if (dateParams.year) queryParams.append('year', dateParams.year);
@@ -302,9 +292,7 @@ export const getUpaDistributionHistorical = async (upaId, dateParams = {}) => {
   }
 };
 
-// Função para dados em TEMPO REAL (usada em UpaStatsPage)
 export const getUpaPercentages = async (upaId, dateParams = {}) => {
-  // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
       setTimeout(() => resolve({ ...mockPercentages, upaId }), 300);
@@ -312,7 +300,7 @@ export const getUpaPercentages = async (upaId, dateParams = {}) => {
   }
 
   const queueData = await getUpaQueueData(upaId, dateParams);
-  const total = queueData.totalPacientes || 1; // Evita divisão por zero
+  const total = queueData.totalPacientes || 1; 
 
   return {
     upaId: queueData.upaId,
@@ -328,9 +316,7 @@ export const getUpaPercentages = async (upaId, dateParams = {}) => {
   };
 };
 
-// Função para dados HISTÓRICOS (usada em AdminReports com filtros de data)
 export const getUpaPercentagesHistorical = async (upaId, dateParams = {}) => {
-  // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
       setTimeout(() => resolve({ ...mockPercentages, upaId }), 300);
@@ -380,7 +366,7 @@ export const getUpaPercentagesHistorical = async (upaId, dateParams = {}) => {
       totals.AZUL += day.azul || 0;
     });
 
-    const total = totals.VERMELHO + totals.LARANJA + totals.AMARELO + totals.VERDE + totals.AZUL || 1; // Evita divisão por zero
+    const total = totals.VERMELHO + totals.LARANJA + totals.AMARELO + totals.VERDE + totals.AZUL || 1;
 
     return {
       upaId: response.data.data.upaId,
@@ -508,7 +494,7 @@ export async function fetchUpaDataFormatted(upaId) {
       { name: 'Não Triado', value: semTriagem },
     ].filter(item => item.value > 0); // Remove classificações com 0 pacientes
 
-    // 2. Dados para os tempos médios de espera usando metricasPorClassificacao
+    // Dados para os tempos médios de espera usando metricasPorClassificacao
     const metricaAzul = queueData.metricasPorClassificacao.find(m => m.classificacao === 'AZUL');
     const metricaVerde = queueData.metricasPorClassificacao.find(m => m.classificacao === 'VERDE');
     const metricaAmarelo = queueData.metricasPorClassificacao.find(m => m.classificacao === 'AMARELO');
@@ -520,19 +506,19 @@ export async function fetchUpaDataFormatted(upaId) {
     const tempoMedioVermelho = metricaVermelho?.tempoMedioEsperaMinutos || 0;
 
     const mediaAtendimentoData = queueData.metricasPorClassificacao
-      .filter(m => m.quantidade > 0) // Só mostra classificações com pacientes
+      .filter(m => m.quantidade > 0)
       .map(item => ({
         subject: classificacaoMap[item.classificacao] || item.classificacao,
         tempo: item.tempoMedioEsperaMinutos,
       }));
 
-    // 3. Dados para o gráfico de linha (histórico)
+    // Dados para o gráfico de linha 
     const historicoAtendimentos = evolution.data.map(item => ({
       dia: item.date,
       entradas: item.entradas,
       triagens: item.triagens,
       atendimentos: item.atendimentos,
-      atendidos: item.atendimentos, // Para manter compatibilidade
+      atendidos: item.atendimentos,
     }));
 
     return {

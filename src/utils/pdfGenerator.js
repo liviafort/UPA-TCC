@@ -13,9 +13,9 @@ export const generateReportPDF = ({
   let yPosition = 20;
 
   // Cores
-  const primaryColor = [9, 172, 150]; // #09AC96
-  const textColor = [31, 41, 55]; // #1F2937
-  const grayColor = [107, 114, 128]; // #6B7280
+  const primaryColor = [9, 172, 150]; 
+  const textColor = [31, 41, 55]; 
+  const grayColor = [107, 114, 128];
 
   // Função auxiliar para adicionar nova página se necessário
   const checkPageBreak = (neededSpace) => {

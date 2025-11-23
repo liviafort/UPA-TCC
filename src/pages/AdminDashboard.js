@@ -354,9 +354,9 @@ function AdminDashboard() {
 
           {/* Evolução das UPAs - Últimos 7 Dias */}
           {!noUpasInState && evolutionData.length > 0 && (
-            <div className="evolution-section">
-              <div className="evolution-chart-card">
-                <h3>Evolução das UPAs - Últimos 7 Dias</h3>
+            <div className="chart-card">
+              <h3>Evolução das UPAs - Últimos 7 Dias</h3>
+              <div className="chart-container">
                 <Line
                   data={{
                     labels: evolutionData[0]?.data.slice().reverse().map(item => {

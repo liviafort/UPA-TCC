@@ -1,9 +1,9 @@
 // src/services/WebSocketService.js
 import { io } from 'socket.io-client';
 
-// URL do WebSocket
+// URL do WebSocket - usa variável de ambiente
 // nginx redireciona /upa-ws/ para o servidor socket.io na porta 8094
-const WEBSOCKET_URL = 'https://api.vejamaisaude.com';
+const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL || 'https://api.vejamaisaude.com';
 
 class WebSocketService {
   constructor() {
@@ -21,8 +21,8 @@ class WebSocketService {
     }
 
     this.socket = io(WEBSOCKET_URL, {
-      path: '/upa-ws/socket.io', // Path completo incluindo o proxy nginx (/upa-ws/)
-      transports: ['polling', 'websocket'], // Tenta polling primeiro, depois websocket
+      path: '/upa-ws/socket.io',
+      transports: ['polling', 'websocket'], 
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
