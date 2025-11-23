@@ -107,8 +107,8 @@ function MapPage() {
               upa.lng
             );
 
-            // Busca a geometria da rota 
-            const osrmUrl = process.env.REACT_APP_OSRM_URL || 'https://router.project-osrm.org';
+            // Busca a geometria da rota
+            const osrmUrl = process.env.REACT_APP_OSRM_URL;
             const url = `${osrmUrl}/route/v1/car/${userLocation.lng},${userLocation.lat};${upa.lng},${upa.lat}?overview=full&geometries=geojson`;
             const response = await fetch(url);
             const data = await response.json();
