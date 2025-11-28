@@ -13,8 +13,8 @@ export const generateReportPDF = ({
   let yPosition = 20;
 
   // Cores
-  const primaryColor = [9, 172, 150]; 
-  const textColor = [31, 41, 55]; 
+  const primaryColor = [9, 172, 150];
+  const textColor = [31, 41, 55];
   const grayColor = [107, 114, 128];
 
   // Função auxiliar para adicionar nova página se necessário
@@ -40,7 +40,7 @@ export const generateReportPDF = ({
     doc.setFont('helvetica', 'bold');
 
     headers.forEach((header, i) => {
-      doc.text(header, 14 + (i * colWidth) + 2, currentY + 7);
+      doc.text(String(header), 14 + (i * colWidth) + 2, currentY + 7);
     });
 
     currentY += 10;
@@ -78,10 +78,10 @@ export const generateReportPDF = ({
 
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(upaData.nome || 'Nome da UPA', pageWidth / 2, 25, { align: 'center' });
+  doc.text(String(upaData?.nome || 'Nome da UPA'), pageWidth / 2, 25, { align: 'center' });
 
   doc.setFontSize(10);
-  doc.text(`Período: ${filterDate}`, pageWidth / 2, 33, { align: 'center' });
+  doc.text(`Período: ${String(filterDate || 'Últimos 7 dias')}`, pageWidth / 2, 33, { align: 'center' });
 
   yPosition = 50;
 
@@ -97,15 +97,14 @@ export const generateReportPDF = ({
   doc.setTextColor(...grayColor);
 
   const upaInfo = [
-    ['Endereço:', upaData.endereco || '-']
-
+    ['Endereço:', String(upaData?.endereco || '-')]
   ];
 
   upaInfo.forEach(([label, value]) => {
     doc.setFont('helvetica', 'bold');
-    doc.text(label, 14, yPosition);
+    doc.text(String(label), 14, yPosition);
     doc.setFont('helvetica', 'normal');
-    doc.text(value, 50, yPosition);
+    doc.text(String(value), 50, yPosition);
     yPosition += 6;
   });
 
@@ -119,12 +118,12 @@ export const generateReportPDF = ({
   doc.text('Estatísticas Gerais', 14, yPosition);
   yPosition += 10;
 
-  const stats = analyticsData.statistics;
+  const stats = analyticsData?.statistics || {};
   const statsRows = [
-    ['Total de Eventos', (stats.total_visits || 0).toString()],
-    ['Média Diária', (stats.daily_average || 0).toString()],
-    ['Tempo Médio de Espera', `${(stats.average_wait_time || 0).toFixed(0)} min`],
-    ['Taxa de Ocupação', `${(stats.occupancy_rate || 0).toFixed(1)}%`]
+    ['Total de Eventos', String(stats.total_visits || 0)],
+    ['Média Diária', String(stats.daily_average || 0)],
+    ['Tempo Médio de Espera', `${String((Number(stats.average_wait_time) || 0).toFixed(0))} min`],
+    ['Taxa de Ocupação', `${String((Number(stats.occupancy_rate) || 0).toFixed(1))}%`]
   ];
 
   yPosition = drawTable(['Métrica', 'Valor'], statsRows, yPosition);
@@ -132,7 +131,7 @@ export const generateReportPDF = ({
   checkPageBreak(50);
 
   // Distribuição por Classificação
-  if (analyticsData.distribution && analyticsData.distribution.length > 0) {
+  if (analyticsData?.distribution && Array.isArray(analyticsData.distribution) && analyticsData.distribution.length > 0) {
     doc.setTextColor(...textColor);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -140,8 +139,8 @@ export const generateReportPDF = ({
     yPosition += 10;
 
     const distRows = analyticsData.distribution.map(item => [
-      item.classificacao || '-',
-      (item.quantidade || 0).toString()
+      String(item?.classificacao || '-'),
+      String(item?.quantidade || 0)
     ]);
 
     yPosition = drawTable(['Classificação', 'Quantidade'], distRows, yPosition);
@@ -150,7 +149,7 @@ export const generateReportPDF = ({
   }
 
   // Tempos de Espera por Classificação
-  if (analyticsData.waitTimes && analyticsData.waitTimes.length > 0) {
+  if (analyticsData?.waitTimes && Array.isArray(analyticsData.waitTimes) && analyticsData.waitTimes.length > 0) {
     doc.setTextColor(...textColor);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -158,8 +157,8 @@ export const generateReportPDF = ({
     yPosition += 10;
 
     const waitRows = analyticsData.waitTimes.map(item => [
-      item.classificacao || '-',
-      (item.tempoMedio || 0).toFixed(0)
+      String(item?.classificacao || '-'),
+      String((Number(item?.tempoMedio) || 0).toFixed(0))
     ]);
 
     yPosition = drawTable(['Classificação', 'Tempo Médio (min)'], waitRows, yPosition);
@@ -168,7 +167,7 @@ export const generateReportPDF = ({
   }
 
   // Bairros Atendidos
-  if (analyticsData.bairros && analyticsData.bairros.length > 0) {
+  if (analyticsData?.bairros && Array.isArray(analyticsData.bairros) && analyticsData.bairros.length > 0) {
     checkPageBreak(80);
 
     doc.setTextColor(...textColor);
@@ -178,10 +177,10 @@ export const generateReportPDF = ({
     yPosition += 10;
 
     const bairrosRows = analyticsData.bairros.slice(0, 10).map(item => [
-      item.bairro || '-',
-      (item.total || 0).toString(),
-      (item.percentual || 0).toFixed(1) + '%',
-      (item.mediaTempoEspera || 0).toString()
+      String(item?.bairro || '-'),
+      String(item?.total || 0),
+      String((Number(item?.percentual) || 0).toFixed(1)) + '%',
+      String(item?.mediaTempoEspera || 0)
     ]);
 
     yPosition = drawTable(['Bairro', 'Pacientes', '%', 'Tempo (min)'], bairrosRows, yPosition);
@@ -189,7 +188,7 @@ export const generateReportPDF = ({
   }
 
   // Dashboard Analytics
-  if (dashboardAnalytics && dashboardAnalytics.ultimas24h) {
+  if (dashboardAnalytics?.ultimas24h) {
     checkPageBreak(80);
 
     doc.setTextColor(...textColor);
@@ -203,27 +202,27 @@ export const generateReportPDF = ({
     if (dashboardAnalytics.ultimas24h) {
       dashRows.push([
         'Últimas 24h',
-        (dashboardAnalytics.ultimas24h.totalEntradas || 0).toString(),
-        (dashboardAnalytics.ultimas24h.totalTriagens || 0).toString(),
-        (dashboardAnalytics.ultimas24h.totalAtendimentos || 0).toString()
+        String(dashboardAnalytics.ultimas24h.totalEntradas || 0),
+        String(dashboardAnalytics.ultimas24h.totalTriagens || 0),
+        String(dashboardAnalytics.ultimas24h.totalAtendimentos || 0)
       ]);
     }
 
     if (dashboardAnalytics.hoje) {
       dashRows.push([
         'Hoje',
-        (dashboardAnalytics.hoje.totalEntradas || 0).toString(),
-        (dashboardAnalytics.hoje.totalTriagens || 0).toString(),
-        (dashboardAnalytics.hoje.totalAtendimentos || 0).toString()
+        String(dashboardAnalytics.hoje.totalEntradas || 0),
+        String(dashboardAnalytics.hoje.totalTriagens || 0),
+        String(dashboardAnalytics.hoje.totalAtendimentos || 0)
       ]);
     }
 
     if (dashboardAnalytics.ontem) {
       dashRows.push([
         'Ontem',
-        (dashboardAnalytics.ontem.totalEntradas || 0).toString(),
-        (dashboardAnalytics.ontem.totalTriagens || 0).toString(),
-        (dashboardAnalytics.ontem.totalAtendimentos || 0).toString()
+        String(dashboardAnalytics.ontem.totalEntradas || 0),
+        String(dashboardAnalytics.ontem.totalTriagens || 0),
+        String(dashboardAnalytics.ontem.totalAtendimentos || 0)
       ]);
     }
 

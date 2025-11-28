@@ -84,6 +84,7 @@
 @media (max-width: 770px) {
   .upa-stats-container{
     padding: 16px 12px;
+    padding-top: 120px;
     min-height: auto;
     height: auto;
     overflow-y: visible;
