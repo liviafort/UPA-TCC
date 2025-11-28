@@ -1,5 +1,5 @@
 // src/pages/MapPage.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import Header from '../components/Header';
 import SidePanel from '../components/SidePanel';
@@ -17,6 +17,7 @@ function MapPage() {
   const [selectedUpa, setSelectedUpa] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [routesData, setRoutesData] = useState({});
+  const calculatedRoutesRef = useRef(new Set()); // Rastreia UPAs que já tiveram rotas calculadas
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -93,11 +94,18 @@ function MapPage() {
     }
   }, []);
 
-  // Calcula rotas com todos os modos de transporte
+  // Calcula rotas com todos os modos de transporte (apenas uma vez por UPA)
   useEffect(() => {
     if (userLocation && upas.length > 0) {
+      // Filtra apenas UPAs que ainda não tiveram rotas calculadas
+      const upasToCalculate = upas.filter(upa => !calculatedRoutesRef.current.has(upa.id));
+
+      if (upasToCalculate.length === 0) {
+        return; // Todas as rotas já foram calculadas
+      }
+
       Promise.all(
-        upas.map(async (upa) => {
+        upasToCalculate.map(async (upa) => {
           try {
             // Busca todas as rotas simultaneamente
             const routes = await RoutingService.calculateAllRoutes(
@@ -118,6 +126,9 @@ function MapPage() {
               coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
             }
 
+            // Marca esta UPA como calculada
+            calculatedRoutesRef.current.add(upa.id);
+
             return {
               id: upa.id,
               driving: routes.driving,
@@ -127,6 +138,8 @@ function MapPage() {
             };
           } catch (err) {
             console.error(`Erro ao calcular rotas para UPA ${upa.id}:`, err);
+            // Marca como calculada mesmo em caso de erro para não tentar novamente
+            calculatedRoutesRef.current.add(upa.id);
             return {
               id: upa.id,
               driving: null,
@@ -137,11 +150,14 @@ function MapPage() {
           }
         })
       ).then(results => {
-        const dataObj = {};
-        results.forEach(item => {
-          dataObj[item.id] = item;
+        // Mescla os novos resultados com os dados existentes
+        setRoutesData(prevData => {
+          const newData = { ...prevData };
+          results.forEach(item => {
+            newData[item.id] = item;
+          });
+          return newData;
         });
-        setRoutesData(dataObj);
       });
     }
   }, [userLocation, upas]);

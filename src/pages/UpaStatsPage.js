@@ -25,13 +25,21 @@ function UpaStatsPage() {
   const [distribution, setDistribution] = useState({});
   const [waitTimes, setWaitTimes] = useState({});
   const [loading, setLoading] = useState(true);
+  const [loadingUpas, setLoadingUpas] = useState(true);
   const [error, setError] = useState(null);
 
   // Carrega a lista de UPAs
   useEffect(() => {
     async function loadUpas() {
-      const data = await fetchUpasComStatus();
-      setUpas(data);
+      try {
+        setLoadingUpas(true);
+        const data = await fetchUpasComStatus();
+        setUpas(data);
+      } catch (err) {
+        console.error('Erro ao carregar UPAs:', err);
+      } finally {
+        setLoadingUpas(false);
+      }
     }
     loadUpas();
   }, []);
@@ -102,7 +110,8 @@ function UpaStatsPage() {
 
   const upa = (upas || []).find(u => u.id === id) || {};
 
-  if (loading) {
+  // Mostra loading enquanto carrega UPAs ou dados
+  if (loading || loadingUpas) {
     return (
       <div className="loading-container">
         <div className="spinner-large"></div>
@@ -110,7 +119,6 @@ function UpaStatsPage() {
       </div>
     );
   }
-
 
   if (error) {
     return (
@@ -121,6 +129,7 @@ function UpaStatsPage() {
     );
   }
 
+  // Só mostra "UPA não encontrada" depois que as UPAs terminaram de carregar
   if (!upa.id) {
     return (
       <div className="upa-stats-container">
