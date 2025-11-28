@@ -612,49 +612,75 @@ function AdminReports() {
                   </div>
                 )}
 
-                {/* Tempos Médios de Espera */}
-                {waitTimes && Array.isArray(waitTimes) && waitTimes.length > 0 && (
+                {/* Análise de Tempos de Espera */}
+                {waitTimeAnalytics && (
                   <div className="chart-card full-width">
-                    <h3>Tempos Médios de Espera por Classificação</h3>
-                    <div className="chart-container">
-                      <Bar
-                        data={{
-                          labels: waitTimes.map(w => w.classificacao),
-                          datasets: [{
-                            label: 'Tempo',
-                            data: waitTimes.map(w => w.tempoMedio),
-                            backgroundColor: waitTimes.map(w => COLOR_MAP[w.classificacao] || '#94a3b8'),
-                            borderRadius: 8
-                          }]
-                        }}
-                        options={{
-                          indexAxis: 'y',
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                              callbacks: {
-                                label: (context) => {
-                                  return 'Tempo: ' + RoutingService.formatMinutes(context.parsed.x);
+                    <h3>Análise Detalhada de Tempos de Espera</h3>
+                    <div className="wait-time-analytics">
+                      <div className="analytics-summary">
+                        <div className="summary-card">
+                          <span className="summary-label">Tempo Médio Geral</span>
+                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioEsperaGeral || 0))}</span>
+                        </div>
+                        <div className="summary-card">
+                          <span className="summary-label">Tempo Médio de Triagem</span>
+                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioTriagem || 0))}</span>
+                        </div>
+                        <div className="summary-card">
+                          <span className="summary-label">Tempo Médio de Atendimento</span>
+                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioAtendimento || 0))}</span>
+                        </div>
+                      </div>
+                      <div className="chart-container">
+                        <Bar
+                          data={{
+                            labels: ['VERMELHO', 'LARANJA', 'AMARELO', 'VERDE', 'AZUL'],
+                            datasets: [{
+                              label: 'Tempo de Espera (minutos)',
+                              data: (() => {
+                                const allClassifications = ['VERMELHO', 'LARANJA', 'AMARELO', 'VERDE', 'AZUL'];
+                                if (!waitTimeAnalytics.porClassificacao) return [0, 0, 0, 0, 0];
+                                return allClassifications.map(classification => {
+                                  const value = waitTimeAnalytics.porClassificacao[classification];
+                                  return value ? Math.max(0, value) : 0;
+                                });
+                              })(),
+                              backgroundColor: ['#B21B1B', '#FF8C00', '#E1AF18', '#1BB232', '#217BC0'],
+                              borderColor: ['#8a1515', '#cc7000', '#b88c13', '#148a25', '#1a5f94'],
+                              borderWidth: 2
+                            }]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                display: false
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context) {
+                                    return `Tempo: ${RoutingService.formatMinutes(context.parsed.y)}`;
+                                  }
+                                }
+                              }
+                            },
+                            scales: {
+                              y: {
+                                beginAtZero: true,
+                                ticks: {
+                                  callback: function(value) {
+                                    return RoutingService.formatMinutes(value);
+                                  }
                                 }
                               }
                             }
-                          },
-                          scales: {
-                            x: {
-                              beginAtZero: true,
-                              ticks: {
-                                callback: (value) => RoutingService.formatMinutes(value)
-                              }
-                            }
-                          }
-                        }}
-                      />
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
-
                 {/* Gráfico de Bairros Atendidos */}
                 {bairroStats && bairroStats.bairros && Array.isArray(bairroStats.bairros) && bairroStats.bairros.length > 0 && (
                   <div className="chart-card">
@@ -739,89 +765,6 @@ function AdminReports() {
                           ))}
                         </tbody>
                       </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Análise de Tempos de Espera */}
-                {waitTimeAnalytics && (
-                  <div className="chart-card full-width">
-                    <h3>Análise Detalhada de Tempos de Espera</h3>
-                    <div className="wait-time-analytics">
-                      <div className="analytics-summary">
-                        <div className="summary-card">
-                          <span className="summary-label">Tempo Médio Geral</span>
-                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioEsperaGeral || 0))}</span>
-                        </div>
-                        <div className="summary-card">
-                          <span className="summary-label">Tempo Médio de Triagem</span>
-                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioTriagem || 0))}</span>
-                        </div>
-                        <div className="summary-card">
-                          <span className="summary-label">Tempo Médio de Atendimento</span>
-                          <span className="summary-value">{RoutingService.formatMinutes(Math.max(0, waitTimeAnalytics.tempoMedioAtendimento || 0))}</span>
-                        </div>
-                      </div>
-                      {waitTimeAnalytics.porClassificacao && Object.keys(waitTimeAnalytics.porClassificacao).length > 0 && (
-                        <div className="chart-container">
-                          <Bar
-                            data={{
-                              labels: Object.keys(waitTimeAnalytics.porClassificacao).map(k => k.toUpperCase()),
-                              datasets: [{
-                                label: 'Tempo de Espera (minutos)',
-                                data: Object.values(waitTimeAnalytics.porClassificacao).map(v => Math.max(0, v)),
-                                backgroundColor: Object.keys(waitTimeAnalytics.porClassificacao).map(k => {
-                                  const colorMap = {
-                                    'VERMELHO': '#B21B1B',
-                                    'LARANJA': '#FF8C00',
-                                    'AMARELO': '#E1AF18',
-                                    'VERDE': '#1BB232',
-                                    'AZUL': '#217BC0'
-                                  };
-                                  return colorMap[k.toUpperCase()] || '#6c757d';
-                                }),
-                                borderColor: Object.keys(waitTimeAnalytics.porClassificacao).map(k => {
-                                  const colorMap = {
-                                    'VERMELHO': '#8a1515',
-                                    'LARANJA': '#cc7000',
-                                    'AMARELO': '#b88c13',
-                                    'VERDE': '#148a25',
-                                    'AZUL': '#1a5f94'
-                                  };
-                                  return colorMap[k.toUpperCase()] || '#495057';
-                                }),
-                                borderWidth: 2
-                              }]
-                            }}
-                            options={{
-                              responsive: true,
-                              maintainAspectRatio: false,
-                              plugins: {
-                                legend: {
-                                  display: false
-                                },
-                                tooltip: {
-                                  callbacks: {
-                                    label: function(context) {
-                                      return `Tempo: ${RoutingService.formatMinutes(context.parsed.y)}`;
-                                    }
-                                  }
-                                }
-                              },
-                              scales: {
-                                y: {
-                                  beginAtZero: true,
-                                  ticks: {
-                                    callback: function(value) {
-                                      return RoutingService.formatMinutes(value);
-                                    }
-                                  }
-                                }
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
