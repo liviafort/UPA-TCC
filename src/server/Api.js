@@ -173,9 +173,10 @@ export const getUpaStatistics = async (upaId) => {
     }), { entradas: 0, triagens: 0, atendimentos: 0 });
 
     const totalEventos = totais.entradas + totais.triagens + totais.atendimentos;
-    const taxaConclusao = totais.entradas > 0
-      ? ((totais.atendimentos / totais.entradas) * 100).toFixed(1)
+    const taxaConclusaoCalculada = totais.entradas > 0
+      ? (totais.atendimentos / totais.entradas) * 100
       : 0;
+    const taxaConclusao = Math.min(100, taxaConclusaoCalculada).toFixed(1);
 
     return {
       upaId,
