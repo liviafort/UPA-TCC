@@ -32,7 +32,6 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket conectado!');
       // Reinscreve nas UPAs após reconexão
       this.subscribedUpas.forEach(upaId => {
         this.subscribeToUpa(upaId);

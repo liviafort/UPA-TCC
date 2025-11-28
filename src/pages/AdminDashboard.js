@@ -13,7 +13,8 @@ import {
   getTotalScreeningsLast24h,
   getTotalTreatmentsLast24h,
   getUpasByCityAndState,
-  getUpaEvolution
+  getUpaEvolution,
+  getUpaWaitTimes
 } from '../server/Api';
 import logo from '../assets/logo.png';
 import '../styles/AdminDashboard.css';
@@ -44,6 +45,16 @@ ChartJS.register(
   Filler
 );
 
+// Mapeamento de cores por classificação
+const COLOR_MAP = {
+  'NAO_TRIADO': '#6c757d',
+  'AZUL': '#217BC0',
+  'VERDE': '#1BB232',
+  'AMARELO': '#E1AF18',
+  'LARANJA': '#FF8C00',
+  'VERMELHO': '#B21B1B'
+};
+
 function AdminDashboard() {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
@@ -59,6 +70,7 @@ function AdminDashboard() {
   });
   const [evolutionData, setEvolutionData] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [waitTimesData, setWaitTimesData] = useState([]);
 
   const loadUserProfile = useCallback(async () => {
     if (user?.id) {
@@ -165,7 +177,37 @@ function AdminDashboard() {
     }
   };
 
-  // WebSocket - Atualiza comparação em tempo real
+  const loadWaitTimesData = useCallback(async () => {
+    if (!upas || upas.length === 0) return;
+
+    try {
+      // Busca os tempos de espera em tempo real para cada UPA
+      const waitTimesPromises = upas.map(upa =>
+        getUpaWaitTimes(upa.id).catch(error => {
+          console.error(`Erro ao carregar tempos de espera da UPA ${upa.id}:`, error);
+          return { wait_times: [] };
+        })
+      );
+
+      const waitTimesResults = await Promise.all(waitTimesPromises);
+
+      // Organiza os dados por UPA (mesmo formato do AdminReports)
+      const organizedWaitTimes = waitTimesResults.map((result, index) => ({
+        upaId: upas[index].id,
+        upaName: upas[index].name,
+        waitTimes: result?.wait_times?.map(w => ({
+          classificacao: w.classification,
+          tempoMedio: w.average_wait_time_minutes
+        })) || []
+      }));
+
+      setWaitTimesData(organizedWaitTimes);
+    } catch (error) {
+      console.error('Erro ao carregar tempos de espera:', error);
+    }
+  }, [upas]);
+
+  // WebSocket - Atualiza comparação e tempos de espera em tempo real
   useEffect(() => {
     if (!userProfile?.state || !userProfile?.city || noUpasInState) {
       return;
@@ -177,11 +219,13 @@ function AdminDashboard() {
     // Atualiza comparação quando houver mudanças nas filas
     const unsubscribeQueue = WebSocketService.onQueueUpdate(() => {
       loadComparisonData();
+      loadWaitTimesData();
     });
 
     // Atualiza comparação quando houver mudanças em todas as UPAs
     const unsubscribeAllUpas = WebSocketService.onAllUpasUpdate(() => {
       loadComparisonData();
+      loadWaitTimesData();
     });
 
     // Cleanup ao desmontar
@@ -189,7 +233,14 @@ function AdminDashboard() {
       unsubscribeQueue();
       unsubscribeAllUpas();
     };
-  }, [userProfile, noUpasInState, loadComparisonData]);
+  }, [userProfile, noUpasInState, loadComparisonData, loadWaitTimesData]);
+
+  // Carrega tempos de espera quando as UPAs mudarem
+  useEffect(() => {
+    if (upas.length > 0) {
+      loadWaitTimesData();
+    }
+  }, [upas, loadWaitTimesData]);
 
   if (loading) {
     return (
@@ -345,6 +396,58 @@ function AdminDashboard() {
                           <span className="metric-status-text">{upa.statusOcupacao?.toUpperCase()}</span>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tempos de Espera em Tempo Real */}
+          {!noUpasInState && waitTimesData.length > 0 && (
+            <div className="wait-times-section">
+              <h3>Tempos de Espera por Classificação (Tempo Real)</h3>
+              <div className="comparison-grid">
+                {waitTimesData.map((upaData, index) => (
+                  <div key={index} className="wait-time-card">
+                    <div className="wait-time-header">
+                      <h4>{upaData.upaName}</h4>
+                    </div>
+                    <div className="chart-container-small">
+                      <Bar
+                        data={{
+                          labels: upaData.waitTimes.map(w => w.classificacao),
+                          datasets: [{
+                            label: 'Tempo',
+                            data: upaData.waitTimes.map(w => w.tempoMedio),
+                            backgroundColor: upaData.waitTimes.map(w => COLOR_MAP[w.classificacao] || '#94a3b8'),
+                            borderRadius: 8
+                          }]
+                        }}
+                        options={{
+                          indexAxis: 'y',
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                              callbacks: {
+                                label: (context) => {
+                                  return 'Tempo: ' + RoutingService.formatMinutes(context.parsed.x);
+                                }
+                              }
+                            }
+                          },
+                          scales: {
+                            x: {
+                              beginAtZero: true,
+                              ticks: {
+                                callback: (value) => RoutingService.formatMinutes(value)
+                              }
+                            }
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 ))}

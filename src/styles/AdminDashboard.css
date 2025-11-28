@@ -688,6 +688,14 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .comparison-grid,
+  .wait-times-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-main {
     padding: 16px 12px;
@@ -749,7 +757,7 @@
   }
 
   .chart-container-small {
-    height: 240px;
+    height: 200px;
   }
 
   .comparison-table-container {
@@ -757,12 +765,17 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .comparison-grid {
+  .comparison-grid,
+  .wait-times-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .upa-comparison-card {
+  .upa-comparison-card,
+  .wait-time-card {
     padding: 16px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .metric-label {
@@ -939,4 +952,60 @@
   .status-badge-large {
     font-size: 0.7rem;
   }
+}
+
+/* Estilos para Tempos de Espera em Tempo Real - IDENTICO ao comparison-section */
+.wait-times-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 32px;
+  margin-bottom: 32px;
+  padding-top: 24px;
+  border-top: none;
+}
+
+.wait-times-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.wait-times-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.wait-time-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.wait-time-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.wait-time-header h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.chart-container-small {
+  height: 220px;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }

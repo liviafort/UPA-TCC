@@ -312,11 +312,6 @@ screen.getByRole(''); // Mostra erro com todos os roles
 
 ## 📚 Documentação Adicional
 
-### Arquivos Raiz
-- **[TESTING.md](../../TESTING.md)** - Guia completo para o TCC
-- **[COVERAGE.md](../../COVERAGE.md)** - Relatório de cobertura detalhado
-- **[INTEGRATION_TESTS.md](../../INTEGRATION_TESTS.md)** - Visão geral de testes de integração
-
 ### Por Tipo
 - **[Testes Unitários](unit/README.md)** - Documentação específica
 - **[Testes de Integração](integration/README.md)** - Documentação específica
@@ -351,6 +346,6 @@ Ao adicionar novos testes:
 
 ---
 
-**Última atualização**: 22 de novembro de 2025
+**Última atualização**: 22 de Novembro de 2025
 **Versão**: 1.0.0
 **Status**: ✅ Estrutura completa e funcional
