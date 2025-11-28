@@ -257,7 +257,7 @@ function AdminReports() {
             total_visits: statistics?.totalEventos || 0,
             daily_average: Math.round((statistics?.totalEventos || 0) / 7),
             average_wait_time: waitTimeAnalytics?.tempoMedioEsperaGeral || 0,
-            occupancy_rate: statistics?.taxaConclusao || 0
+            occupancy_rate: Math.min(100, statistics?.taxaConclusao || 0)
           },
           distribution: distribution || [],
           waitTimes: waitTimes || [],
@@ -520,7 +520,7 @@ function AdminReports() {
                       </svg>
                     </div>
                     <div className="quick-card-content">
-                      <h3>{statistics.taxaConclusao || 0}%</h3>
+                      <h3>{Math.min(100, statistics.taxaConclusao || 0)}%</h3>
                       <p>Taxa de Conclusão</p>
                     </div>
                   </div>
