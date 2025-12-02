@@ -150,16 +150,15 @@ function AdminReports() {
         if (filterDay) dateParams.day = filterDay;
       }
 
-      // Endpoints que NÃO recebem filtro de data: getUpaStatistics
-      // Endpoints que RECEBEM filtro de data: getUpaDistributionHistorical, getUpaPercentagesHistorical, getUpaWaitTimes, getBairroStats, getWaitTimeAnalytics, getDashboardAnalytics
+      // Todos os endpoints agora RECEBEM filtro de data
       const [stats, dist, perc, wait, bairros, waitAnalytics, dashboard] = await Promise.all([
-        getUpaStatistics(upaId),
-        getUpaDistributionHistorical(upaId, dateParams), 
-        getUpaPercentagesHistorical(upaId, dateParams),  
-        getUpaWaitTimes(upaId, dateParams), 
-        AnalyticsService.getBairroStats(upaId, dateParams), 
-        getWaitTimeAnalytics(upaId, dateParams), 
-        getDashboardAnalytics(upaId, dateParams) 
+        getUpaStatistics(upaId, dateParams),
+        getUpaDistributionHistorical(upaId, dateParams),
+        getUpaPercentagesHistorical(upaId, dateParams),
+        getUpaWaitTimes(upaId, dateParams),
+        AnalyticsService.getBairroStats(upaId, dateParams),
+        getWaitTimeAnalytics(upaId, dateParams),
+        getDashboardAnalytics(upaId, dateParams)
       ]);
 
       // Transformar os dados dos objetos para arrays esperados pelos gráficos
@@ -260,7 +259,8 @@ function AdminReports() {
             occupancy_rate: Math.min(100, statistics?.taxaConclusao || 0)
           },
           distribution: distribution || [],
-          waitTimes: waitTimes || [],
+          percentages: percentages || [],
+          waitTimesByClassification: waitTimeAnalytics?.porClassificacao || {},
           bairros: bairroStats?.bairros || []
         },
         dashboardAnalytics: dashboardAnalytics,

@@ -148,7 +148,7 @@ export async function fetchUpasComStatus() {
   }
 }
 
-export const getUpaStatistics = async (upaId) => {
+export const getUpaStatistics = async (upaId, dateParams = {}) => {
   // Retorna dados mockados se a flag estiver ativa
   if (USE_MOCK_DATA) {
     return new Promise((resolve) => {
@@ -157,36 +157,43 @@ export const getUpaStatistics = async (upaId) => {
   }
 
   try {
-    const evolutionResponse = await api.get(`/api/v1/queue/${upaId}/evolution?days=7`);
+    // Monta os parâmetros de data
+    const params = new URLSearchParams();
+    if (dateParams.year) params.append('year', dateParams.year);
+    if (dateParams.month) params.append('month', dateParams.month);
+    if (dateParams.day) params.append('day', dateParams.day);
 
-    if (!evolutionResponse.data.success) {
-      throw new Error('Erro ao buscar evolução');
+    const queryString = params.toString();
+    const url = `/api/v1/analytics/events/${upaId}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get(url);
+
+    if (!response.data.success) {
+      throw new Error('Erro ao buscar estatísticas');
     }
 
-    const evolutionData = evolutionResponse.data.data;
+    const data = response.data.data;
 
-    // Calcula totais
-    const totais = evolutionData.reduce((acc, day) => ({
-      entradas: acc.entradas + day.entradas,
-      triagens: acc.triagens + day.triagens,
-      atendimentos: acc.atendimentos + day.atendimentos,
-    }), { entradas: 0, triagens: 0, atendimentos: 0 });
+    // Calcula total de eventos
+    const totalEventos = (data.totalEntradas || 0) + (data.totalTriagens || 0) + (data.totalAtendimentos || 0);
 
-    const totalEventos = totais.entradas + totais.triagens + totais.atendimentos;
-    const taxaConclusao = totais.entradas > 0
-      ? ((totais.atendimentos / totais.entradas) * 100).toFixed(1)
+    // Calcula taxa de conclusão
+    const taxaConclusaoCalculada = data.totalEntradas > 0
+      ? (data.totalAtendimentos / data.totalEntradas) * 100
       : 0;
+    const taxaConclusao = Math.min(100, taxaConclusaoCalculada).toFixed(1);
 
     return {
       upaId,
       totalEventos,
-      entradas: totais.entradas,
-      triagens: totais.triagens,
-      atendimentos: totais.atendimentos,
+      entradas: data.totalEntradas || 0,
+      triagens: data.totalTriagens || 0,
+      atendimentos: data.totalAtendimentos || 0,
       taxaConclusao: parseFloat(taxaConclusao),
-      periodo: `${evolutionData.length} dias`,
+      periodo: data.periodo?.descricao || 'Período selecionado',
     };
   } catch (error) {
+    console.error('Erro ao buscar estatísticas da UPA:', error);
     // Retorna dados vazios em caso de erro
     return {
       upaId,
@@ -195,7 +202,7 @@ export const getUpaStatistics = async (upaId) => {
       triagens: 0,
       atendimentos: 0,
       taxaConclusao: 0,
-      periodo: '7 dias',
+      periodo: 'Sem dados',
     };
   }
 };

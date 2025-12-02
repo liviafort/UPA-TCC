@@ -1,5 +1,6 @@
 // src/utils/pdfGenerator.js
 import { jsPDF } from 'jspdf';
+import logo from '../assets/logo.png';
 
 export const generateReportPDF = ({
   upaData,
@@ -69,7 +70,7 @@ export const generateReportPDF = ({
 
   // Cabeçalho
   doc.setFillColor(...primaryColor);
-  doc.rect(0, 0, pageWidth, 40, 'F');
+  doc.rect(0, 0, pageWidth, 45, 'F');
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
@@ -78,18 +79,30 @@ export const generateReportPDF = ({
 
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(String(upaData?.nome || 'Nome da UPA'), pageWidth / 2, 25, { align: 'center' });
+  doc.text(String(upaData?.nome || 'Nome da UPA'), pageWidth / 2, 26, { align: 'center' });
 
   doc.setFontSize(10);
-  doc.text(`Período: ${String(filterDate || 'Últimos 7 dias')}`, pageWidth / 2, 33, { align: 'center' });
+  doc.text(`Período: ${String(filterDate || 'Últimos 7 dias')}`, pageWidth / 2, 36, { align: 'center' });
 
-  yPosition = 50;
+  yPosition = 55;
 
   // Informações da UPA
   doc.setTextColor(...textColor);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Informações da UPA', 14, yPosition);
+
+  // Adiciona a logo no canto direito
+  try {
+    const logoWidth = 30;
+    const logoHeight = 12;
+    const logoX = pageWidth - logoWidth - 14; // 14 de margem da direita
+    const logoY = yPosition - 8; // Alinha com o texto
+    doc.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+  } catch (error) {
+    console.error('Erro ao adicionar logo ao PDF:', error);
+  }
+
   yPosition += 10;
 
   doc.setFontSize(10);
@@ -121,9 +134,8 @@ export const generateReportPDF = ({
   const stats = analyticsData?.statistics || {};
   const statsRows = [
     ['Total de Eventos', String(stats.total_visits || 0)],
-    ['Média Diária', String(stats.daily_average || 0)],
     ['Tempo Médio de Espera', `${String((Number(stats.average_wait_time) || 0).toFixed(0))} min`],
-    ['Taxa de Ocupação', `${String((Number(stats.occupancy_rate) || 0).toFixed(1))}%`]
+    ['Taxa de Conclusão', `${String((Number(stats.occupancy_rate) || 0).toFixed(1))}%`]
   ];
 
   yPosition = drawTable(['Métrica', 'Valor'], statsRows, yPosition);
@@ -138,28 +150,49 @@ export const generateReportPDF = ({
     doc.text('Distribuição por Classificação', 14, yPosition);
     yPosition += 10;
 
-    const distRows = analyticsData.distribution.map(item => [
-      String(item?.classificacao || '-'),
-      String(item?.quantidade || 0)
-    ]);
+    // Cria um mapa de percentuais para fácil acesso
+    const percentagesMap = {};
+    if (analyticsData?.percentages && Array.isArray(analyticsData.percentages)) {
+      analyticsData.percentages.forEach(item => {
+        if (item?.classificacao) {
+          percentagesMap[item.classificacao] = item.percentual || 0;
+        }
+      });
+    }
 
-    yPosition = drawTable(['Classificação', 'Quantidade'], distRows, yPosition);
+    const distRows = analyticsData.distribution.map(item => {
+      const classificacao = String(item?.classificacao || '-');
+      const quantidade = String(item?.quantidade || 0);
+      const percentual = percentagesMap[item?.classificacao]
+        ? String((Number(percentagesMap[item.classificacao]) || 0).toFixed(1)) + '%'
+        : '0.0%';
+
+      return [classificacao, quantidade, percentual];
+    });
+
+    yPosition = drawTable(['Classificação', 'Quantidade', 'Percentual'], distRows, yPosition);
     yPosition += 15;
     checkPageBreak(50);
   }
 
   // Tempos de Espera por Classificação
-  if (analyticsData?.waitTimes && Array.isArray(analyticsData.waitTimes) && analyticsData.waitTimes.length > 0) {
+  if (analyticsData?.waitTimesByClassification && Object.keys(analyticsData.waitTimesByClassification).length > 0) {
     doc.setTextColor(...textColor);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('Tempos Médios de Espera', 14, yPosition);
     yPosition += 10;
 
-    const waitRows = analyticsData.waitTimes.map(item => [
-      String(item?.classificacao || '-'),
-      String((Number(item?.tempoMedio) || 0).toFixed(0))
-    ]);
+    // Ordena as classificações na ordem correta
+    const allClassifications = ['VERMELHO', 'LARANJA', 'AMARELO', 'VERDE', 'AZUL'];
+    const waitRows = allClassifications.map(classification => {
+      const value = analyticsData.waitTimesByClassification[classification];
+      const tempoMedio = value ? Math.max(0, value) : 0;
+      return [
+        String(classification),
+        String(Math.round(tempoMedio))
+      ];
+    });
 
     yPosition = drawTable(['Classificação', 'Tempo Médio (min)'], waitRows, yPosition);
     yPosition += 15;
