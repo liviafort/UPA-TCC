@@ -2,8 +2,9 @@
 import { io } from 'socket.io-client';
 
 // URL do WebSocket - usa variável de ambiente
-// nginx redireciona /upa-ws/ para o servidor socket.io na porta 8094
+// nginx (vejamaissaudeapi.lembretto.com) encaminha /socket.io/ para o gateway socket.io
 const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL;
+const WEBSOCKET_PATH = process.env.REACT_APP_WEBSOCKET_PATH || '/socket.io';
 
 class WebSocketService {
   constructor() {
@@ -21,7 +22,7 @@ class WebSocketService {
     }
 
     this.socket = io(WEBSOCKET_URL, {
-      path: '/upa-ws/socket.io',
+      path: WEBSOCKET_PATH,
       transports: ['polling', 'websocket'], 
       reconnection: true,
       reconnectionDelay: 1000,
