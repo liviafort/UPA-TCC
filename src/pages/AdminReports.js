@@ -74,7 +74,7 @@ function AdminReports() {
   const [statistics, setStatistics] = useState(null);
   const [distribution, setDistribution] = useState(null);
   const [percentages, setPercentages] = useState(null);
-  const [waitTimes, setWaitTimes] = useState(null);
+  const [, setWaitTimes] = useState(null);
   const [bairroStats, setBairroStats] = useState(null);
   const [waitTimeAnalytics, setWaitTimeAnalytics] = useState(null);
   const [dashboardAnalytics, setDashboardAnalytics] = useState(null);
