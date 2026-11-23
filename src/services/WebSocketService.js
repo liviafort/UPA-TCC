@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 
 // URL do WebSocket - usa variável de ambiente
 // nginx (vejamaissaudeapi.lembretto.com) encaminha /socket.io/ para o gateway socket.io
-const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL;
+const WEBSOCKET_URL = process.env.REACT_APP_UPA_WEBSOCKET_URL;
 const WEBSOCKET_PATH = process.env.REACT_APP_WEBSOCKET_PATH || '/socket.io';
 
 class WebSocketService {

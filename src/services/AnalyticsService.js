@@ -1,7 +1,7 @@
 // src/services/AnalyticsService.js
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_UPA_API_URL;
 
 // Usa a mesma instância do axios com interceptors
 const api = axios.create({

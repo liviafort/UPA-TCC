@@ -2,7 +2,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_UPA_API_URL;
 
 // Configuração dos cookies (1 dia de expiração)
 const COOKIE_OPTIONS = {
